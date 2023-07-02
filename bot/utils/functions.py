@@ -230,7 +230,7 @@ def post_to_telegraph(
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
     client = TelegraphPoster()
-    client.create_api_token(author_name)
+    client.create_api_token(author)
     try:
         page = client.post(title, author, text=content, author_url=author_url)
     except BaseException:
