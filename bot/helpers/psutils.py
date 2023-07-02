@@ -1,0 +1,80 @@
+import random
+import re
+
+from bot.utils.functions import get_link
+
+PS_SITES = {
+    "-18": "https://manhwa18.cc/webtoon/",
+    "-mc": "https://manhwaclub.net/manga/",
+    "-mh": "https://manhwahentai.me/webtoon/",
+    "-ws": "https://webtoonscan.com/manhwa/",
+    "-m": "https://manhwahub.net/webtoon/",
+    "-t": "https://toonily.com/webtoon/",
+    "-t3z": "https://hentai3z.com/manga/",
+    "-t6": "https://toon69.com/manga/",
+}
+
+
+def quote_clean(name):
+    """Replace characters in the name with hyphens."""
+    return re.sub(r"[',’?,!]", "", name.lower().replace(" ", "-"))
+
+
+def zeroint(inp):
+    return f"0{inp}" if len(str(inp)) == 1 else inp
+
+
+async def ps_link(site, name, chapter=None):
+    """Generate the link for a given site, name, and chapter."""
+    base = PS_SITES.get(site)
+    if not base:
+        raise ValueError(f"Invalid Site - {site!r}")
+
+    link = base + quote_clean(name)
+    link = (await get_link(link, cloud=random.choice([True, False]))).url
+
+    if chapter:
+        if site == "-ws":
+            link += f"/{chapter}"
+        else:
+            link += (
+                f"/chapter-{chapter}"
+                if not link.endswith("/")
+                else f"chapter-{chapter}"
+            )
+    return link
+
+
+def iargs(site):
+    """Return the class and src attributes based on the site."""
+    _class = "wp-manga-chapter-img"
+    src = "src"
+
+    if site == "-m":
+        _class = "chapter-img img-responsive"
+    elif site == "-18":
+        _class = re.compile("p*")
+    elif site == "-t":
+        src = "data-src"
+
+    return {"_class": _class, "src": src}
+
+
+def ch_from_url(url: str) -> str:
+    splited = url.split("/")
+    last_part = splited[-1] or splited[-2]
+    ch_part = last_part.replace("chapter-", "")
+    ch = ch_part.replace("-", ".")
+
+    try:
+        float(ch)
+        return ch
+    except ValueError:
+        pass
+
+    numRegex = re.compile("(\\d+\\.\\d+|\\d+)")
+    match = numRegex.match(ch)
+    if match:
+        return match.group()
+
+    return ch_part.replace("-", " ").title()

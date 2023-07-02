@@ -1,0 +1,126 @@
+from motor.motor_asyncio import AsyncIOMotorClient
+from pyrogram import types
+
+from bot.config import Config
+
+
+class DB:
+    def __init__(self, collection_name: str):
+        self.col = mongo_db[collection_name]
+
+    def __call__(self):
+        return self.col
+
+    async def set_key(self, key, value, exist_ok=False):
+        if not exist_ok:
+            await self.del_key(key)
+        return await self.col.insert_one({key: value})
+
+    async def update_key(self, key, value, many=False, upsert=False):
+        query = {key: {"$exists": 1}}
+        new_doc = {key: value}
+        update_method = self.col.update_many if many else self.col.update_one
+        return await update_method(query, {"$set": new_doc}, upsert=upsert)
+
+    async def get_key(self, key, value=None, re_doc=False):
+        query = {key: {"$exists": 1}}
+        if value:
+            query = {key: value}
+        doc = await self.col.find_one(query)
+        return doc if re_doc else doc.get(key) if doc else None
+
+    async def del_key(self, key, value=None, many=True):
+        query = {key: {"$exists": 1}}
+        if value:
+            query = {key: value}
+        self.col.delete_many if many else self.col.delete_one
+        return await self.col.delete_many(query)
+
+    def find(self, *args, **kwargs):
+        return self.col.find(*args, **kwargs)
+
+    async def insert_data(self, query, extra=None):
+        extra = extra or {}
+        if await self.col.find_one(query):
+            return await self.col.update_one(query, {"$set": extra})
+        doc = {**query, **extra}
+        return await self.col.insert_one(doc)
+
+
+class UserDB(DB):
+    def __init__(self):
+        super().__init__("Users")
+
+    async def add_user(self, user: types.User):
+        query = {"id": user.id}
+        extra = {
+            "name": " ".join(filter(None, [user.first_name, user.last_name])),
+            "username": user.username,
+        }
+        return await self.insert_data(query, extra=extra)
+
+
+class PSDB(DB):
+    def __init__(self):
+        super().__init__("PSubs")
+
+    async def add_sub(
+        self,
+        ps,
+        url,
+        chat_id,
+        title,
+        send_updates=False,
+        file_mode=None,
+        custom_filename=None,
+        custom_caption=None,
+        thumb_url=None,
+    ):
+        query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
+        extra = {
+            "title": title,
+            "send_updates": bool(send_updates),
+            "file_mode": file_mode,
+            "custom_filename": custom_filename,
+            "custom_caption": custom_caption,
+            "custom_thumb": thumb_url,
+        }
+        return await self.insert_data(query, extra=extra)
+
+    async def get_sub(self, ps, url, chat_id):
+        query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
+        return await self.col.find_one(query)
+
+    async def rm_sub(self, ps, url, chat_id):
+        query = {"ps": ps, "url": url, "chat": chat_id}
+        return await self.col.delete_many(query)
+
+    def all_subs(self):
+        return self.find({"__name__": "subscription"})
+
+    async def add_lc(self, url, lc_url):
+        query = {
+            "__name__": "last_chapter",
+            "url": url,
+        }
+        extra = {"lc_url": lc_url}
+        return await self.insert_data(query, extra=extra)
+
+    async def get_lc(self, url):
+        query = {"__name__": "last_chapter", "url": url}
+        return await self.col.find_one(query)
+
+    async def rm_lc(self, url):
+        query = {"__name__": "last_chapter", "url": url}
+        return await self.col.delete_many(query)
+
+    def all_lcs(self):
+        return self.find({"__name__": "last_chapter"})
+
+
+# Initialize the MongoDB client and database
+mongo_client = AsyncIOMotorClient(Config.MONGO_URL)
+mongo_db = mongo_client["TESTDB"]
+dB = DB("MAIN")
+udB = UserDB()
+pdB = PSDB()

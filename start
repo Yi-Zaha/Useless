@@ -1,0 +1,6 @@
+echo "Updating local repo..."
+git fetch -fq && git pull -fq
+echo "Updating requirements..."
+pip install --quiet -U -r requirements.txt
+echo "Starting..."
+python3 -m bot
