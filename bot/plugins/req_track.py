@@ -88,7 +88,7 @@ async def handle_request_action(client, callback):
         next(g for g, c in rchats.items() if c == message.chat.id)
     )
     to_send = f'<i><u><b>[{chat.title}]:</b></u></i>\n\n<i>Your request for "{crequest}" has been {action}.</i>'
-    to_edit = f"<b>▼{action.upper()}▼</b>\n\n<s>{callback_text}</s>"
+    to_edit = f"<b>▼{action.upper()}▼</b>\n\n<s>{message_text}</s>"
 
     if user_id:
         try:
