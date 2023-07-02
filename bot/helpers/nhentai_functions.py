@@ -10,7 +10,7 @@ async def download_doujin_files(doujin, file=None):
 async def generate_telegraph_link(doujin):
     graph_link = await post_to_telegraph(
         doujin.title,
-        "".join(f"<img src='{url}'/>" for url in doujin.images),
+        "".join(f"<img src='{url}'/>" for url in doujin.image_url),
         author="Nhentai Hub",
         author_url="https://telegram.me/Nhentai_Doujins",
     )

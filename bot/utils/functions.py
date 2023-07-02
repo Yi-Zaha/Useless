@@ -224,7 +224,7 @@ async def get_chat_link_from_msg(message):
 
 @async_wrap
 def post_to_telegraph(
-    title: str, content: str, author_name: str = None, author_url: str = None
+    title: str, content: str, author: str = None, author_url: str = None
 ):
     if not author_name and not author_url:
         author_name = bot.me.first_name
@@ -232,7 +232,7 @@ def post_to_telegraph(
     client = TelegraphPoster()
     client.create_api_token(author_name)
     try:
-        page = client.post(title, author_name, text=content, author_url=author_url)
+        page = client.post(title, author, text=content, author_url=author_url)
     except BaseException:
         return None
     return page["url"].replace("telegra.ph", "te.legra.ph")
