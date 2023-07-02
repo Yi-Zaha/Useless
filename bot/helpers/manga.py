@@ -443,7 +443,7 @@ class Nhentai:
         if mode.lower() in ("cbz", "both"):
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image in images:
-                    cbz.write(image, compress_type=zipfile.DEFLATED)
+                    cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
