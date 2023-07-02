@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from html_telegraph_poster.upload_images import upload_image
 from pyrogram import filters
-from pyrogram.enums import ParseMode
+from pyrogram.enums import ParseMode, ChatAction
 from pyrogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -214,6 +214,7 @@ async def list_all_subs(client, message):
         text += "\n\n"
 
     if len(text) > 4096:
+        await client.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
         with io.BytesIO(text.encode()) as file:
             file.name = "Subs.txt"
             await client.send_document(
@@ -221,6 +222,7 @@ async def list_all_subs(client, message):
                 file,
                 caption=f"<b>Total Subs:</b> <code>{subs_count}</code>",
             )
+        await client.send_chat_action(message.chat.id, ChatAction.CANCEL)
     else:
         text = f"<b>Total Subs:</b> <code>{subs_count}</code>\n\n" + text
         await message.reply(text)
