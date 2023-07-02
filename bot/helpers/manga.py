@@ -409,7 +409,7 @@ class Nhentai:
         dir.mkdir(exist_ok=True)
         tmp_dir = dir / str(self.code)
         tmp_dir.mkdir(exist_ok=True)
-        file_path = tmp_dir / title
+        file_path = get_path(title)
         pdf_file = file_path.with_suffix(".pdf")
         cbz_file = file_path.with_suffix(".cbz")
 
