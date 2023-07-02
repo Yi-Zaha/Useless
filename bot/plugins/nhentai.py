@@ -115,7 +115,7 @@ async def telegraph_nhentai(client, message):
         return
 
     doujin_info = generate_doujin_info(doujin)
-    await status.edit(f"`Processing...` [{doujin.title}]({doujin.url})")
+    await status.edit(f"Processing... [{doujin.title}]({doujin.url})")
 
     graph_link = await generate_telegraph_link(doujin)
     graph_link = graph_link or doujin.read_url

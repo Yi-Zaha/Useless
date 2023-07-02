@@ -226,8 +226,8 @@ async def get_chat_link_from_msg(message):
 def post_to_telegraph(
     title: str, content: str, author: str = None, author_url: str = None
 ):
-    if not author_name and not author_url:
-        author_name = bot.me.first_name
+    if not author and not author_url:
+        author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
     client = TelegraphPoster()
     client.create_api_token(author_name)
