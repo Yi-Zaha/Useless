@@ -351,76 +351,58 @@ class PS:
 
 
 class Nhentai:
-    def __init__(self):
-        self.title = ""
+    async def get(self, link):
+        if not link.isdigit():
+            link = link
+            code_regex = re.findall(r"\d+\.*\d+", link)
+            self.code = code_regex[0] if code_regex else "N/A"
+        else:
+            self.code = link
+            link = f"https://nhentai.to/g/{link}/"
+
+        content = await AioHttp.request(link)
+        soup = BeautifulSoup(content, "html.parser")
+        self.title = soup.find("div", id="info").find("h1").text
         self.tags = []
         self.artists = []
         self.parodies = []
         self.categories = []
         self.languages = []
-        self.images = []
-        self.pages = 0
-        self.url = ""
-        self.read_url = ""
+        self.image_urls = []
+        self.read_url = f"{link}1" if link.endswith("/") else f"{link}/1"
+        self.url = link
 
-    async def get(self, link):
-        if not link.isdigit():
-            code_regex = re.findall(r"\d+", link)
-            self.code = code_regex[0] if code_regex else "N/A"
-            self.url = link
-        else:
-            self.code = link
-            self.url = f"https://nhentai.to/g/{link}/"
+        tag_mapping = {
+            "tag": self.tags,
+            "artist": self.artists,
+            "parody": self.parodies,
+            "language": self.languages,
+            "category": self.categories,
+        }
 
-        content = await AioHttp.request(self.url)
-        soup = BeautifulSoup(content, "html.parser")
-        self.title = soup.find("div", id="info").find("h1").text
-        self.tags = self._get_tags(soup)
-        self.artists = self._get_category_items(soup, "artist")
-        self.parodies = self._get_category_items(soup, "parody")
-        self.languages = self._get_category_items(soup, "language")
-        self.categories = self._get_category_items(soup, "category")
-        self.images = self._get_image_urls(soup)
-        self.pages = len(self.images)
-        self.read_url = f"{self.url}1" if self.url.endswith("/") else f"{self.url}/1"
+        tdata = soup.find_all("a", "tag")
+        for t in tdata:
+            tag_type = next((tag_type for tag_type in tag_mapping if tag_type in t["href"]), None)
+            if tag_type:
+                t = t.find(class_="name") if any(x in self.url for x in [".xxx", ".net"]) else t
+                tag_name = t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "")
+                tag_mapping[tag_type].append(f"#{tag_name}")
+
+        data = soup.find_all("img", "lazyload")
+        for img in data:
+            img_url = (
+                img["data-src"]
+                .strip()
+                .replace("t.", ".")
+                .replace("t3.nhentai.net", "i3.nhentai.net")
+            )
+            if img_url.endswith("/") or img_url.endswith(("thumb.jpg", "cover.jpg")):
+                continue
+            self.image_urls.append(img_url)
+
+        self.pages = len(self.image_urls)
 
         return self
-
-    @staticmethod
-    def _get_category_items(soup, category):
-        items = []
-        category_links = soup.find_all("a", href=re.compile(rf"/tag/{category}/\d+"))
-        for link in category_links:
-            item = link.find(class_="name")
-            if item:
-                items.append(f"#{item.text.strip().splitlines()[0].replace(' ', '_')}")
-        return items
-
-    @staticmethod
-    def _get_tags(soup):
-        tags = []
-        tag_links = soup.find_all("a", href=re.compile(r"/tag/[^/]+/\d+"))
-        for link in tag_links:
-            tag = link.find(class_="name")
-            if tag:
-                tags.append(
-                    f"#{tag.text.strip().splitlines()[0].replace(' ', '_').replace('-', '')}"
-                )
-        return tags
-
-    @staticmethod
-    def _get_image_urls(soup):
-        image_urls = []
-        image_elements = soup.find_all("img", class_="lazyload")
-        for element in image_elements:
-            image_url = element["data-src"]
-            if image_url.endswith(("/", "thumb.jpg", "cover.jpg")):
-                continue
-            image_url = image_url.replace("t.", ".").replace(
-                "t3.nhentai.net", "i3.nhentai.net"
-            )
-            image_urls.append(image_url)
-        return image_urls
 
     async def dl_chapter(self, title, mode):
         dir = Path("cache/nhentai")
