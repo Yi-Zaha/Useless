@@ -207,6 +207,7 @@ async def list_all_subs(client, message):
         text += f"{ps} ({len(lst)}):\n"
         for s_text in lst:
             text += s_text
+        text += "\n\n"
 
     if len(text) > 4096:
         with io.BytesIO(text.encode()) as file:
