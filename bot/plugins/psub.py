@@ -346,8 +346,8 @@ async def update_subs():
                     ch = zeroint(ch_from_url(ch_url))
                     _ch = ch
                     if _is_numeric(ch):
-                        ch = f"Ch - {ch}"
                         _ch = f"Chapter {ch}"
+                        ch = f"Ch - {ch}"
 
                     filename = custom_filename.format(ch=ch, manga=title)
                     caption = custom_caption.format(ch=ch, manga=title)
