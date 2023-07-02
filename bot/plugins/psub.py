@@ -400,7 +400,7 @@ async def update_subs():
 
                     files[-1].caption = caption
                     try:
-                        await bot.send_media_group(chat, files)
+                        await bot.send_media_group(chat, files, protect_content=ps in ("Manhwa18", "Toonily"))
                     except Exception as e:
                         LOGGER(__name__).info(
                             f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
