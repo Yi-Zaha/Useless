@@ -6,6 +6,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
 from bot.config import Config
+from bot.helper.manga import Nhentai
 from bot.helpers.nhentai_helpers import (
     download_doujin_files,
     generate_doujin_info,
