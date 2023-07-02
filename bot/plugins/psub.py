@@ -170,6 +170,10 @@ async def remove_sub(client, message):
 
     url = message.command[1]
     chat = message.command[2]
+    try:
+        chat = int(chat)
+    except ValueError:
+        pass
 
     try:
         ps = PS.guess_ps(url)
