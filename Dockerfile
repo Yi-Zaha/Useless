@@ -9,7 +9,7 @@ RUN apt-get -y update && \
     apt-get install -y --no-install-recommends mediainfo ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone the main branch from our repository
+# Clone the master branch from our repository
 RUN git clone https://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@github.com/Yi-Zaha/Useless /root/bot
 
 # Set the working directory to the cloned repository
