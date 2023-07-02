@@ -26,8 +26,8 @@ DELAYED_PS = ["Manhwa18", "Mangabuddy"]
 PS_SLEPT = set()
 CHAPTER_LOG_MSG = """
 <b>#New_Chapter</b>
-<i>→ {title}
-→ {ch}</i>
+<i>→{title}
+→{ch}</i>
 """
 
 
