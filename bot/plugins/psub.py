@@ -25,7 +25,7 @@ DISABLED_PS = []
 DELAYED_PS = ["Manhwa18", "Mangabuddy"]
 PS_SLEPT = set()
 CHAPTER_LOG_MSG = """
-<b>#New_Chapter</b>
+<i><b>#New_Chapter</b></i>
 <i>→{title}
 →{ch}</i>
 """
