@@ -14,7 +14,8 @@ from bot.helpers.nhentai_functions import (
 )
 from bot.utils.functions import generate_share_url
 
-NH_CHAT = Config.get("NH_CHAT", -1001867670372)
+NH_CHANNEL = Config.get("NH_CHANNEL", -1001867670372)
+NH_CHAT = Config.get("NH_CHAT", -1001666665549)
 
 
 @bot.on_message(filters.command("nh") & filters.user(ALLOWED_USERS))
@@ -58,7 +59,7 @@ async def nh_handler(client, message):
 
     buttons = [[InlineKeyboardButton("⛩️ Read Here ⛩️", url=url)]]
     mess = await client.send_message(
-        NH_CHAT,
+        NH_CHANNEL,
         doujin_info.replace(graph_post, f"[{doujin.title}]({url})"),
         reply_markup=InlineKeyboardMarkup(buttons),
     )
@@ -124,3 +125,11 @@ async def telegraph_nhentai(client, message):
     doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), graph_post)
 
     await status.edit(doujin_info, parse_mode=ParseMode.MARKDOWN)
+
+
+@bot.on_message(filters.chat(NH_CHAT) & filters.linked_channel)
+async def clean_nh_chat(client, message):
+    if message.sticker:
+        return
+    if "➤ Tags:" in str(message.text):
+        await message.delete()
