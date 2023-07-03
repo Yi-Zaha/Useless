@@ -23,7 +23,7 @@ async def exec_handler(client, message):
         output += f"**✦ STDERR:**\n`{stderr}`\n\n"
     if stdout:
         output += f"**✦ STDOUT:**\n`{stdout}`"
-    else:
+    elif not stderr:
         output += "**✦ STDOUT:**\n`Success`"
 
     if len(output) > 4096:
