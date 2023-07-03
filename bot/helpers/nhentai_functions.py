@@ -1,10 +1,16 @@
+import asyncio
 from bot.utils.functions import post_to_telegraph
+
+_locks = {}
 
 
 async def download_doujin_files(doujin, file=None):
     file = file or str(doujin.code)
-    pdf, cbz = await doujin.dl_chapter(file, "both")
-    return pdf, cbz
+    if doujin not in _locks:
+        _locks[doujin.code] = asyncio.Lock()
+    async with _locks[doujin.code]:
+        pdf, cbz = await doujin.dl_chapter(file, "both")
+        return pdf, cbz
 
 
 async def generate_telegraph_link(doujin):
