@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from pyrogram import filters
 from pyrogram.enums import ParseMode
@@ -127,9 +128,7 @@ async def telegraph_nhentai(client, message):
     await status.edit(doujin_info, parse_mode=ParseMode.MARKDOWN)
 
 
-@bot.on_message(filters.chat(NH_CHAT) & filters.linked_channel)
+@bot.on_message(filters.linked_channel & ~filters.sticker & filters.chat(NH_CHAT))
 async def clean_nh_chat(client, message):
-    if message.sticker:
-        return
     if "➤ Tags:" in str(message.text):
         await message.delete()
