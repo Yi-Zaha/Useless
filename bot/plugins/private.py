@@ -126,8 +126,8 @@ async def pm_start(client, message):
     start_text = (
         f"Hi {message.from_user.mention}. I am working for Pornhwa Hub.\n"
         f"You can contact my owner through me.\n\n"
-        f"<b>» Uptime</b>: <code>{uptime}</code>\n"
-        f"<b>» Ping</b>: <code>{ping} ms</code>"
+        f"<b>»Uptime</b>: <code>{uptime}</code>\n"
+        f"<b>»Ping</b>: <code>{ping} ms</code>"
     )
 
     channel_link = await get_chat_invite_link(SUBS_CHANNEL)
