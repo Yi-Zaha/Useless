@@ -382,10 +382,18 @@ class Nhentai:
 
         tdata = soup.find_all("a", "tag")
         for t in tdata:
-            tag_type = next((tag_type for tag_type in tag_mapping if tag_type in t["href"]), None)
+            tag_type = next(
+                (tag_type for tag_type in tag_mapping if tag_type in t["href"]), None
+            )
             if tag_type:
-                t = t.find(class_="name") if any(x in self.url for x in [".xxx", ".net"]) else t
-                tag_name = t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "")
+                t = (
+                    t.find(class_="name")
+                    if any(x in self.url for x in [".xxx", ".net"])
+                    else t
+                )
+                tag_name = (
+                    t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "")
+                )
                 tag_mapping[tag_type].append(f"#{tag_name}")
 
         data = soup.find_all("img", "lazyload")

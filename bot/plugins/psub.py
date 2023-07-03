@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from html_telegraph_poster.upload_images import upload_image
 from pyrogram import filters
-from pyrogram.enums import ParseMode, ChatAction
+from pyrogram.enums import ChatAction, ParseMode
 from pyrogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -333,7 +333,7 @@ async def update_subs():
             if url not in subs_data:
                 await pdB.add_lc(url, new_chapters[-1])
                 continue
-            
+
             LOGGER(__name__).info(f"[{ps}] Updates for {url}: {new_chapters}")
             await asyncio.sleep(5)
 
@@ -404,7 +404,9 @@ async def update_subs():
 
                     files[-1].caption = caption
                     try:
-                        await bot.send_media_group(chat, files, protect_content=ps in ("Manhwa18", "Toonily"))
+                        await bot.send_media_group(
+                            chat, files, protect_content=ps in ("Manhwa18", "Toonily")
+                        )
                     except Exception as e:
                         LOGGER(__name__).info(
                             f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
