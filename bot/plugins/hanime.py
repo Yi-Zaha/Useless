@@ -23,7 +23,7 @@ async def search_hentai(client, message):
         )
         assert result["response"]
     except Exception:
-        return await message.reply("`No result found for the given query.`")
+        return await message.reply("No result found for the given query.")
 
     buttons = [
         [
