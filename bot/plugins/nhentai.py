@@ -46,8 +46,9 @@ async def nh_handler(client, message):
     graph_post = f"[{doujin.title}]({graph_link})"
     doujin_info = doujin_info.replace(doujin_info.split("\n")[0], graph_post)
 
-    await client.send_message(LOG_CHAT, graph_link)
+    temp = await client.send_message(LOG_CHAT, graph_link)
     await asyncio.sleep(3)
+    await tmp.delete()
 
     first_msg = await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
     await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
@@ -93,7 +94,7 @@ async def nhentai_handler(client, message):
     )
     await asyncio.gather(
         client.send_document(message.chat.id, pdf),
-        client.send_document(message.chat.id, cbz),
+        client.send_document(message.chat.id, cbz)
     )
 
     await status.delete()
