@@ -51,7 +51,7 @@ async def nh_handler(client, message):
 
     await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
     await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
-    last_msg = await client.send_message(CACHE_CHAT, cbz, caption="**CBZ VIEW**")
+    last_msg = await client.send_document(CACHE_CHAT, cbz, caption="**CBZ VIEW**")
 
     url = generate_share_url("expiry", message.chat.id, last_msg.id)
 
