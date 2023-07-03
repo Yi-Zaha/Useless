@@ -330,10 +330,14 @@ async def update_subs():
                 PS_SLEPT.remove(ps)
 
         for url, new_chapters in updates.items():
+            if url not in subs_data:
+                await pdB.add_lc(url, new_chapters[-1])
+                continue
+            
             LOGGER(__name__).info(f"[{ps}] Updates for {url}: {new_chapters}")
             await asyncio.sleep(5)
 
-            for sub_data in subs_data.get(url, []):
+            for sub_data in subs_data[url]:
                 (
                     chat,
                     title,
