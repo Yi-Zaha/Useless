@@ -333,7 +333,7 @@ async def update_subs():
             LOGGER(__name__).info(f"[{ps}] Updates for {url}: {new_chapters}")
             await asyncio.sleep(5)
 
-            for sub_data in subs_data[url]:
+            for sub_data in subs_data.get(url, []):
                 (
                     chat,
                     title,
