@@ -6,7 +6,7 @@ _locks = {}
 
 async def download_doujin_files(doujin, file=None):
     file = file or str(doujin.code)
-    if doujin not in _locks:
+    if doujin.code not in _locks:
         _locks[doujin.code] = asyncio.Lock()
     async with _locks[doujin.code]:
         pdf, cbz = await doujin.dl_chapter(file, "both")
