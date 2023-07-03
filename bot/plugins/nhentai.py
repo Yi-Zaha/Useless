@@ -49,11 +49,11 @@ async def nh_handler(client, message):
     await client.send_message(LOG_CHAT, graph_link)
     await asyncio.sleep(3)
 
-    await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
+    first_msg = await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
     await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
     last_msg = await client.send_document(CACHE_CHAT, cbz, caption="**CBZ VIEW**")
 
-    url = generate_share_url("expiry", message.chat.id, last_msg.id)
+    url = generate_share_url("expiry", first_msg.id, last_msg.id)
 
     buttons = [[InlineKeyboardButton("⛩️ Read Here ⛩️", url=url)]]
     mess = await client.send_message(
