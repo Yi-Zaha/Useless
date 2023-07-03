@@ -65,7 +65,7 @@ async def nh_handler(client, message):
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
-    await client.send_cached_media(NH_CHAT, "CAADAQADRwIAArtf8EeIGkF9Fv05gQI")
+    await client.send_cached_media(NH_CHANNEL, "CAADAQADRwIAArtf8EeIGkF9Fv05gQI")
     here = f"[{mess.chat.title}]({mess.link})"
     await status.edit(
         f"<i>[{doujin.title}]({doujin.url}) has been uploaded in {here}.</i>"
