@@ -10,7 +10,8 @@ RUN apt-get -y update && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the master branch from our repository
-RUN git clone https://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@github.com/yi-zaha/Useless /root/bot
+COPY clone-rep.sh ./
+RUN bash clone-rep.sh
 
 # Set the working directory to the cloned repository
 WORKDIR /root/bot
