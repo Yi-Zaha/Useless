@@ -39,7 +39,7 @@ async def nh_handler(client, message):
 
     pdf, cbz = await download_doujin_files(
         doujin,
-        file=doujin.title.replace("/", "|")[0][:40].strip() + " @Nhentai_Doujins",
+        file=doujin.title.replace("/", "|").split("|")[0][:40].strip() + " @Nhentai_Doujins",
     )
     graph_link = await generate_telegraph_link(doujin)
     graph_link = graph_link or doujin.read_url
