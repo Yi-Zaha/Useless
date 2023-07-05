@@ -365,10 +365,9 @@ async def update_subs():
                     chapter_file = None
                     try:
                         if ps == "Manganato":
-                            manga_id = url.split("/")[-1]
-                            manga = await IManga(manga_id)._parse_info()
-
                             if not thumb:
+                                manga_id = url.split("/")[-1]
+                                manga = await IManga(manga_id)._parse_info()
                                 thumb = (await AioHttp.download(manga.poster_url))[0]
 
                             chapter_file = await IManga.dl_chapter(
