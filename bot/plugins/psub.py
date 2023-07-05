@@ -381,17 +381,17 @@ async def update_subs():
                             )
 
                         else:
-                            filename += " @Adult_Mangas"
+                            filename = f"{ch} {title} @Adult_Mangas"
                             chapter_file = await PS.dl_chapter(
                                 ch_url, filename, file_mode, **iargs(PS.iargs(ps))
                             )
 
-                    except Exception:
+                    except Exception as e:
                         if thumb:
                             os.remove(thumb)
 
-                        LOGGER(__name__).exception(
-                            f"Couldn't make chapter file for {ch_url}."
+                        LOGGER(__name__).error(
+                            f"Couldn't make chapter file for {ch_url} → {e.__class__.__name__}: {e}"
                         )
                         break
 
@@ -412,7 +412,6 @@ async def update_subs():
                             f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
                         )
                         await pdB.rm_sub(ps, url, chat)
-                        await pdB.add_lc(url, new_chapters[-1])
                         break
 
                     for file in files:
