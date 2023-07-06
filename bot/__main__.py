@@ -47,7 +47,8 @@ if __name__ == "__main__":
     start_clients()
     try:
         loop.run_until_complete(main())
-    except BaseException:
+    except Exception as e:
+        LOGS.info(str(e))
+    finally:
         stop_clients()
         loop.close()
-        raise
