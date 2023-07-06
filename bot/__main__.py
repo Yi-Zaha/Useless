@@ -48,7 +48,7 @@ if __name__ == "__main__":
     try:
         loop.run_until_complete(main())
     except Exception as e:
-        LOGS.info(str(e))
+        LOGS.error(str(e))
     finally:
         stop_clients()
         loop.close()
