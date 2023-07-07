@@ -1,11 +1,13 @@
 import glob
 import os
 
+from html_telegraph_poster.upload_images import upload_image
 from pyrogram import errors, filters
 from pyrogram.enums import ChatAction, ParseMode
 
 from bot import ALLOWED_USERS, SUDOS, bot
 from bot.logger import LOG_FILE
+from bot.utils.db import dB
 from bot.utils.functions import humanbytes as hb
 
 
@@ -30,6 +32,24 @@ async def noformat_text(client, message):
         f"<code>{message.reply_to_message.text.markdown}</code>",
         parse_mode=ParseMode.HTML,
     )
+
+
+@bot.on_message(filters.command(["setthumb", "thumbnail", "thumb"]) & filters.user(SUDOS))
+async def set_thumbnail(client, message):
+    reply = message.reply_to_message
+    if getattr(reply, "photo", None):
+        file = await reply.download("./thumb.jpg")
+
+    elif getattr(reply, "document", None) and reply.document.thumbs:
+        file = await client.download_media(
+            reply.document.thumbs[-1].file_id, file_name="./thumb.jpg"
+        )
+    else:
+        await message.reply("Reply to a photo or a document with thumb to set default thumbnail.")
+
+    thumb_url = upload_image(file)
+    await dB.set_key("THUMBNAIL", thumb_url)
+    await message.reply("Default thumbnail set!")
 
 
 @bot.on_message(filters.command("ls") & filters.user(SUDOS))
