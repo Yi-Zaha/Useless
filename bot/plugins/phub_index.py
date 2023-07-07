@@ -47,7 +47,7 @@ async def update_phub_index():
     posts = {}
 
     messages = await get_chat_messages(
-        phub_channel, first_msg_id=2, last_msg_id=await dB.get_key("PH_LAST_ID")
+        PHUB_CHANNEL, first_msg_id=2, last_msg_id=await dB.get_key("PH_LAST_ID")
     )
 
     for message in messages:
