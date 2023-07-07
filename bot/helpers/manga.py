@@ -89,7 +89,7 @@ class IManga:
         return data
 
     @staticmethod
-    async def dl_chapter(chapter_url, file, mode):
+    async def dl_chapter(chapter_url, title, mode):
         dir = tempfile.mkdtemp()
         headers = {"User-Agent": random.choice(user_agents)}
         content = await AioHttp.request(chapter_url, headers=headers)
