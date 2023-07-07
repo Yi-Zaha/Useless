@@ -129,11 +129,10 @@ class IManga:
 
         await asyncio.gather(*tasks)
 
-        file_path = get_path(file)
         files = []
         if mode.lower() in ("pdf", "both"):
-            author = f"https://telegram.dog/{bot.me.username}"
-            pdf_file = file_path.with_suffix(".pdf")
+            pdf_file = get_path(title + ".pdf")
+            author = f"https://telegram.me/{bot.me.username}"
             try:
                 pdf = imgtopdf(pdf_file, images, author=author)
             except Exception:
@@ -141,7 +140,7 @@ class IManga:
             files.append(pdf_file)
 
         if mode.lower() in ("cbz", "both"):
-            cbz_file = file_path.with_suffix(".cbz")
+            cbz_file = get_path(title + ".cbz")
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image_path in images:
                     cbz.write(image_path, compress_type=zipfile.ZIP_DEFLATED)
@@ -329,10 +328,9 @@ class PS:
                 shutil.rmtree(tmp_dir)
                 raise
 
-        file_path = get_path(title)
         files = []
         if mode.lower() in ("pdf", "both"):
-            pdf_file = file_path.with_suffix(".pdf")
+            pdf_file = get_path(title + ".pdf")
             try:
                 pdf = imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
             except BaseException:
@@ -340,7 +338,7 @@ class PS:
             files.append(pdf_file)
 
         elif mode.lower() in ("cbz", "both"):
-            cbz_file = file_path.with_suffix(".cbz")
+            cbz_file = get_path(title + ".cbz")
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image in images:
                     cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
@@ -417,9 +415,8 @@ class Nhentai:
         dir.mkdir(exist_ok=True)
         tmp_dir = dir / str(self.code)
         tmp_dir.mkdir(exist_ok=True)
-        file_path = get_path(title)
-        pdf_file = file_path.with_suffix(".pdf")
-        cbz_file = file_path.with_suffix(".cbz")
+        pdf_file = get_path(title + ".pdf")
+        cbz_file = get_path(title + ".cbz")
 
         headers = {"User-Agent": random.choice(user_agents)}
         headers["Referer"] = self.url

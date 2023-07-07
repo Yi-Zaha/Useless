@@ -86,10 +86,9 @@ async def bulkp_handler(client, message):
         chapters = []
         async for ch_link in PS.iter_chapters(url):
             chapters.append(ch_link)
-        chapters.reverse()
 
         process_started = False
-        for ch_link in chapters:
+        for ch_link in reversed(chapters):
             chapter = zeroint(ch_from_url(ch_link))
             pdfname = f"{cache_dir}/Ch - {chapter} {title} @Adult_Mangas"
             chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site))
