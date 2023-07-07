@@ -656,7 +656,7 @@ async def get_anime_manga(
         """
         )
         _caption = caption.replace("━━━━━━━━━━━━━━━━━━━━━━━━━━", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        _caption = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        _caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         synopsis_link = await post_to_telegraph(
             title_h,
             f"<img src='{title_img}' title={romaji}/>\n"
