@@ -508,6 +508,8 @@ async def get_anime_manga(
     else:
         caption = f"<b>{result['title']['romaji']}</b>\n\t\t(<code>{result['title']['native']}</code>)\n"
     alternative_names.extend(result["synonyms"])
+    _caption = caption
+    _caption += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     caption += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━"
     if alternative_names:
         alternative_names_string = ", ".join(alternative_names[:3])
@@ -665,6 +667,8 @@ async def get_anime_manga(
             author_url,
         )
         caption += f"<b>{TRAILER}</b>\n" if TRAILER else ""
+        _caption += caption
+        _caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     elif search_type == "anime_manga":
@@ -681,11 +685,13 @@ async def get_anime_manga(
         <b>››Genres</b>: <i>{genre_string}</i>
         """
         )
+        _caption += caption
+        _caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━"
         synopsis_link = await post_to_telegraph(
             title_h,
             f"<img src='{title_img}' title={romaji}/>\n"
-            + f"<code>{caption.replace('<code>', '').replace('</code>', '')}</code>\n"
+            + f"<code>{_caption.replace('<code>', '').replace('</code>', '')}</code>\n"
             + Markdown().convert(html_pc),
             author,
             author_url,
