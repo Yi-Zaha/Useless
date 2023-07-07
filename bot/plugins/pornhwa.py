@@ -101,7 +101,7 @@ async def bulkp_handler(client, message):
             if not process_started:
                 chat_link = await get_chat_link_from_msg(upload_msg)
                 await status.edit(
-                    f"<code>Uploaing all chapters...</code>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
+                    f"<code>Uploading all chapters...</code>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
                     disable_web_page_preview=True,
                 )
                 process_started = True
