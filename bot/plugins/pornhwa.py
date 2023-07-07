@@ -1,17 +1,12 @@
 import os
-
 from pyrogram import filters
-
 from bot import ALLOWED_USERS, bot
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
 from bot.utils.functions import get_chat_link_from_msg
 
-
 @bot.on_message(
-    filters.regex(
-        "^/read( -thumb)?( -fpdf)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)"
-    )
+    filters.regex("^/read( -thumb)?( -fpdf)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)")
     & filters.user(ALLOWED_USERS)
 )
 async def readp_handler(client, message):
@@ -48,14 +43,20 @@ async def readp_handler(client, message):
 async def bulkp_handler(client, message):
     status = await message.reply("Processing...")
     if len(message.command) < 2:
-        return await status.edit(
-            "Invalid syntax. Please provide the site name and manga title."
-        )
-
+        return await status.edit("Invalid syntax. Please provide the site name and manga title.")
+    
+    reply = message.reply_to_message
     text = message.text.split(" ", 1)[1]
     site = text.split(" ")[0]
     flags = ("-thumb", "-protect", "-t", "-18")
-    thumb = flags[0] in text
+
+    if reply and reply.photo:
+        thumb = await reply.download()
+    elif flags[0] in text:
+        thumb = "thumb.jpg"
+    else:
+        thumb = None
+    
     protect_content = flags[1] in text
     for flag in flags:
         text = text.replace(flag, "", 1).strip()
@@ -82,7 +83,7 @@ async def bulkp_handler(client, message):
         if not os.path.isdir(cache_dir):
             os.makedirs(cache_dir)
 
-        chapters = list()
+        chapters = []
         async for ch_link in PS.iter_chapters(url):
             chapters.append(ch_link)
         chapters.reverse()
@@ -92,7 +93,6 @@ async def bulkp_handler(client, message):
             chapter = zeroint(ch_from_url(ch_link))
             pdfname = f"{cache_dir}/Ch - {chapter} {title} @Adult_Mangas"
             chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site))
-            thumb = "thumb.jpg" if thumb else None
             upload_msg = await bot.send_document(
                 chat_id, chapter_file, thumb=thumb, protect_content=protect_content
             )
@@ -110,6 +110,9 @@ async def bulkp_handler(client, message):
             f"<b>Pornhwa Bulk Upload Finished!</b>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
             disable_web_page_preview=True,
         )
+        
+        if thumb and thumb != "thumb.jpg":
+            os.remove(thumb)
 
     except Exception as e:
         await status.edit(
