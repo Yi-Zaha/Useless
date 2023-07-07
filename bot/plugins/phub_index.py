@@ -12,6 +12,7 @@ from bot.utils.functions import get_chat_messages
 
 PHUB_CHANNEL = Config.get("PORNHWA_HUB", -1001606385356)
 INDEX_CHANNEL = Config.get("PORNHWA_HUB_INDEX", -1001749847496)
+UPDATING_INDEX = None
 
 
 @bot.on_message(filters.command("updateindex") & filters.user(SUDOS))
@@ -36,6 +37,11 @@ async def on_phub_handler(client, message):
 
 
 async def update_phub_index():
+    global UPDATING_INDEX
+    if UPDATING_INDEX is True:
+        return
+    UPDATING_INDEX = True
+
     index_post_id = 62
     index = {"#": {}, **{alpha: {} for alpha in string.ascii_uppercase}}
     posts = {}
@@ -77,3 +83,5 @@ async def update_phub_index():
             except Exception as e:
                 print(f"Error in updating PH Index post id {index_post_id}: {e}")
         index_post_id += 1
+
+    UPDATING_INDEX = False
