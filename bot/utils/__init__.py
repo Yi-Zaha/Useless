@@ -3,6 +3,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .aiohttp_helper import *
 from .db import *
 from .functions import *
+from .media import *
 from .pdf import *
 
 channel_filter = filters.channel | ~filters.channel
