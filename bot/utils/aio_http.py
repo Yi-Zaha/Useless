@@ -10,7 +10,6 @@ from bot.utils.singleton import Singleton
 
 
 class AioHttp(metaclass=Singleton):
-    session = None
     def __init__(self, *args, **kwargs):
         self.session = ClientSession(*args, **kwargs)
 
@@ -24,7 +23,7 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        session = self.session if self.session else ClientSession(headers=headers)
+        session = self.session if "self" in locals() else ClientSession(headers=headers)
 
         try:
             if method.lower() == "post":
@@ -39,7 +38,7 @@ class AioHttp(metaclass=Singleton):
             else:
                 r = await response.read()
         finally:
-            if not self.session:
+            if "self" not in locals():
                 await session.close()
 
         return r
@@ -53,7 +52,7 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        session = self.session if self.session else ClientSession(headers=headers)
+        session = self.session if "self" in locals() else ClientSession(headers=headers)
 
         try:
             async with session.get(url, *args, **kwargs) as response:
@@ -74,7 +73,7 @@ class AioHttp(metaclass=Singleton):
                             await progress_callback(downloaded_size, total_size)
 
         finally:
-            if not self.session:
+            if "self" not in locals():
                 await session.close()
 
         return filename, time.time() - start_time, response.ok
@@ -87,7 +86,7 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        session = self.session if self.session else ClientSession()
+        session = self.session if "self" in locals() else ClientSession()
 
         try:
             async with session.get(url, headers=headers, *args, **kwargs) as response:
@@ -103,7 +102,7 @@ class AioHttp(metaclass=Singleton):
                         start = i * chunk_size
                         end = start + chunk_size if i < max_threads - 1 else None
                         task = asyncio.create_task(
-                            self._download_achunk(
+                            AioHttp._download_achunk(
                                 session, url, headers, start, end, file, *args, **kwargs
                             )
                         )
@@ -112,8 +111,8 @@ class AioHttp(metaclass=Singleton):
                     await asyncio.gather(*tasks)
 
         finally:
-            if not self.session:
-                await session.close()   
+            if "self" not in locals():
+                await session.close()
 
         return filename, response.ok
 

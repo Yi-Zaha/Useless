@@ -74,7 +74,7 @@ class AioHttp:
                     response, filename=filename
                 )
 
-                chunk_size = file_size // max_threads
+                chunk_size = total_size // max_threads
 
                 tasks = []
                 async with aiofiles.open(filename, "wb") as file:
