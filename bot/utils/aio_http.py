@@ -8,13 +8,13 @@ from aiohttp import ClientResponse, ClientSession
 
 from bot.utils.singleton import Singleton
 
+
 class AioHttp(metaclass=Singleton):
     session = None
     def __init__(self, *args, **kwargs):
         self.session = ClientSession(*args, **kwargs)
 
     async def request(
-        self,
         url: str,
         method: str = "GET",
         data: dict = {},
@@ -24,18 +24,28 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        if self.session is None:
-            async with ClientSession(headers=headers) as session:
-                return await self._make_request(
-                    session, url, method, data, headers, re_json, re_res, *args, **kwargs
-                )
-        else:
-            return await self._make_request(
-                self.session, url, method, data, headers, re_json, re_res, *args, **kwargs
-            )
+        session = self.session if self.session else ClientSession(headers=headers)
+
+        try:
+            if method.lower() == "post":
+                response = await session.post(url, data=data, *args, **kwargs)
+            else:
+                response = await session.request(method, url, *args, **kwargs)
+
+            if re_res:
+                r = response
+            elif re_json:
+                r = json.loads(await response.text())
+            else:
+                r = await response.read()
+        finally:
+            if not self.session:
+                await session.close()
+
+        return r
+
 
     async def download(
-        self,
         url: str,
         filename: str = None,
         headers: dict = None,
@@ -43,18 +53,33 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        if self.session is None:
-            async with ClientSession(headers=headers) as session:
-                return await self._download(
-                    session, url, filename, headers, progress_callback, *args, **kwargs
+        session = self.session if self.session else ClientSession(headers=headers)
+
+        try:
+            async with session.get(url, *args, **kwargs) as response:
+                filename, total_size = get_name_and_size_from_response(
+                    response, filename=filename
                 )
-        else:
-            return await self._download(
-                self.session, url, filename, headers, progress_callback, *args, **kwargs
-            )
+
+                downloaded_size = 0
+                start_time = time.time()
+
+                async with aiofiles.open(filename, "wb") as file:
+                    async for chunk in response.content.iter_chunked(1024):
+                        if chunk:
+                            await file.write(chunk)
+                            downloaded_size += len(chunk)
+
+                        if progress_callback and total_size:
+                            await progress_callback(downloaded_size, total_size)
+
+        finally:
+            if not self.session:
+                await session.close()
+
+        return filename, time.time() - start_time, response.ok
 
     async def fast_download(
-        self,
         url: str,
         filename: str = None,
         headers: dict = None,
@@ -62,105 +87,38 @@ class AioHttp(metaclass=Singleton):
         *args,
         **kwargs,
     ):
-        if self.session is None:
-            async with ClientSession() as session:
-                return await self._fast_download(
-                    session, url, filename, headers, max_threads, *args, **kwargs
+        session = self.session if self.session else ClientSession()
+
+        try:
+            async with session.get(url, headers=headers, *args, **kwargs) as response:
+                filename, total_size = get_name_and_size_from_response(
+                    response, filename=filename
                 )
-        else:
-            return await self._fast_download(
-                self.session, url, filename, headers, max_threads, *args, **kwargs
-            )
 
-    async def _make_request(
-        self,
-        session: ClientSession,
-        url: str,
-        method: str = "GET",
-        data: dict = {},
-        headers: dict = None,
-        re_json: bool = False,
-        re_res: bool = False,
-        *args,
-        **kwargs,
-    ):
-        if method.lower() == "post":
-            response = await session.post(url, data=data, *args, **kwargs)
-        elif method.lower() == "head":
-            response = await session.head(url, *args, **kwargs)
-        else:
-            response = await session.get(url, *args, **kwargs)
-        if re_res:
-            return response
-        elif re_json:
-            return json.loads(await response.text())
-        else:
-            return await response.read()
+                chunk_size = total_size // max_threads
 
-    async def _download(
-        self,
-        session: ClientSession,
-        url: str,
-        filename: str = None,
-        headers: dict = None,
-        progress_callback=None,
-        *args,
-        **kwargs,
-    ):
-        async with session.get(url, *args, **kwargs) as response:
-            filename, total_size = get_name_and_size_from_response(
-                response, filename=filename
-            )
-
-            downloaded_size = 0
-            start_time = time.time()
-
-            async with aiofiles.open(filename, "wb") as file:
-                async for chunk in response.content.iter_chunked(1024):
-                    if chunk:
-                        await file.write(chunk)
-                        downloaded_size += len(chunk)
-
-                    if progress_callback and total_size:
-                        await progress_callback(downloaded_size, total_size)
-
-            return filename, time.time() - start_time, response.ok
-
-    async def _fast_download(
-        self,
-        session: ClientSession,
-        url: str,
-        filename: str = None,
-        headers: dict = None,
-        max_threads: int = 4,
-        *args,
-        **kwargs,
-    ):
-        async with session.get(url, headers=headers, *args, **kwargs) as response:
-            filename, total_size = get_name_and_size_from_response(
-                response, filename=filename
-            )
-
-            chunk_size = total_size // max_threads
-
-            tasks = []
-            async with aiofiles.open(filename, "wb") as file:
-                for i in range(max_threads):
-                    start = i * chunk_size
-                    end = start + chunk_size if i < max_threads - 1 else None
-                    task = asyncio.create_task(
-                        self._download_achunk(
-                            session, url, headers, start, end, file
+                tasks = []
+                async with aiofiles.open(filename, "wb") as file:
+                    for i in range(max_threads):
+                        start = i * chunk_size
+                        end = start + chunk_size if i < max_threads - 1 else None
+                        task = asyncio.create_task(
+                            self._download_achunk(
+                                session, url, headers, start, end, file, *args, **kwargs
+                            )
                         )
-                    )
-                    tasks.append(task)
+                        tasks.append(task)
 
-                await asyncio.gather(*tasks)
+                    await asyncio.gather(*tasks)
 
-            return filename, response.ok
+        finally:
+            if not self.session:
+                await session.close()   
 
+        return filename, response.ok
+
+    @staticmethod
     async def _download_achunk(
-        self,
         session: ClientSession,
         url: str,
         headers: dict,
