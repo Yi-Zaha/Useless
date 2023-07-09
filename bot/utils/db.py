@@ -4,9 +4,10 @@ from pyrogram import types
 from bot.config import Config
 from bot.utils.singleton import Singleton
 
-class DB(metaclass=Singleton)
+class DB(metaclass=Singleton):
     def __init__(self, collection_name: str):
         self.col = mongo_db[collection_name]
+        super().__init__()
 
     def __call__(self):
         return self.col
