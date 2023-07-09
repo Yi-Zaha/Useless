@@ -82,7 +82,7 @@ class AioHttp:
                         start = i * chunk_size
                         end = start + chunk_size if i < num_threads - 1 else None
                         task = asyncio.create_task(
-                            self.download_achunk(
+                            AioHttp.download_achunk(
                                 session, url, headers, start, end, file
                             )
                         )
