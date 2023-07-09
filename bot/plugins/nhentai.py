@@ -41,7 +41,8 @@ async def nh_handler(client, message):
 
     pdf, cbz = await download_doujin_files(
         doujin,
-        file=doujin.title.replace("/", "|").split("|")[0][:40].strip() + " @Nhentai_Doujins",
+        file=doujin.title.replace("/", "|").split("|")[0][:40].strip()
+        + " @Nhentai_Doujins",
     )
     graph_link = await generate_telegraph_link(doujin)
     graph_link = graph_link or doujin.read_url
@@ -52,7 +53,9 @@ async def nh_handler(client, message):
     await asyncio.sleep(3)
     await temp.delete()
 
-    first_msg = await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
+    first_msg = await client.send_message(
+        CACHE_CHAT, doujin_info, disable_web_page_preview=True
+    )
     await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
     last_msg = await client.send_document(CACHE_CHAT, cbz, caption="**CBZ VIEW**")
 
@@ -96,7 +99,7 @@ async def nhentai_handler(client, message):
     )
     await asyncio.gather(
         client.send_document(message.chat.id, pdf),
-        client.send_document(message.chat.id, cbz)
+        client.send_document(message.chat.id, cbz),
     )
 
     await status.delete()
