@@ -34,7 +34,9 @@ async def noformat_text(client, message):
     )
 
 
-@bot.on_message(filters.command(["setthumb", "thumbnail", "thumb"]) & filters.user(SUDOS))
+@bot.on_message(
+    filters.command(["setthumb", "thumbnail", "thumb"]) & filters.user(SUDOS)
+)
 async def set_thumbnail(client, message):
     reply = message.reply_to_message
     if getattr(reply, "photo", None):
@@ -45,7 +47,9 @@ async def set_thumbnail(client, message):
             reply.document.thumbs[-1].file_id, file_name="./thumb.jpg"
         )
     else:
-        return await message.reply("Reply to a photo or a document with thumb to set default thumbnail.")
+        return await message.reply(
+            "Reply to a photo or a document with thumb to set default thumbnail."
+        )
 
     thumb_url = upload_image(file)
     await dB.set_key("THUMBNAIL", thumb_url)

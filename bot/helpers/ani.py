@@ -655,7 +655,9 @@ async def get_anime_manga(
         <b>››Studios</b>: <i>{studio_string}</i>
         """
         )
-        _caption = caption.replace("━━━━━━━━━━━━━━━━━━━━━━━━━━", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        _caption = caption.replace(
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        )
         _caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         synopsis_link = await post_to_telegraph(
             title_h,
@@ -684,7 +686,9 @@ async def get_anime_manga(
         """
         )
         caption += "━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        _caption = caption.replace("━━━━━━━━━━━━━━━━━━━━━━━━━━", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        _caption = caption.replace(
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        )
         synopsis_link = await post_to_telegraph(
             title_h,
             f"<img src='{title_img}' title={romaji}/>\n"

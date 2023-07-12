@@ -1,4 +1,5 @@
 import asyncio
+
 from bot.utils.functions import post_to_telegraph
 
 _locks = {}
