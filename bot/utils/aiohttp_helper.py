@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 import time
@@ -27,10 +28,9 @@ class AioHttp:
                 response = await session.get(url, *args, **kwargs)
             if re_res:
                 return response
-            elif re_json:
+            if re_json:
                 return json.loads(await response.text())
-            else:
-                return await response.read()
+            return await response.read()
 
     async def download(
         url: str,
@@ -80,7 +80,7 @@ class AioHttp:
                 async with aiofiles.open(filename, "wb") as file:
                     for i in range(max_threads):
                         start = i * chunk_size
-                        end = start + chunk_size if i < num_threads - 1 else None
+                        end = start + chunk_size if i < max_threads - 1 else None
                         task = asyncio.create_task(
                             AioHttp.download_achunk(
                                 session, url, headers, start, end, file

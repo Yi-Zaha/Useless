@@ -246,10 +246,9 @@ async def storefiles_event(client, message):
         msg2_id = await get_msg_id(msg2)
         if msg2_id:
             break
-        else:
-            await msg2.reply(
-                "<i>Invalid Response, this message is not from my DB channel. Send the correct message again.</i>"
-            )
+        await msg2.reply(
+            "<i>Invalid Response, this message is not from my DB channel. Send the correct message again.</i>"
+        )
 
     normal_url = generate_share_url("normal", msg1_id, msg2_id)
     protect_url = generate_share_url("protect", msg1_id, msg2_id)
