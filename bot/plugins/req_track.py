@@ -76,12 +76,11 @@ async def handle_request_action(client, callback):
 
     action = callback.matches[0].group(1).replace("_", " ")
     user_id = None
-    user_name = message.text.splitlines()[0].replace("Request By:", "").strip()
+    message.text.splitlines()[0].replace("Request By:", "").strip()
     for entity in message.entities:
         if entity.type == MessageEntityType.TEXT_MENTION:
             user_id = entity.user.id
             break
-    user_mention = f"<a href='tg://user?id={user_id}'>{user_name}</a>"
     message_text = message.text.html.replace("<code>", "").replace("</code>", "")
     crequest = message_text.split("\n")[-1].strip()
     chat = await client.get_chat(

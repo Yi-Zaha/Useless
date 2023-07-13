@@ -147,7 +147,7 @@ async def read_manga(client, message):
     try:
         file = await IManga.dl_chapter(manga.chapters[chapter_no], file_name, mode)
 
-        K = await client.send_document(
+        await client.send_document(
             message.chat.id,
             file,
             caption=f"**{manga.title}\nChapter - {ch}**",

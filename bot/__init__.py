@@ -4,7 +4,6 @@ import uvloop
 uvloop.install()
 
 from pyrogram import Client
-from pyromod import listen
 
 from .config import Config
 from .logger import LOGGER

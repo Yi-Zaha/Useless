@@ -134,9 +134,9 @@ class IManga:
             pdf_file = get_path(title + ".pdf")
             author = f"https://telegram.me/{bot.me.username}"
             try:
-                pdf = imgtopdf(pdf_file, images, author=author)
+                imgtopdf(pdf_file, images, author=author)
             except Exception:
-                pdf = images_to_pdf(pdf_file + ".pdf", images, author=author)
+                images_to_pdf(pdf_file + ".pdf", images, author=author)
             files.append(pdf_file)
 
         if mode.lower() in ("cbz", "both"):
@@ -332,9 +332,9 @@ class PS:
         if mode.lower() in ("pdf", "both"):
             pdf_file = get_path(title + ".pdf")
             try:
-                pdf = imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
+                imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
             except BaseException:
-                pdf = images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
+                images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
             files.append(pdf_file)
 
         elif mode.lower() in ("cbz", "both"):
