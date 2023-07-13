@@ -92,6 +92,11 @@ async def nhentai_handler(client, message):
     doujin_info = generate_doujin_info(doujin)
     await status.edit(f"Processing... Downloading [{doujin.title}]({doujin.url})")
 
+    graph_link = await generate_telegraph_link(doujin)
+    graph_link = graph_link or doujin.read_url
+    graph_post = f"[{doujin.title}]({graph_link})"
+    doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), graph_post)
+
     pdf, cbz = await download_doujin_files(doujin)
 
     await client.send_message(
