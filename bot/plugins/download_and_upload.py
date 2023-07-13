@@ -31,7 +31,7 @@ async def download_media(client, message):
         c_time = time.time()
         try:
             downloaded_path = await reply.download(
-                file_name=file_name,
+                file_name=input_text,
                 progress=progress_cb,
                 progress_args=(status, c_time, "Downloading...", file_name),
             )
