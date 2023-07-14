@@ -3,7 +3,7 @@ import os
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot import ALLOWED_USERS, bot
+from bot import SUDOS, bot
 from bot.helpers import ani
 from bot.utils import channel_filter
 from bot.utils.aiohttp_helper import AioHttp
@@ -11,7 +11,7 @@ from bot.utils.aiohttp_helper import AioHttp
 
 @bot.on_message(filters.command("anime") & channel_filter)
 async def anime_search(client, message):
-    if message.from_user and message.from_user.id not in ALLOWED_USERS:
+    if message.from_user and message.from_user.id not in SUDOS:
         return
 
     if len(message.command) == 1:
@@ -45,7 +45,7 @@ async def anime_search(client, message):
 
 @bot.on_message(filters.command("manga") & channel_filter)
 async def manga_search(client, message):
-    if message.from_user and message.from_user.id not in ALLOWED_USERS:
+    if message.from_user and message.from_user.id not in SUDOS:
         return
 
     if len(message.command) == 1:
