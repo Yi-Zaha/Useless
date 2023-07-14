@@ -10,6 +10,7 @@ fpdf2
 html-telegraph-poster
 img2pdf
 jikanpy-v4
+m3u8
 markdown2
 natsort 
 nhentai

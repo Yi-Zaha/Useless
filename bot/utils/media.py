@@ -1,7 +1,7 @@
 import random
 
 import cv2
-
+import m3u8
 
 def get_video_ss(video_path: str, ss_path: str = None) -> str:
     video = cv2.VideoCapture(video_path)
@@ -32,3 +32,14 @@ def get_video_frames(path: str) -> int:
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     video.release()
     return total_frames
+
+
+def resolutions_from_m3u8(m3u8_url: str) -> dict:
+    playlist = m3u8.load(m3u8_url)
+    video_urls = {
+        str(playlist.stream_info.resolution[1]) + "p": playlist.uri
+        if playlist.uri.startswith("http")
+        else playlist.base_uri + playlist.uri
+        for playlist in playlist.playlists
+    }
+    return video_urls
