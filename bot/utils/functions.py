@@ -41,8 +41,10 @@ def async_wrap(func):
     return wrapper
 
 
-def restart_bot():
-    os.system("git pull -fq")
+async def restart_bot():
+    pull_res = await run_cmd("git fetch -f && git pull -f")
+    if "requirements.txt" in pull_res[0]:
+        await run_cmd("pip install -U -r requirements.txt")
     os.execl(sys.executable, sys.executable, "-m", "bot")
 
 
