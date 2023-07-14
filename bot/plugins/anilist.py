@@ -19,8 +19,8 @@ async def anime_search(client, message):
 
     query = " ".join(message.command[1:])
 
-    animes, ok = await ani.searchanilist(query, manga=False)
-    if not ok:
+    animes, _ = await ani.searchanilist(query, manga=False)
+    if not animes:
         return await message.reply("No results found for the given query.")
 
     buttons = [
@@ -53,8 +53,8 @@ async def manga_search(client, message):
 
     query = " ".join(message.command[1:])
 
-    mangas, ok = await ani.searchanilist(query, manga=True)
-    if not ok:
+    mangas, _ = await ani.searchanilist(query, manga=True)
+    if not mangas:
         return await message.reply("No results found for the given query.")
 
     buttons = [
