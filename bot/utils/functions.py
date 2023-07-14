@@ -259,7 +259,7 @@ async def ask_msg(
     msg: types.Message,
     text: str,
     quote: bool = False,
-    filters: pyrogram.filters = filters.text,
+    filters: pyrogram.filters = pyrogram.filters.text,
     timeout: int = 90,
 ):
     request = await msg.reply(text, quote=quote)
