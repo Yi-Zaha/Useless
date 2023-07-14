@@ -3,8 +3,8 @@ import time
 import uvloop
 uvloop.install()
 
+from convopyro import Conversation
 from pyrogram import Client
-from pyromod import listen
 
 from .config import Config
 from .logger import LOGGER
@@ -19,6 +19,8 @@ bot = Client(
     ipv6=Config.USE_IPV6,
     max_concurrent_transmissions=3,
 )
+Conversation(bot)
+
 uB = None
 if Config.UB and Config.UB_SESSION:
     uB = Client(
@@ -30,6 +32,7 @@ if Config.UB and Config.UB_SESSION:
         ipv6=Config.USE_IPV6,
         max_concurrent_transmissions=3,
     )
+    Conversation(uB)
 
 
 bot.user = uB

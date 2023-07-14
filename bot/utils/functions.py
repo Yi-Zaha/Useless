@@ -262,7 +262,7 @@ async def ask_msg(
     request = await msg.reply(text, quote=quote)
 
     try:
-        response = await msg.chat.listen(filters=filters, timeout=timeout)
+        response = await msg._client.listen.Message(filters.text, id=filters.chat(msg.chat.id), timeout=timeout)
     except asyncio.TimeoutError:
         await request.edit("Process Timed Out. You were late in responding.")
         raise

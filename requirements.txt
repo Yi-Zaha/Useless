@@ -7,6 +7,7 @@ bs4
 cachetools
 cloudscraper
 fpdf2
+git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
 img2pdf
 jikanpy-v4
@@ -18,7 +19,6 @@ opencv-python-headless
 pillow
 motor
 pyrogram>=2.0.104
-pyromod==1.5
 python-dotenv
 reportlab
 requests
