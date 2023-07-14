@@ -10,13 +10,14 @@ from urllib.parse import urlparse
 
 import cachetools
 import cloudscraper
+import pyrogram
 import requests
 from bs4 import BeautifulSoup
 from html_telegraph_poster import TelegraphPoster
-from pyrogram import filters
+
+from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
-from pyrogram.types import Message
 
 from bot import bot
 
@@ -255,16 +256,16 @@ async def edit_and_delete(message, text=None, **kwargs):
 
 
 async def ask_msg(
-    msg: Message,
+    msg: types.Message,
     text: str,
     quote: bool = False,
-    filters: filters = filters.text,
+    filters: pyrogram.filters = filters.text,
     timeout: int = 90,
 ):
     request = await msg.reply(text, quote=quote)
 
     try:
-        response = await msg._client.listen.Message(filters, id=filters.chat(msg.chat.id), timeout=timeout)
+        response = await msg._client.listen.Message(filters, id=pyrogram.filters.chat(msg.chat.id), timeout=timeout)
     except asyncio.TimeoutError:
         await request.edit("Process Timed Out. You were late in responding.")
         raise
