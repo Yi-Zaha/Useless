@@ -128,6 +128,15 @@ async def bulkp_handler(client, message):
                     len(pdf_batch) == merge_limit
                     or ch_link == chapters[-1]
                 ):
+                    if len(pdf_batch) == 1:
+                        upload_msg = await bot.send_document(
+                            chat_id,
+                            chapter_file,
+                            thumb=thumb,
+                             protect_content=protect_content,
+                        )
+                        os.remove(chapter_file)
+                        continue
                     start, *_, end = pdf_batch.keys()
                     pdfname = f"Ch [{start} - {end}] {title} @Adult_Mangas.pdf"
                     merged_file = merge_pdfs(pdfname, pdf_batch.values())
