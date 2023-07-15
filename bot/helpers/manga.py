@@ -2,6 +2,7 @@ import ast
 import asyncio
 import html
 import os
+import json
 import random
 import re
 import shutil
@@ -114,6 +115,10 @@ class IManga:
         elif "mangatoto" in chapter_url:
             regex = r"const imgHttpLis = (.*);"
             images_list = ast.literal_eval(re.findall(regex, soup.prettify())[0])
+        elif "mangapark" in chapter_url:
+            data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
+            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["data"]["imageSet"]
+            images_list = [f"{link}{extra}" for link, extra in zip(image_set["httpLis"], image_set["wordLis"])]
 
         tasks = []
         images = []
