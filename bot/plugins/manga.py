@@ -212,6 +212,8 @@ async def bulk_manga(client, message):
 
     for ch in manga.chapters:
         if id not in Bulk:
+            if batch:
+                [os.remove(f) for f in batch.values()]
             return await status.edit("Upload Cancelled!")
 
         if ch_msg and not _edited:
