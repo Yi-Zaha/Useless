@@ -52,6 +52,19 @@ async def restart_bot():
 bot.reboot = restart_bot
 
 
+def is_numeric(inp: str):
+    inp = inp.strip()
+    try:
+        int(inp)
+        return True
+    except ValueError:
+        try:
+            float(inp)
+            return True
+        except ValueError:
+            pass
+    return False
+
 def split_list(lst: list, index: int) -> list[list]:
     return [lst[i : i + index] for i in range(0, len(lst), index)]
 

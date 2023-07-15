@@ -18,7 +18,7 @@ from bot.helpers.psutils import ch_from_url, iargs, zeroint
 from bot.logger import LOGGER
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import pdB
-from bot.utils.functions import ask_msg, get_chat_invite_link
+from bot.utils.functions import ask_msg, get_chat_invite_link, is_numeric
 
 PH_LOG_CHAT = -1001848617769
 DISABLED_PS = []
@@ -245,7 +245,7 @@ async def newch_log(client, message):
     except BaseException:
         chat_link = None
 
-    if _is_numeric(ch):
+    if is_numeric(ch):
         ch = f"Chapter {ch}"
     log_msg = CHAPTER_LOG_MSG.format(title=title, ch=ch)
     reply_markup = None
@@ -351,7 +351,7 @@ async def update_subs():
                 for ch_url in new_chapters:
                     ch = zeroint(ch_from_url(ch_url))
                     _ch = ch
-                    if _is_numeric(ch):
+                    if is_numeric(ch):
                         _ch = f"Chapter {ch}"
                         ch = f"Ch - {ch}"
 
@@ -465,14 +465,3 @@ async def _updater():
 
 
 asyncio.get_event_loop().create_task(_updater())
-
-
-def _is_numeric(inp: str):
-    try:
-        try:
-            int(inp)
-        except ValueError:
-            float(inp)
-        return True
-    except ValueError:
-        return False

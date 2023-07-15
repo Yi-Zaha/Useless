@@ -1,23 +1,32 @@
 import os
+import re
 
 from pyrogram import filters
 
-from bot import ALLOWED_USERS, bot
+from bot import bot, SUDOS
 from bot.helpers.manga import PS
-from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
-from bot.utils.functions import get_chat_link_from_msg
+from bot.helpers.psutils import (
+    ch_from_url,
+    iargs,
+    ps_link,
+    zeroint,
+)
+from bot.utils.functions import (
+    get_chat_link_from_msg,
+    is_numeric,
+)
+from bot.utils.pdf import merge_pdfs
 
 
 @bot.on_message(
     filters.regex(
         "^/read( -thumb)?( -fpdf)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)"
     )
-    & filters.user(ALLOWED_USERS)
+    & filters.user(SUDOS)
 )
 async def readp_handler(client, message):
     status = await message.reply("Processing...")
     is_thumb = bool(message.matches[0].group(1))
-    bool(message.matches[0].group(2))
     site = message.matches[0].group(3).strip()
     input_str = message.matches[0].group(4)
     splited = input_str.split(" | ")
@@ -44,7 +53,7 @@ async def readp_handler(client, message):
         )
 
 
-@bot.on_message(filters.command("bulkp") & filters.user(ALLOWED_USERS))
+@bot.on_message(filters.command("bulkp") & filters.user(SUDOS))
 async def bulkp_handler(client, message):
     status = await message.reply("Processing...")
     if len(message.command) < 2:
@@ -55,6 +64,10 @@ async def bulkp_handler(client, message):
     reply = message.reply_to_message
     text = message.text.split(" ", 1)[1]
     site = text.split(" ")[0]
+    merge_limit = re.search(r"-merge\D*(\d+)", text)
+    if merge_limit:
+        text = text.replace(merge_limit.group(), "").strip()
+        merge_limit = int(merge_limit.group(1))
     flags = ("-thumb", "-protect", "-t", "-18")
 
     if reply and reply.photo:
@@ -90,21 +103,44 @@ async def bulkp_handler(client, message):
         if not os.path.isdir(cache_dir):
             os.makedirs(cache_dir)
 
-        chapters = []
-        async for ch_link in PS.iter_chapters(url):
-            chapters.append(ch_link)
-
-        process_started = False
-        for ch_link in reversed(chapters):
+        chapters = list(reversed([ch_link async for ch_link in PS.iter_chapters(url)]))
+        pdf_batch = {}
+        upload_msg, process_started = None, False
+        for ch_link in chapters:
             chapter = zeroint(ch_from_url(ch_link))
-            pdfname = f"{cache_dir}/Ch - {chapter} {title} @Adult_Mangas"
-            chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site))
-            upload_msg = await bot.send_document(
-                chat_id, chapter_file, thumb=thumb, protect_content=protect_content
+            pdfname = (
+                f"{cache_dir}/Ch - {chapter} {title} @Adult_Mangas"
+                if is_numeric(chapter)
+                else f"{cache_dir}/{chapter} {title} @Adult_Mangas"
             )
-            os.remove(chapter_file)
+            chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site))
+            if not merge_limit:
+                upload_msg = await bot.send_document(
+                    chat_id,
+                    chapter_file,
+                    thumb=thumb,
+                    protect_content=protect_content,
+                )
+                os.remove(chapter_file)
+            else:
+                pdf_batch[chapter] = chapter_file
+                if (
+                    len(pdf_batch) == merge_limit
+                    or ch_link == chapters[-1]
+                ):
+                    start, *_, end = pdf_batch.keys()
+                    pdfname = f"Ch [{start} - {end}] {title} @Adult_Mangas.pdf"
+                    merged_file = merge_pdfs(pdfname, pdf_batch.values())
+                    upload_msg = await bot.send_document(
+                        chat_id,
+                        merged_file,
+                        thumb=thumb,
+                        protect_content=protect_content,
+                    )
+                    os.remove(merged_file)
+                    [os.remove(pdf) for pdf in pdf_batch.values()]
 
-            if not process_started:
+            if not process_started and upload_msg:
                 chat_link = await get_chat_link_from_msg(upload_msg)
                 await status.edit(
                     f"<code>Uploading all chapters...</code>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
