@@ -289,8 +289,7 @@ async def cancelbulk_query(client, callback):
         await callback.answer("This process will be cancelled soon!", show_alert=True)
     else:
         await callback.answer("This process is not active anymore.", show_alert=True)
-        await callback.message.delete()
-
+ 
 
 @bot.on_callback_query(filters.regex("^mpage:(.*)$"))
 async def mpage_query(client, callback):
