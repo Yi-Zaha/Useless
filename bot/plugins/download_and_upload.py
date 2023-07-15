@@ -111,7 +111,8 @@ async def upload_media(client, message):
     chat = message.chat.id
     if "|" in text:
         try:
-            chat = int(text.split("|")[-1].strip())
+            text, chat = map(str.strip, text.split("|"))
+            chat = int(chat)
         except ValueError:
             pass
 
