@@ -141,7 +141,7 @@ class IManga:
             try:
                 imgtopdf(pdf_file, images, author=author)
             except Exception:
-                images_to_pdf(pdf_file + ".pdf", images, author=author)
+                images_to_pdf(pdf_file, images, author=author)
             files.append(pdf_file)
 
         if mode.lower() in ("cbz", "both"):
