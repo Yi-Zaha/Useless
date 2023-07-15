@@ -240,7 +240,7 @@ async def bulk_manga(client, message):
                 batch[ch] = file
                 if (
                     len(batch) == merge_limit
-                    or url = list(manga.chapters.values())[-1]
+                    or url == list(manga.chapters.values())[-1]
                 ):
                     if len(batch) == 1:
                         ch_msg = await client.send_document(
