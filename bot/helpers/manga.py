@@ -100,7 +100,7 @@ class IManga:
         images_list = []
         if "manganato" in chapter_url or "manganelo" in chapter_url:
             images_list = [
-                img["src"] for img in soup.select("div.container-chapter-reader img")
+                img.get("src") for img in soup.find("div", "container-chapter-reader").find_all("img")
             ]
         elif "mangabuddy" in chapter_url:
             regex = r"var chapImages = '(.*)'"
