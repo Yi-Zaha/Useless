@@ -59,7 +59,10 @@ class IManga:
             soup.select_one(".panel-story-info-description").text.strip()
         )
         self.genres = [
-            x.text.strip() for x in soup.select("i.info-genres + td.table-value a.a-h")
+            x.text.strip()
+            for x in soup.find("i", class_="info-genres")
+            .findNext("td", class_="table-value")
+            .find_all("a", "a-h")
         ]
         self.views = soup.find("div", class_="story-info-right-extent").find_all(
             "span", class_="stre-value"
@@ -79,7 +82,10 @@ class IManga:
 
     def _parse_chapters(self, soup):
         data = {}
-        panels = [x.find("a") for x in soup.select(".panel-story-chapter-list .a-h")]
+        panels = [
+            x.find("a")
+            for x in soup.find(class_="panel-story-chapter-list").find_all(class_="a-h")
+        ]
 
         for c in reversed(panels):
             chapter = c["href"].split("-")[-1].strip()
