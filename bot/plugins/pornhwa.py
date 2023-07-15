@@ -139,6 +139,7 @@ async def bulkp_handler(client, message):
                     )
                     os.remove(merged_file)
                     [os.remove(pdf) for pdf in pdf_batch.values()]
+                    pdf_batch.clear()
 
             if not process_started and upload_msg:
                 chat_link = await get_chat_link_from_msg(upload_msg)
