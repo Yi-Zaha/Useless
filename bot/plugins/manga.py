@@ -17,6 +17,7 @@ from bot.helpers.psutils import zeroint
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB
 from bot.utils.functions import get_chat_link_from_msg, post_to_telegraph, split_list
+from bot.utils.pdf import merge_cbzs, merge_pdfs
 
 Process = {}
 Bulk = set()
@@ -168,6 +169,10 @@ async def bulk_manga(client, message):
         return await message.reply("Give manga ID.")
 
     text = " ".join(message.command[1:])
+    merge_limit = re.search(r"-merge\D*(\d+)", text)
+    if merge_limit:
+        text = text.replace(merge_limit.group(), "").strip()
+        merge_limit = int(merge_limit.group(1))
     is_thumb = "-thumb" in text
     nelo = "-nelo" in text
     mode = "pdf" if "-pdf" in text else "cbz"
@@ -197,6 +202,7 @@ async def bulk_manga(client, message):
     ch_msg = None
     _edited = False
     here = None
+    batch = {}
 
     id = f"cancelbulk:{message.from_user.id}:{chat}:{manga_id}"
     Bulk.add(id)
@@ -223,10 +229,32 @@ async def bulk_manga(client, message):
             title = f"Ch - {ch} {manga.title}"
 
             file = await IManga.dl_chapter(url, title, mode)
-            ch_msg = await client.send_document(
-                int(chat), file, thumb=thumb, protect_content=protect
-            )
-            os.remove(file)
+            if not merge_limit:
+                ch_msg = await client.send_document(
+                    int(chat), file, thumb=thumb, protect_content=protect
+                )
+                os.remove(file)
+            else:
+                batch[ch] = file
+                if (
+                    len(batch) == merge_limit
+                    or url = list(manga.chapters.values())[-1]
+                ):
+                    if len(batch) == 1:
+                        ch_msg = await client.send_document(
+                            int(chat), file, thumb=thumb, protect_content=protect
+                        )
+                        os.remove(file)
+                    merge_func = merge_pdfs if mode == "pdf" else merge_cbz
+                    start, *_, end = batch.keys()
+                    file = merge_func(f"Ch [{start} - {end}] {manga.title}", batch.values())
+                    ch_msg = await client.send_document(
+                        int(chat), file, thumb=thumb, protect_content=protect
+                    )
+                    os.remove(file)
+                    [os.remove(f) for f in batch.values()]
+                    batch.clear()
+
         except Exception as e:
             Bulk.remove(id)
             await status.edit(
