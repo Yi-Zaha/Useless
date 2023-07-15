@@ -118,7 +118,7 @@ class IManga:
         elif "mangapark" in chapter_url:
             data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
             image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["data"]["imageSet"]
-            images_list = [f"{link}{extra}" for link, extra in zip(image_set["httpLis"], image_set["wordLis"])]
+            images_list = [f"{link}?{extra}" for link, extra in zip(image_set["httpLis"], image_set["wordLis"])]
 
         tasks = []
         images = []
