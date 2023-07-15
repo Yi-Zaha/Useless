@@ -247,9 +247,9 @@ async def bulk_manga(client, message):
                             int(chat), file, thumb=thumb, protect_content=protect
                         )
                         os.remove(file)
-                    merge_func = merge_pdfs if mode == "pdf" else merge_cbz
+                    merge_func = merge_pdfs if mode == "pdf" else merge_cbzs
                     start, *_, end = batch.keys()
-                    file = merge_func(f"Ch [{start} - {end}] {manga.title}", batch.values())
+                    file = merge_func(f"Ch [{start} - {end}] {manga.title}.{mode}", batch.values())
                     ch_msg = await client.send_document(
                         int(chat), file, thumb=thumb, protect_content=protect
                     )
