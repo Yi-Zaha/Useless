@@ -183,7 +183,7 @@ def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: s
                 input_cbz.extractall(temp_dir)
                 files += input_cbz.namelist()
         files = [os.path.join(temp_dir, filename) for filename in files]
-        pyminizip.compress_multiple(files, [], str(output_file), password)
+        pyminizip.compress_multiple(files, [], str(output_file), password, 5)
 
     return output_file
 
