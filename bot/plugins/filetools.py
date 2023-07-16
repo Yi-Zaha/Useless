@@ -262,7 +262,7 @@ async def rename_media(client, message):
             extra_args.update({
                 "duration": media.duration,
                 "height": media.thumbs[-1].height,
-                "width": media.thumbs[-1].thumb.width,
+                "width": media.thumbs[-1].width,
             })
     for cmd in command[:-1]:
         for flag in flags:
