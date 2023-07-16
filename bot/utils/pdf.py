@@ -188,8 +188,10 @@ def encrypt_pdf(file_path: Path | str, password):
     pdf = fitz.open(file_path)
     
     encryption = fitz.PDF_ENCRYPT_AES_256
+    
+    os.remove(file_path)
 
-    pdf.save(file_path,incremental=True, encryption=encryption, user_pw=password)
+    pdf.save(file_path, encryption=encryption, user_pw=password)
     pdf.close()
  
     return file_path
