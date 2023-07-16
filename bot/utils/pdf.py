@@ -186,14 +186,14 @@ def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: s
 
 def encrypt_pdf(file_path: Path | str, password):
     file_path = get_path(file_path)
-    if not os.path.isdir("cache/encrypted/"):
-        os.mkdir("cache/encrypted/")
+    if not os.path.isdir("cache/.encrypted/"):
+        os.mkdir("cache/.encrypted/")
 
     pdf = fitz.open(file_path)
     
     encryption = fitz.PDF_ENCRYPT_AES_256
     
-    output_file = "cache/encrypted" / file_path.name
+    output_file = f"cache/.encrypted/{file_path.name}"
     pdf.save(output_file, encryption=encryption, user_pw=password)
     pdf.close()
     
