@@ -157,10 +157,10 @@ class IManga:
         if mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
             with zipfile.ZipFile(cbz_file, "w") as cbz:
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
                 for image_path in images:
                     cbz.write(image_path, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass.encode())
             files.append(cbz_file)
 
         shutil.rmtree(dir)
@@ -360,10 +360,10 @@ class PS:
         elif mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
             with zipfile.ZipFile(cbz_file, "w") as cbz:
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
                 for image in images:
                     cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass.encode())
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
@@ -472,10 +472,10 @@ class Nhentai:
             files.append(pdf_file)
         if mode.lower() in ("cbz", "both"):
             with zipfile.ZipFile(cbz_file, "w") as cbz:
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
                 for image in images:
                     cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass.encode())
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
