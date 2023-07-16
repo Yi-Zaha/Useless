@@ -151,9 +151,7 @@ def imgtopdf(path: Path, files: list[Path], author: str = "") -> Path:
 def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = None) -> Path:
     out = get_path(out)
     result = fitz.open()
-    if password:
-        encryption = fitz.PDF_ENCRYPT_AES_256
-        result.encrypt(password=password, owner_pw='', permissions=encryption)
+
     for pdf in pdfs:
         with fitz.open(pdf) as file:
             result.insert_pdf(file)
@@ -164,8 +162,12 @@ def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = N
             "author": author,
         }
     )
+    
+    if password:
+        result.save(out, encryption=fitz.PDF_ENCRYPT_AES_256, user_pw=password)
+    else:
+        result.save(out)
 
-    result.save(out)
     result.close()
     return out
 
@@ -183,11 +185,10 @@ def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: s
 
 def encrypt_pdf(file_path: Path | str, password):
     pdf = fitz.open(file_path)
-
-    encryption = fitz.PDF_ENCRYPT_AES_256
-    pdf.encrypt(password=password, owner_pw='', permissions=encryption)
-
-    pdf.save(file_path)
-    pdf.close()
     
+    encryption = fitz.PDF_ENCRYPT_AES_256
+
+    pdf.save(file_path, encryption=encryption, user_pw=password)
+    pdf.close()
+ 
     return file_path
