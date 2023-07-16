@@ -151,7 +151,7 @@ class IManga:
                 images_to_pdf(pdf_file, images, author=author)
 
             if file_pass:
-                encrypt_pdf(pdf_file, file_pass)
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
         if mode.lower() in ("cbz", "both"):
@@ -354,7 +354,7 @@ class PS:
                 images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
             
             if file_pass:
-                encrypt_pdf(pdf_file, file_pass)
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
         elif mode.lower() in ("cbz", "both"):
@@ -468,7 +468,7 @@ class Nhentai:
                 images_to_pdf(pdf_file, images, author="t.me/Nhentai_Doujins")
             
             if file_pass:
-                encrypt_pdf(pdf_file, file_pass)
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
         if mode.lower() in ("cbz", "both"):
             with zipfile.ZipFile(cbz_file, "w") as cbz:
