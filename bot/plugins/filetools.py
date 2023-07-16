@@ -254,7 +254,7 @@ async def rename_media(client, message):
     media_type = command[0].split("_")
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
     flags = ("-f", "-t", "-protect")
-    force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.tex
+    force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.text
     extra_args = {}
     if not thumb and media.thumbs:
         thumb = await client.download_media(media.thumbs[-1].file_id)
