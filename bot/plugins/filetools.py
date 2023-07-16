@@ -244,17 +244,18 @@ async def rename_media(client, message):
         return await message.reply("Reply to a media and provide a file name to rename.")
 
     status = await message.reply("Processing...")
+    media = getattr(reply, reply.media._value_)
     command = message.text.split(" ")
     media_type = command[0].split("_")
-    media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
+    media_type = media_type[1] if len(media_type) > 1 else media._value_
     flags = ("-f", "-t", "-protect")
     force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.text
-    for cmd in commands[:-1]:
+    for cmd in command[:-1]:
         for flag in flags:
             if flag in cmd:
                 command.remove(cmd)
-    
-    file_name = getattr(reply, reply.media._value_).file_name
+
+    file_name = media.file_name
     output_name = " ".join(command[1:])
     chat_id = message.chat.id
     if "|" in output_name:
@@ -268,7 +269,7 @@ async def rename_media(client, message):
     
     stream = Stream(
         name=output_name,
-        file_size=getattr(reply, reply.media._value_).file_size,
+        file_size=media.file_size,
         stream=client.stream_media(reply)
     )
     await stream.fill()
