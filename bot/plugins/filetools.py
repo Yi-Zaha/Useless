@@ -42,14 +42,19 @@ async def send_media(
     c_time = time.time()
     if media_type in ("vid", "video"):
         ss, duration, width, height = get_ss_and_duration(file)
+        duration = kwargs.pop("duration", duration)
+        width = kwargs.pop("width", width)
+        height = kwargs.pop("heigth", heigth)
+        thumb = kwargs.pop("thumb", ss)
         await bot.send_video(
             chat,
             file,
+            thumb=thumb,
             width=width,
             height=height,
             duration=duration,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
+            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file))
             **kwargs
         )
         if ss and os.path.exists(ss):
@@ -250,6 +255,8 @@ async def rename_media(client, message):
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
     flags = ("-f", "-t", "-protect")
     force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.text
+    if not thumb and media.thumbs:
+        thumb = await client.download_media(media.thumbs[-1].file_id)
     for cmd in command[:-1]:
         for flag in flags:
             if flag in cmd:
@@ -279,7 +286,7 @@ async def rename_media(client, message):
         stream,
         message=status,
         progress=stream.progress,
-        thumb="thumb.jpg" if thumb else None,
+        thumb=thumb,
         caption=f"<code>{output_name}</code>",
         protect_content=protect_content
     )
@@ -291,3 +298,6 @@ async def rename_media(client, message):
         success_text += f" and sent to chat ID <code>{chat_id}</code>"
     success_text += "."
     await status.edit(success_text)
+    
+    if thumb and thumb != "thumb.jpg":
+        os.remove(thumb)
