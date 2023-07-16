@@ -1,3 +1,4 @@
+import os
 import zipfile
 
 from io import BytesIO
@@ -188,7 +189,7 @@ def encrypt_pdf(file_path: Path | str, password):
     
     encryption = fitz.PDF_ENCRYPT_AES_256
 
-    pdf.save(file_path, encryption=encryption, user_pw=password)
+    pdf.save(file_path,incremental=True, encryption=encryption, user_pw=password)
     pdf.close()
  
     return file_path
