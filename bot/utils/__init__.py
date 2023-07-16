@@ -1,5 +1,4 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 from pyrogram import filters
 
 from .aiohttp_helper import *
@@ -9,7 +8,9 @@ from .media import *
 from .pdf import *
 
 channel_filter = filters.channel | ~filters.channel
-non_command_filter = filters.create(lambda filter, client, update: not update.text.startswith("/"))
+non_command_filter = filters.create(
+    lambda filter, client, update: not update.text.startswith("/")
+)
 ascheduler = AsyncIOScheduler()
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",

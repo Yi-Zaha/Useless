@@ -235,10 +235,23 @@ async def bulk_manga(client, message):
             ch = zeroint(ch)
             title = f"Ch - {ch} {manga.title}"
 
-            file = await IManga.dl_chapter(url, title, mode, file_pass=file_pass if not merge_limit or url == list(manga.chapters.values())[-1] else None)
+            file = await IManga.dl_chapter(
+                url,
+                title,
+                mode,
+                file_pass=file_pass
+                if not merge_limit or url == list(manga.chapters.values())[-1]
+                else None,
+            )
             if not merge_limit:
                 ch_msg = await client.send_document(
-                    int(chat), file, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, thumb=thumb, protect_content=protect
+                    int(chat),
+                    file,
+                    caption=f"<b>Password:</b> <code>{file_pass}</code>"
+                    if file_pass and showpass
+                    else None,
+                    thumb=thumb,
+                    protect_content=protect,
                 )
                 os.remove(file)
             else:
@@ -249,15 +262,31 @@ async def bulk_manga(client, message):
                 ):
                     if len(batch) == 1:
                         ch_msg = await client.send_document(
-                            int(chat), file, thumb=thumb, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, protect_content=protect
+                            int(chat),
+                            file,
+                            thumb=thumb,
+                            caption=f"<b>Password:</b> <code>{file_pass}</code>"
+                            if file_pass and showpass
+                            else None,
+                            protect_content=protect,
                         )
                         os.remove(file)
                         continue
                     merge_func = merge_pdfs if mode == "pdf" else merge_cbzs
                     start, *_, end = batch.keys()
-                    file = merge_func(f"Ch [{start} - {end}] {manga.title}.{mode}", batch.values(), file_pass)
+                    file = merge_func(
+                        f"Ch [{start} - {end}] {manga.title}.{mode}",
+                        batch.values(),
+                        file_pass,
+                    )
                     ch_msg = await client.send_document(
-                        int(chat), file, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, thumb=thumb, protect_content=protect
+                        int(chat),
+                        file,
+                        caption=f"<b>Password:</b> <code>{file_pass}</code>"
+                        if file_pass and showpass
+                        else None,
+                        thumb=thumb,
+                        protect_content=protect,
                     )
                     os.remove(file)
                     [os.remove(f) for f in batch.values()]
@@ -295,7 +324,7 @@ async def cancelbulk_query(client, callback):
         await callback.answer("This process will be cancelled soon!", show_alert=True)
     else:
         await callback.answer("This process is not active anymore.", show_alert=True)
- 
+
 
 @bot.on_callback_query(filters.regex("^mpage:(.*)$"))
 async def mpage_query(client, callback):

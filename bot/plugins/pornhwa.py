@@ -3,18 +3,10 @@ import re
 
 from pyrogram import filters
 
-from bot import bot, SUDOS
+from bot import SUDOS, bot
 from bot.helpers.manga import PS
-from bot.helpers.psutils import (
-    ch_from_url,
-    iargs,
-    ps_link,
-    zeroint,
-)
-from bot.utils.functions import (
-    get_chat_link_from_msg,
-    is_numeric,
-)
+from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
+from bot.utils.functions import get_chat_link_from_msg, is_numeric
 from bot.utils.pdf import merge_pdfs
 
 
@@ -93,7 +85,7 @@ async def bulkp_handler(client, message):
         except ValueError:
             return await status.edit("Invalid Chat ID provided.")
         text = text.replace("|", "").replace(str(chat_id), "").strip()
-    
+
     chat_link = None
     try:
         if text.startswith("https://"):
@@ -119,29 +111,38 @@ async def bulkp_handler(client, message):
                 if is_numeric(chapter)
                 else f"{cache_dir}/{chapter} {title} @Adult_Mangas"
             )
-            chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site), file_pass=pdf_pass if not merge_limit or ch_link == chapters[-1] else None)
+            chapter_file = await PS.dl_chapter(
+                ch_link,
+                pdfname,
+                "pdf",
+                **iargs(site),
+                file_pass=pdf_pass
+                if not merge_limit or ch_link == chapters[-1]
+                else None,
+            )
             if not merge_limit:
                 upload_msg = await bot.send_document(
                     chat_id,
                     chapter_file,
-                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
+                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
+                    if pdf_pass and showpass
+                    else None,
                     thumb=thumb,
                     protect_content=protect_content,
                 )
                 os.remove(chapter_file)
             else:
                 pdf_batch[chapter] = chapter_file
-                if (
-                    len(pdf_batch) == merge_limit
-                    or ch_link == chapters[-1]
-                ):
+                if len(pdf_batch) == merge_limit or ch_link == chapters[-1]:
                     if len(pdf_batch) == 1:
                         upload_msg = await bot.send_document(
                             chat_id,
                             chapter_file,
-                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
+                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
+                            if pdf_pass and showpass
+                            else None,
                             thumb=thumb,
-                             protect_content=protect_content,
+                            protect_content=protect_content,
                         )
                         os.remove(chapter_file)
                         continue
@@ -151,7 +152,9 @@ async def bulkp_handler(client, message):
                     upload_msg = await bot.send_document(
                         chat_id,
                         merged_file,
-                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
+                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
+                        if pdf_pass and showpass
+                        else None,
                         thumb=thumb,
                         protect_content=protect_content,
                     )

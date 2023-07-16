@@ -14,7 +14,6 @@ import pyrogram
 import requests
 from bs4 import BeautifulSoup
 from html_telegraph_poster import TelegraphPoster
-
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
@@ -64,6 +63,7 @@ def is_numeric(inp: str):
         except ValueError:
             pass
     return False
+
 
 def split_list(lst: list, index: int) -> list[list]:
     return [lst[i : i + index] for i in range(0, len(lst), index)]
@@ -278,7 +278,9 @@ async def ask_msg(
     request = await msg.reply(text, quote=quote)
 
     try:
-        response = await msg._client.listen.Message(filters, id=pyrogram.filters.chat(msg.chat.id), timeout=timeout)
+        response = await msg._client.listen.Message(
+            filters, id=pyrogram.filters.chat(msg.chat.id), timeout=timeout
+        )
     except asyncio.TimeoutError:
         await request.edit("Process Timed Out. You were late in responding.")
         raise

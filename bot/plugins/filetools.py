@@ -8,7 +8,7 @@ from datetime import datetime
 from pyrogram import filters
 
 from bot import SUDOS, bot
-from bot.helpers.progress_cb import progress_cb, Stream
+from bot.helpers.progress_cb import Stream, progress_cb
 from bot.utils.aiohttp_helper import AioHttp, get_name_and_size_from_response
 from bot.utils.media import get_video_duration, get_video_ss
 from bot.utils.pdf import get_image_size
@@ -31,14 +31,7 @@ def get_ss_and_duration(video_path: str):
     return thumb, duration, width, height
 
 
-async def send_media(
-    media_type, 
-    chat, 
-    file, 
-    message=None,
-    progress=None,
-    **kwargs
-):
+async def send_media(media_type, chat, file, message=None, progress=None, **kwargs):
     c_time = time.time()
     if media_type in ("vid", "video"):
         ss, duration, width, height = get_ss_and_duration(file)
@@ -54,8 +47,13 @@ async def send_media(
             height=height,
             duration=duration,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
-            **kwargs
+            progress_args=(
+                message,
+                c_time,
+                "Uploading...",
+                getattr(file, "name", file),
+            ),
+            **kwargs,
         )
         if ss and os.path.exists(ss):
             os.remove(ss)
@@ -65,8 +63,13 @@ async def send_media(
             chat,
             file,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
-            **kwargs
+            progress_args=(
+                message,
+                c_time,
+                "Uploading...",
+                getattr(file, "name", file),
+            ),
+            **kwargs,
         )
 
     elif media_type in ("audio"):
@@ -74,8 +77,13 @@ async def send_media(
             chat,
             file,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
-            **kwargs
+            progress_args=(
+                message,
+                c_time,
+                "Uploading...",
+                getattr(file, "name", file),
+            ),
+            **kwargs,
         )
 
     elif media_type in ("gif", "animation"):
@@ -83,16 +91,26 @@ async def send_media(
             chat,
             file,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
-            **kwargs
+            progress_args=(
+                message,
+                c_time,
+                "Uploading...",
+                getattr(file, "name", file),
+            ),
+            **kwargs,
         )
     else:
         await bot.send_document(
             chat,
             file,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
-            **kwargs
+            progress_args=(
+                message,
+                c_time,
+                "Uploading...",
+                getattr(file, "name", file),
+            ),
+            **kwargs,
         )
 
 
@@ -176,10 +194,12 @@ async def upload_media(client, message):
     if len(command) == 1:
         return await status.edit("You have to provide a file path in order to upload.")
 
-    media_type = command[0].split("_")[-1] if len(command[0].split("_")) > 1 else "document"
+    media_type = (
+        command[0].split("_")[-1] if len(command[0].split("_")) > 1 else "document"
+    )
     text = " ".join(command[1:])
     thumb = "thumb.jpg" if "-t" in text else None
-    force_doc = "-f" in text
+    "-f" in text
     protect_content = "-protect" in text
 
     flags = ("-f", "-t", "-protect")
@@ -199,7 +219,7 @@ async def upload_media(client, message):
 
     text += "*" if text.endswith("/") else ""
     files = glob.glob(text)
-    
+
     if not files and os.path.exists(text):
         files = [text]
 
@@ -211,7 +231,7 @@ async def upload_media(client, message):
         if os.path.isdir(file):
             continue
         caption = f"<code>{os.path.basename(file)}</code>"
-        c_time = time.time()
+        time.time()
         try:
             await send_media(
                 media_type,
@@ -220,8 +240,8 @@ async def upload_media(client, message):
                 message=status,
                 progress=progress_cb,
                 thumb=thumb,
-                caption=caption, 
-                protect_content=protect_content
+                caption=caption,
+                protect_content=protect_content,
             )
         except Exception as e:
             return await status.edit(
@@ -242,11 +262,10 @@ async def upload_media(client, message):
 @bot.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(SUDOS))
 async def rename_media(client, message):
     reply = message.reply_to_message
-    if not (
-        getattr(reply, "media", False)
-        or len(message.command) == 1
-    ):
-        return await message.reply("Reply to a media and provide a file name to rename.")
+    if not (getattr(reply, "media", False) or len(message.command) == 1):
+        return await message.reply(
+            "Reply to a media and provide a file name to rename."
+        )
 
     status = await message.reply("Processing...")
     media = getattr(reply, reply.media._value_)
@@ -254,17 +273,23 @@ async def rename_media(client, message):
     media_type = command[0].split("_")
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
     flags = ("-f", "-t", "-protect")
-    force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.text
+    force_doc, thumb, protect_content = (
+        flags[0] in message.text,
+        flags[1] in message.text,
+        flags[1] in message.text,
+    )
     thumb = "thumb.jpg" if thumb else None
     extra_args = {}
     if not thumb and media.thumbs:
         thumb = await client.download_media(media.thumbs[-1].file_id)
         if media_type in ("vid", "video") and reply.video:
-            extra_args.update({
-                "duration": media.duration,
-                "height": media.thumbs[-1].height,
-                "width": media.thumbs[-1].width,
-            })
+            extra_args.update(
+                {
+                    "duration": media.duration,
+                    "height": media.thumbs[-1].height,
+                    "width": media.thumbs[-1].width,
+                }
+            )
     for cmd in command[:-1]:
         for flag in flags:
             if flag in cmd:
@@ -279,13 +304,11 @@ async def rename_media(client, message):
             chat_id = int(chat_id)
         except ValueError:
             pass
-    
+
     start_time = datetime.now()
-    
+
     stream = Stream(
-        name=output_name,
-        file_size=media.file_size,
-        stream=client.stream_media(reply)
+        name=output_name, file_size=media.file_size, stream=client.stream_media(reply)
     )
     await stream.fill()
     await send_media(
@@ -297,9 +320,9 @@ async def rename_media(client, message):
         thumb=thumb,
         caption=f"<code>{output_name}</code>",
         protect_content=protect_content,
-        **extra_args
+        **extra_args,
     )
-    
+
     end_time = datetime.now()
     time_taken = (end_time - start_time).seconds
     success_text = f"Renamed <code>{file_name}</code> to <code>{output_name}</code> in <code>{time_taken}</code> seconds"
@@ -307,6 +330,6 @@ async def rename_media(client, message):
         success_text += f" and sent to chat ID <code>{chat_id}</code>"
     success_text += "."
     await status.edit(success_text)
-    
+
     if thumb and thumb != "thumb.jpg":
         os.remove(thumb)

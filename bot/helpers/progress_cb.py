@@ -9,14 +9,16 @@ NO_FLOOD = {}
 
 
 class Stream(io.BytesIO):
-    def __init__(self, name: str, file_size: int, stream: BinaryIO, chunk_size: int = 512 * 1024):
+    def __init__(
+        self, name: str, file_size: int, stream: BinaryIO, chunk_size: int = 512 * 1024
+    ):
         super().__init__()
         self.buffer = b""
         self.stream = stream.__aiter__()
         self.chunk_size = chunk_size
         self.name = name
         self.file_size = file_size
-    
+
     def read(self, n):
         try:
             return self.buffer[:n]
@@ -76,6 +78,8 @@ async def progress_cb(
                 pass
         else:
             try:
-                await message.edit(f"**Status:** `{ps_type}`\n\n{progress_str}\n{stats}")
+                await message.edit(
+                    f"**Status:** `{ps_type}`\n\n{progress_str}\n{stats}"
+                )
             except BaseException:
                 pass

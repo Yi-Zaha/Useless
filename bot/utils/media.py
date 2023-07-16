@@ -1,6 +1,8 @@
 import random
+
 import cv2
 import m3u8
+
 
 def get_video_ss(video_path: str, ss_path: str = None) -> str:
     video = cv2.VideoCapture(video_path)

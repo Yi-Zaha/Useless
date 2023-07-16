@@ -1,8 +1,8 @@
 import ast
 import asyncio
 import html
-import os
 import json
+import os
 import random
 import re
 import shutil
@@ -96,7 +96,7 @@ class IManga:
         return data
 
     @staticmethod
-    async def dl_chapter(chapter_url, title, mode, file_pass = None):
+    async def dl_chapter(chapter_url, title, mode, file_pass=None):
         dir = tempfile.mkdtemp()
         headers = {"User-Agent": random.choice(user_agents)}
         content = await AioHttp.request(chapter_url, headers=headers)
@@ -124,8 +124,13 @@ class IManga:
             images_list = ast.literal_eval(re.findall(regex, soup.prettify())[0])
         elif "mangapark" in chapter_url:
             data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
-            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["data"]["imageSet"]
-            images_list = [f"{link}?{extra}" for link, extra in zip(image_set["httpLis"], image_set["wordLis"])]
+            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0][
+                "state"
+            ]["data"]["data"]["imageSet"]
+            images_list = [
+                f"{link}?{extra}"
+                for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
+            ]
 
         tasks = []
         images = []
@@ -300,7 +305,12 @@ class PS:
 
     @staticmethod
     async def dl_chapter(
-        chapter_url, title, mode, _class="wp-manga-chapter-img", src="src", file_pass=None
+        chapter_url,
+        title,
+        mode,
+        _class="wp-manga-chapter-img",
+        src="src",
+        file_pass=None,
     ):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
@@ -348,7 +358,7 @@ class PS:
                 imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
             except BaseException:
                 images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
-            
+
             if file_pass:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
@@ -458,7 +468,7 @@ class Nhentai:
                 imgtopdf(pdf_file, images, author="t.me/Nhentai_Doujins")
             except Exception:
                 images_to_pdf(pdf_file, images, author="t.me/Nhentai_Doujins")
-            
+
             if file_pass:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)

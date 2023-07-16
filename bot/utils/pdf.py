@@ -1,7 +1,6 @@
 import os
 import tempfile
 import zipfile
-
 from io import BytesIO
 from pathlib import Path
 
@@ -151,7 +150,9 @@ def imgtopdf(path: Path, files: list[Path], author: str = "") -> Path:
     return pdf_path
 
 
-def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = None) -> Path:
+def merge_pdfs(
+    out: Path, pdfs: list[str], author: str = None, password: str = None
+) -> Path:
     out = get_path(out)
     result = fitz.open()
 
@@ -165,7 +166,7 @@ def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = N
             "author": author,
         }
     )
-    
+
     if password:
         result.save(out, encryption=fitz.PDF_ENCRYPT_AES_256, user_pw=password)
     else:
@@ -175,7 +176,9 @@ def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = N
     return out
 
 
-def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: str = None):
+def merge_cbzs(
+    output_file: str | Path, cbz_files: list[str | Path], password: str = None
+):
     files = []
     with tempfile.TemporaryDirectory() as temp_dir:
         for cbz in cbz_files:
@@ -183,7 +186,9 @@ def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: s
                 input_cbz.extractall(temp_dir)
                 files += input_cbz.namelist()
         files = [os.path.join(temp_dir, filename) for filename in files]
-        pyminizip.compress_multiple(files, [f"{n}" for n, _ in enumerate(files)], str(output_file), password, 5)
+        pyminizip.compress_multiple(
+            files, [f"{n}" for n, _ in enumerate(files)], str(output_file), password, 5
+        )
 
     return output_file
 
@@ -194,13 +199,12 @@ def encrypt_pdf(file_path: Path | str, password):
         os.mkdir("cache/.encrypted/")
 
     pdf = fitz.open(file_path)
-    
+
     encryption = fitz.PDF_ENCRYPT_AES_256
-    
+
     output_file = f"cache/.encrypted/{file_path.name}"
     pdf.save(output_file, encryption=encryption, user_pw=password)
     pdf.close()
-    
+
     os.remove(file_path)
     return output_file
-    
