@@ -49,7 +49,7 @@ async def send_media(
             height=height,
             duration=duration,
             progress=progress,
-            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file))
+            progress_args=(message, c_time, "Uploading...", getattr(file, "name", file)),
             **kwargs
         )
         if ss and os.path.exists(ss):
