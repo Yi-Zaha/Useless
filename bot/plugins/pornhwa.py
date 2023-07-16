@@ -68,7 +68,7 @@ async def bulkp_handler(client, message):
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
         merge_limit = int(merge_limit.group(1))
-    pdf_pass = re.search(r"-merge\D*(\S+)")), text)
+    pdf_pass = re.search(r"-merge\D*(\S+)", text)
     if pdf_pass:
         text = text.replace(pdf_pass.group(), "").strip()
         pdf_pass = pdf_pass.group(1)
