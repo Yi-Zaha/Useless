@@ -153,7 +153,7 @@ def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = N
     result = fitz.open()
     if password:
         encryption = fitz.PDF_ENCRYPT_AES_256
-        pdf.encrypt(password=password, owner_pw='', permissions=encryption)
+        result.encrypt(password=password, owner_pw='', permissions=encryption)
     for pdf in pdfs:
         with fitz.open(pdf) as file:
             result.insert_pdf(file)
