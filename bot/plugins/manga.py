@@ -173,11 +173,16 @@ async def bulk_manga(client, message):
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
         merge_limit = int(merge_limit.group(1))
+    file_pass = re.search(r"-merge\D*(\S+)")), text)
+    if file_pass:
+        text = text.replace(file_pass.group(), "").strip()
+        file_pass = file_pass.group(1)
     is_thumb = "-thumb" in text
     nelo = "-nelo" in text
     mode = "pdf" if "-pdf" in text else "cbz"
     protect = "-protect" in text
-    flags = ("-thumb", "-nelo", "-pdf", "-protect")
+    showpass = "-showpass" in text
+    flags = ("-thumb", "-nelo", "-pdf", "-protect", "-showpass")
 
     for flag in flags:
         text = text.replace(flag, "").strip()
@@ -230,10 +235,10 @@ async def bulk_manga(client, message):
             ch = zeroint(ch)
             title = f"Ch - {ch} {manga.title}"
 
-            file = await IManga.dl_chapter(url, title, mode)
+            file = await IManga.dl_chapter(url, title, mode, file_pass=file_pass if not merge_limit or url == list(manga.chapters.values())[-1] else None)
             if not merge_limit:
                 ch_msg = await client.send_document(
-                    int(chat), file, thumb=thumb, protect_content=protect
+                    int(chat), file, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, thumb=thumb, protect_content=protect
                 )
                 os.remove(file)
             else:
@@ -244,15 +249,16 @@ async def bulk_manga(client, message):
                 ):
                     if len(batch) == 1:
                         ch_msg = await client.send_document(
-                            int(chat), file, thumb=thumb, protect_content=protect
+                            int(chat), file, thumb=thumb, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, protect_content=protect
                         )
                         os.remove(file)
                         continue
                     merge_func = merge_pdfs if mode == "pdf" else merge_cbzs
                     start, *_, end = batch.keys()
-                    file = merge_func(f"Ch [{start} - {end}] {manga.title}.{mode}", batch.values())
+                    file = merge_func(f"Ch [{start} - {end}] {manga.title}.{mode}", batch.values(), file_pass)
+                    if
                     ch_msg = await client.send_document(
-                        int(chat), file, thumb=thumb, protect_content=protect
+                        int(chat), file, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, thumb=thumb, protect_content=protect
                     )
                     os.remove(file)
                     [os.remove(f) for f in batch.values()]

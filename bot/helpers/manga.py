@@ -17,7 +17,7 @@ from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_link, get_soup, retry_func
-from bot.utils.pdf import get_path, images_to_pdf, imgtopdf
+from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
 
 
 class IManga:
@@ -96,7 +96,7 @@ class IManga:
         return data
 
     @staticmethod
-    async def dl_chapter(chapter_url, title, mode):
+    async def dl_chapter(chapter_url, title, mode, file_pass = None):
         dir = tempfile.mkdtemp()
         headers = {"User-Agent": random.choice(user_agents)}
         content = await AioHttp.request(chapter_url, headers=headers)
@@ -149,6 +149,9 @@ class IManga:
                 imgtopdf(pdf_file, images, author=author)
             except Exception:
                 images_to_pdf(pdf_file, images, author=author)
+
+            if file_pass:
+                encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
         if mode.lower() in ("cbz", "both"):
@@ -156,6 +159,8 @@ class IManga:
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image_path in images:
                     cbz.write(image_path, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass)
             files.append(cbz_file)
 
         shutil.rmtree(dir)
@@ -299,7 +304,7 @@ class PS:
 
     @staticmethod
     async def dl_chapter(
-        chapter_url, title, mode, _class="wp-manga-chapter-img", src="src"
+        chapter_url, title, mode, _class="wp-manga-chapter-img", src="src", file_pass=None
     ):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
@@ -347,6 +352,9 @@ class PS:
                 imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
             except BaseException:
                 images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
+            
+            if file_pass:
+                encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
         elif mode.lower() in ("cbz", "both"):
@@ -354,6 +362,8 @@ class PS:
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image in images:
                     cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
@@ -422,7 +432,7 @@ class Nhentai:
 
         return self
 
-    async def dl_chapter(self, title, mode):
+    async def dl_chapter(self, title, mode, file_pass=None):
         dir = Path("cache/nhentai")
         dir.mkdir(exist_ok=True)
         tmp_dir = dir / str(self.code)
@@ -456,11 +466,16 @@ class Nhentai:
                 imgtopdf(pdf_file, images, author="t.me/Nhentai_Doujins")
             except Exception:
                 images_to_pdf(pdf_file, images, author="t.me/Nhentai_Doujins")
+            
+            if file_pass:
+                encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
         if mode.lower() in ("cbz", "both"):
             with zipfile.ZipFile(cbz_file, "w") as cbz:
                 for image in images:
                     cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
+                if file_pass:
+                    cbz.setpassword(file_pass)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)

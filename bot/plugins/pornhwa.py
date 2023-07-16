@@ -68,7 +68,11 @@ async def bulkp_handler(client, message):
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
         merge_limit = int(merge_limit.group(1))
-    flags = ("-thumb", "-protect", "-t", "-18")
+    pdf_pass = re.search(r"-merge\D*(\S+)")), text)
+    if pdf_pass:
+        text = text.replace(pdf_pass.group(), "").strip()
+        pdf_pass = pdf_pass.group(1)
+    flags = ("-thumb", "-protect", "-showpass", "-t", "-18")
 
     if reply and reply.photo:
         thumb = await reply.download()
@@ -78,6 +82,7 @@ async def bulkp_handler(client, message):
         thumb = None
 
     protect_content = flags[1] in text
+    showpass = flags[2] in text
     for flag in flags:
         text = text.replace(flag, "", 1).strip()
 
@@ -113,11 +118,12 @@ async def bulkp_handler(client, message):
                 if is_numeric(chapter)
                 else f"{cache_dir}/{chapter} {title} @Adult_Mangas"
             )
-            chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site))
+            chapter_file = await PS.dl_chapter(ch_link, pdfname, "pdf", **iargs(site), file_pass=pdf_pass if not merge_limit or ch_link == chapters[-1] else None)
             if not merge_limit:
                 upload_msg = await bot.send_document(
                     chat_id,
                     chapter_file,
+                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
                     thumb=thumb,
                     protect_content=protect_content,
                 )
@@ -132,6 +138,7 @@ async def bulkp_handler(client, message):
                         upload_msg = await bot.send_document(
                             chat_id,
                             chapter_file,
+                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
                             thumb=thumb,
                              protect_content=protect_content,
                         )
@@ -139,10 +146,11 @@ async def bulkp_handler(client, message):
                         continue
                     start, *_, end = pdf_batch.keys()
                     pdfname = f"Ch [{start} - {end}] {title} @Adult_Mangas.pdf"
-                    merged_file = merge_pdfs(pdfname, pdf_batch.values())
+                    merged_file = merge_pdfs(pdfname, pdf_batch.values(), pdf_pass)
                     upload_msg = await bot.send_document(
                         chat_id,
                         merged_file,
+                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
                         thumb=thumb,
                         protect_content=protect_content,
                     )
