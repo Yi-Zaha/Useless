@@ -124,7 +124,7 @@ async def bulkp_handler(client, message):
                 upload_msg = await bot.send_document(
                     chat_id,
                     chapter_file,
-                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
+                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
                     thumb=thumb,
                     protect_content=protect_content,
                 )
@@ -139,7 +139,7 @@ async def bulkp_handler(client, message):
                         upload_msg = await bot.send_document(
                             chat_id,
                             chapter_file,
-                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
+                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
                             thumb=thumb,
                              protect_content=protect_content,
                         )
@@ -151,7 +151,7 @@ async def bulkp_handler(client, message):
                     upload_msg = await bot.send_document(
                         chat_id,
                         merged_file,
-                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_file and showpass else None,
+                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None,
                         thumb=thumb,
                         protect_content=protect_content,
                     )
