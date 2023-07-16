@@ -231,7 +231,6 @@ async def upload_media(client, message):
         if os.path.isdir(file):
             continue
         caption = f"<code>{os.path.basename(file)}</code>"
-        time.time()
         try:
             await send_media(
                 media_type,
