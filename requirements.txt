@@ -18,7 +18,8 @@ nhentai
 opencv-python-headless
 pillow
 motor
-pyrogram>=2.0.104
+pyminizip
+pyrogram~=2.0.104
 python-dotenv
 reportlab
 requests

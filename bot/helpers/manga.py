@@ -7,10 +7,10 @@ import random
 import re
 import shutil
 import tempfile
-import zipfile
 from pathlib import Path
 from urllib.parse import urljoin
 
+import pyminizip
 from bs4 import BeautifulSoup
 
 from bot import bot
@@ -156,11 +156,7 @@ class IManga:
 
         if mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
-            with zipfile.ZipFile(cbz_file, "w") as cbz:
-                for image_path in images:
-                    cbz.write(image_path, compress_type=zipfile.ZIP_DEFLATED)
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
+            pyminizip.compress_multiple(images, [], cbz_file, file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(dir)
@@ -359,11 +355,7 @@ class PS:
 
         elif mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
-            with zipfile.ZipFile(cbz_file, "w") as cbz:
-                for image in images:
-                    cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
+            pyminizip.compress_multiple(images, [], cbz_file, file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
@@ -471,11 +463,7 @@ class Nhentai:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
         if mode.lower() in ("cbz", "both"):
-            with zipfile.ZipFile(cbz_file, "w") as cbz:
-                for image in images:
-                    cbz.write(image, compress_type=zipfile.ZIP_DEFLATED)
-                if file_pass:
-                    cbz.setpassword(file_pass.encode())
+            pyminizip.compress_multiple(images, [], cbz_file, file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
