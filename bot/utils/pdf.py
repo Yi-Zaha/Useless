@@ -1,4 +1,5 @@
 import os
+import tempfile
 import zipfile
 
 from io import BytesIO
@@ -6,6 +7,7 @@ from pathlib import Path
 
 import fitz
 import img2pdf
+import pyminizip
 from fpdf import FPDF
 from PIL import Image
 from reportlab.lib.pagesizes import letter
@@ -174,13 +176,15 @@ def merge_pdfs(out: Path, pdfs: list[str], author: str = None, password: str = N
 
 
 def merge_cbzs(output_file: str | Path, cbz_files: list[str | Path], password: str = None):
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as merged_cbz:
-        for cbz_file in cbz_files:
-            with zipfile.ZipFile(cbz_file, 'r') as individual_cbz:
-                for file_name in individual_cbz.namelist():
-                    merged_cbz.writestr(file_name, individual_cbz.read(file_name))
-        if password:
-            merged_cbz.setpassword(password.encode())
+    files = []
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for cbz in cbz_files:
+            with zipfile.ZipFile(cbz, "r") as input_cbz:
+                input_cbz.extractall(temp_dir)
+                files += input_cbz.namelist()
+        files = [os.path.join(temp_dir, filename) for filename in files]
+        pyminizip.compress_multiple(files, [], str(output_file), password)
+
     return output_file
 
 
