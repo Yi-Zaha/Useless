@@ -66,12 +66,12 @@ async def progress_cb(
         if file_name:
             try:
                 await message.edit(
-                    "**Status:** {ps_type}\n\nFile Name: {file_name}\n\n{progress_bar}\n{stats}"
+                    f"**Status:** {ps_type}\n\nFile Name: {file_name}\n\n{progress_bar}\n{stats}"
                 )
             except BaseException:
                 pass
         else:
             try:
-                await message.edit("**Status:** {ps_type}\n\n{progress_bar}\n{stats}")
+                await message.edit(f"**Status:** {ps_type}\n\n{progress_bar}\n{stats}")
             except BaseException:
                 pass
