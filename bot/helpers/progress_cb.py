@@ -55,8 +55,12 @@ async def progress_cb(
         speed = current / diff
         time_to_completion = round((total - current) / speed) * 1000
 
-        progress_str = "◉" * math.floor(percentage / 5) + "○" * (20 - math.floor(percentage / 5))
-        progress_bar = f"Progress: [{progress_str}] {round(percentage, 2)}%\n"
+        progress_width = 20
+        completed_width = math.floor((percentage / 100) * progress_width)
+        remaining_width = progress_width - completed_width
+
+        progress_bar = "◉" * completed_width + "○" * remaining_width
+        progress_str = f"Progress: [{progress_bar}] {round(percentage, 2)}%\n"
 
         stats = (
             f"Current: {humanbytes(current)} | Total: {humanbytes(total)}\n"
@@ -66,12 +70,12 @@ async def progress_cb(
         if file_name:
             try:
                 await message.edit(
-                    f"**Status:** {ps_type}\n\nFile Name: {file_name}\n\n{progress_bar}\n{stats}"
+                    f"**Status:** {ps_type}\n\nFile Name: {file_name}\n\n{progress_str}\n{stats}"
                 )
             except BaseException:
                 pass
         else:
             try:
-                await message.edit(f"**Status:** {ps_type}\n\n{progress_bar}\n{stats}")
+                await message.edit(f"**Status:** {ps_type}\n\n{progress_str}\n{stats}")
             except BaseException:
                 pass
