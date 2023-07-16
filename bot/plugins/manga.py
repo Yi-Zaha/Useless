@@ -256,7 +256,6 @@ async def bulk_manga(client, message):
                     merge_func = merge_pdfs if mode == "pdf" else merge_cbzs
                     start, *_, end = batch.keys()
                     file = merge_func(f"Ch [{start} - {end}] {manga.title}.{mode}", batch.values(), file_pass)
-                    if
                     ch_msg = await client.send_document(
                         int(chat), file, caption=f"<b>Password:</b> <code>{file_pass}</code>" if file_pass and showpass else None, thumb=thumb, protect_content=protect
                     )
