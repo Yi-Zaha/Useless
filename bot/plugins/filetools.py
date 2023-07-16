@@ -183,7 +183,7 @@ async def upload_media(client, message):
             if flag in cmd:
                 command.remove(cmd)
 
-    text = text.strip()
+    text = " ".join(command[1:])
     chat = message.chat.id
     if "|" in text:
         try:
@@ -194,6 +194,9 @@ async def upload_media(client, message):
 
     text += "*" if text.endswith("/") else ""
     files = glob.glob(text)
+    
+    if not files and os.path.exists(text):
+        files = [text]
 
     if not files and not os.path.exists(text):
         return await status.edit("File doesn't exist.")
