@@ -18,6 +18,7 @@ bot = Client(
     plugins=dict(root="bot.plugins"),
     ipv6=Config.USE_IPV6,
     max_concurrent_transmissions=3,
+    workers=32,
 )
 Conversation(bot)
 
@@ -31,6 +32,7 @@ if Config.UB and Config.UB_SESSION:
         session_string=Config.SESSION_STRING,
         ipv6=Config.USE_IPV6,
         max_concurrent_transmissions=3,
+        workers=32,
     )
     Conversation(uB)
 
