@@ -258,11 +258,11 @@ async def rename_media(client, message):
     extra_args = {}
     if not thumb and media.thumbs:
         thumb = await client.download_media(media.thumbs[-1].file_id)
-        if reply.video:
+        if media_type in ("vid", "video") and reply.video:
             extra_args.update({
                 "duration": media.duration,
-                "height": thumb.height,
-                "width": thumb.width,
+                "height": media.thumbs[-1].height,
+                "width": media.thumbs[-1].thumb.width,
             })
     for cmd in command[:-1]:
         for flag in flags:
