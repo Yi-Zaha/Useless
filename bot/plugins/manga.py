@@ -173,7 +173,7 @@ async def bulk_manga(client, message):
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
         merge_limit = int(merge_limit.group(1))
-    file_pass = re.search(r"-pass\D*(\S+)", text)
+    file_pass = re.search(r"-pass (\S+)", text)
     if file_pass:
         text = text.replace(file_pass.group(), "").strip()
         file_pass = file_pass.group(1)
