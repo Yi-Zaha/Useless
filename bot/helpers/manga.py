@@ -156,7 +156,7 @@ class IManga:
 
         if mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(images, [], cbz_file, file_pass, 5)
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(dir)
@@ -355,7 +355,7 @@ class PS:
 
         elif mode.lower() in ("cbz", "both"):
             cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(images, [], cbz_file, file_pass, 5)
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)
