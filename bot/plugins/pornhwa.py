@@ -93,7 +93,8 @@ async def bulkp_handler(client, message):
         except ValueError:
             return await status.edit("Invalid Chat ID provided.")
         text = text.replace("|", "").replace(str(chat_id), "").strip()
-
+    
+    chat_link = None
     try:
         if text.startswith("https://"):
             url = text
