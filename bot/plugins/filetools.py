@@ -254,9 +254,16 @@ async def rename_media(client, message):
     media_type = command[0].split("_")
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
     flags = ("-f", "-t", "-protect")
-    force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.text
+    force_doc, thumb, protect_content = flags[0] in message.text, flags[1] in message.text, flags[1] in message.tex
+    extra_args = {}
     if not thumb and media.thumbs:
         thumb = await client.download_media(media.thumbs[-1].file_id)
+        if reply.video:
+            extra_args.update({
+                "duration": media.duration,
+                "height": thumb.height,
+                "width": thumb.width,
+            })
     for cmd in command[:-1]:
         for flag in flags:
             if flag in cmd:
@@ -288,7 +295,8 @@ async def rename_media(client, message):
         progress=stream.progress,
         thumb=thumb,
         caption=f"<code>{output_name}</code>",
-        protect_content=protect_content
+        protect_content=protect_content,
+        **extra_args
     )
     
     end_time = datetime.now()
