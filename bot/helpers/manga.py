@@ -450,7 +450,7 @@ class Nhentai:
             ext = os.path.splitext(url)
             ext = ext[1] if ext else ".png"
             image = tmp_dir / f"{n}{ext}"
-            images.append(image)
+            images.append(str(image))
             task = asyncio.create_task(
                 retry_func(AioHttp.download(url, filename=image, headers=headers))
             )
