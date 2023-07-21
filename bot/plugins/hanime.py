@@ -5,7 +5,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import bot
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import post_to_telegraph
+from bot.utils.functions import post_to_telegraph, split_list
 
 API_URL = "https://hanime-tv-api-tau.vercel.app"
 
@@ -131,31 +131,13 @@ async def hanime_links(client, callback):
             "An error occurred. Please try again later!", show_alert=True
         )
 
-    url = result["data"][0]["url"]
-
-    if url:
-        url1 = result["data"][0]["url"]
-        url2 = result["data"][1]["url"]
-        url3 = result["data"][2]["url"]
-        buttons = [
-            [
-                InlineKeyboardButton("360p", url=f"{url3}"),
-                InlineKeyboardButton("480p", url=f"{url2}"),
-            ],
-            [InlineKeyboardButton("720p", url=f"{url1}")],
-        ]
-    else:
-        url1 = result["data"][1]["url"]
-        url2 = result["data"][2]["url"]
-        url3 = result["data"][3]["url"]
-        buttons = [
-            [
-                InlineKeyboardButton("360p", url=f"{url3}"),
-                InlineKeyboardButton("480p", url=f"{url2}"),
-            ],
-            [InlineKeyboardButton("720p", url=f"{url1}")],
-        ]
-
+    buttons = []
+    for item in result["data"]:
+        resolution = f"{item['height']}p"
+        url = item["url"]
+        if url:
+            buttons.append(InlineKeyboardButton(resolution, url=url))
+    buttons = split_list(buttons, 2)
     await callback.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     await callback.answer()
 

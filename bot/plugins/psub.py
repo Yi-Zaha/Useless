@@ -131,7 +131,7 @@ async def add_sub(client, message):
 
     req, res = await ask_msg(
         res,
-        "Do you want to receive updates for this subscription?\n\n"
+        "Do you want to send updates for this subscription?\n\n"
         "<i>Answer in Yes or No.</i>",
     )
     send_updates = res.text.lower() in ("yes", "true")
