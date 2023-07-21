@@ -132,7 +132,7 @@ async def hanime_links(client, callback):
         )
 
     buttons = []
-    for item in result["data"]:
+    for item in reversed(result["data"]):
         resolution = f"{item['height']}p"
         url = item["url"]
         if url:
