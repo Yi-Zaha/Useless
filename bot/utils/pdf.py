@@ -177,7 +177,7 @@ def merge_pdfs(
 
 
 def merge_cbzs(
-    output_file: str | Path, cbz_files: list[str | Path], password: str = None
+    output_file: str | Path, cbz_files: list[str | Path], password: str = None, compression_level: int = 5
 ):
     files = []
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -187,7 +187,7 @@ def merge_cbzs(
                 files += input_cbz.namelist()
         files = [os.path.join(temp_dir, filename) for filename in files]
         pyminizip.compress_multiple(
-            files, [f"{n}" for n, _ in enumerate(files)], str(output_file), password, 5
+            files, [f"{n}" for n, _ in enumerate(files)], str(output_file), password, compression_level
         )
 
     return output_file
