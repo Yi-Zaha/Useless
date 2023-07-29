@@ -19,7 +19,7 @@ opencv-python-headless
 pillow
 motor
 pyminizip
-pyrogram~=2.0.104
+pyrogram==2.0.104
 python-dotenv
 reportlab
 requests
