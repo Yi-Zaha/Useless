@@ -288,7 +288,7 @@ async def new_updates():
     return all_updates
 
 
-async def update_subs():
+async def update_subs(get_updates=new_updates):
     LOGGER(__name__).info("Updating PS Subs...")
     subs = [sub async for sub in pdB.all_subs()]
     subs_data = {}
@@ -318,7 +318,7 @@ async def update_subs():
             )
         )
 
-    for ps, updates in (await new_updates()).items():
+    for ps, updates in (await get_updates()).items():
         LOGGER(__name__).info(f"Checking for PS: {ps}")
 
         if updates and ps in DELAYED_PS:
