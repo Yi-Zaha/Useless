@@ -165,6 +165,8 @@ async def doujins_nhentai(client, message):
     pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"
     if pid in bulk_process:
         return await message.reply("This link is already in process... Please wait for it to be completed!")
+    if pid not in bulk_process:
+        bulk_process.append(pid)
     status = await message.reply("Processing... Please wait.")
     doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
