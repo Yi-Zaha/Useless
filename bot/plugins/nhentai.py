@@ -175,6 +175,7 @@ async def doujins_nhentai(client, message):
     if pid not in bulk_process:
         bulk_process.append(pid)
     status = await message.reply("Processing... Please wait.")
+    doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
     
     if doujins_count == 0:
