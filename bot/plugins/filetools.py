@@ -322,6 +322,7 @@ async def media_rename(client, message):
         chat_id,
         downloaded_file,
         file_name=output_name,
+        caption=f"<code>{output_name}</code>",
         message=status,
         thumb=thumb,
         protect_content=protect_content,
