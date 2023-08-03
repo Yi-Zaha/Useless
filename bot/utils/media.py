@@ -4,20 +4,27 @@ import cv2
 import m3u8
 
 
-def get_video_ss(video_path: str, ss_path: str = None) -> str:
-    video = cv2.VideoCapture(video_path)
+def get_video_ss(video, ss_path: str = None) -> str:
+    if isinstance(video, io.BytesIO):
+        video_data = video.getvalue()
+        video = cv2.VideoCapture()
+        video.open('dummy.mp4', cv2.CAP_FFMPEG)
+        video.write(video_data)
+        video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    else:
+        video = cv2.VideoCapture(video)
+
     total_frames = round(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
     random_frame = random.randint(0, total_frames - 1)
     video.set(cv2.CAP_PROP_POS_FRAMES, random_frame)
     ret, frame = video.read()
 
-    ss_path = ss_path or f"{video_path.split('.')[0]}_{random_frame}.jpg"
+    ss_path = ss_path or f"frame_{random_frame}.jpg"
     cv2.imwrite(ss_path, frame)
 
     video.release()
     return ss_path
-
 
 def get_video_duration(path: str) -> int:
     video = cv2.VideoCapture(path)
