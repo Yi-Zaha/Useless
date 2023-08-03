@@ -30,6 +30,7 @@ warning_modules = [
     "apscheduler",
     "pyrogram.session",
     "pyrogram.connection",
+    "pyrogram.parser",
 ]
 for name in warning_modules:
     LOGGER(name).setLevel(WARNING)
