@@ -158,7 +158,7 @@ async def doujins_nhentai(client, message):
         url = message.text
     
     status = await message.reply("Processing... Please wait.")
-    doujins = Nhentai.doujins_from_url(url)
+    doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
     
     if doujins_count == 0:
