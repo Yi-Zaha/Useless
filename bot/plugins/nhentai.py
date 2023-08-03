@@ -143,19 +143,20 @@ async def clean_nh_chat(client, message):
         await message.delete()
 
 
-@bot.on_message(filters.command("nhentai_parodies") & filters.user(ALLOWED_USERS))
+@bot.on_message(filters.command("nhentai_bulk") & filters.user(ALLOWED_USERS))
 async def doujins_nhentai(client, message):
-    if len(message.command) == 1:
-        return await message.reply("Please provide the doujin's code or URL.")
-    
-    if "|" in message.text:
+    nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
+    if len(message.command) == 1 or not nh_match:
+        return await message.reply("Please provide the nhentai doujins Url.")
+    text = message.text.split(" ", 1)[1]
+    if "|" in text:
         try:
-            url, chat = map(str.strip, message.text.split("|"))
+            url, chat = map(str.strip, text.split("|"))
             chat = int(chat)
         except ValueError:
             pass
     else:
-        url = message.text
+        url = text
     
     status = await message.reply("Processing... Please wait.")
     doujins = await Nhentai.doujins_from_url(url)
