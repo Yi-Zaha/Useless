@@ -151,7 +151,13 @@ async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
-    text = message.text.split(" ", 1)[1]
+    flags = ("-en")
+    en = flags[0]
+    for cmd in message.command[:-1]:
+        for flag in flags:
+            if flag in cmd:
+                message.command.remove(cmd)
+    text = " ".join(message.command[1:])
     if "|" in text:
         try:
             url, chat = map(str.strip, text.split("|"))
@@ -168,7 +174,6 @@ async def doujins_nhentai(client, message):
     if pid not in bulk_process:
         bulk_process.append(pid)
     status = await message.reply("Processing... Please wait.")
-    doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
     
     if doujins_count == 0:
@@ -187,6 +192,9 @@ async def doujins_nhentai(client, message):
 
         try:
             doujin = await Nhentai().get(data["url"])
+            if en and "#english" not in doujin.tags:
+                doujins_count -= 1
+                continue
             doujin_info = generate_doujin_info(doujin)
             graph_link = await generate_telegraph_link(doujin)
             title_with_graph = f"[{doujin.title}]({graph_link})"
