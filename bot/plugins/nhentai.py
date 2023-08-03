@@ -221,6 +221,8 @@ async def doujins_nhentai(client, message):
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
         await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
+    if en and success_count == 0:
+        await status.edit(f"{status.text}\n\n<b>No English Doujin Found Here.</b>", disable_web_page_preview=True)
     bulk_process.remove(pid)
 
 @bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
