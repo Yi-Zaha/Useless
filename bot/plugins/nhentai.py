@@ -162,7 +162,7 @@ async def doujins_nhentai(client, message):
         url = text
         chat = message.chat.id
     
-    pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"
+    pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"[:64]
     if pid in bulk_process:
         return await message.reply("This link is already in process... Please wait for it to be completed!")
     if pid not in bulk_process:
