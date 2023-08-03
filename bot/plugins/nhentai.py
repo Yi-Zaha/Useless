@@ -194,7 +194,6 @@ async def doujins_nhentai(client, message):
         try:
             doujin = await Nhentai().get(data["url"])
             if en and "#english" not in doujin.languages:
-                doujins_count -= 1
                 continue
             doujin_info = generate_doujin_info(doujin)
             graph_link = await generate_telegraph_link(doujin)
