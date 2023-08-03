@@ -320,8 +320,6 @@ async def media_rename(client, message):
         chat_id,
         downloaded_file,
         messsage=status,
-        progress=progress_cb,
-        progres_args=(status, time.time(), "Downloading...", output_name),
         file_name=output_name,
         thumb=thumb,
         protect_content=protect_content,
