@@ -15,7 +15,7 @@ from bot.helpers.nhentai_functions import (
     generate_doujin_info,
     generate_telegraph_link,
 )
-from bot.utils.functions import generate_share_url
+from bot.utils.functions import b64_encode, generate_share_url
 
 NH_CHANNEL = Config.get("NH_CHANNEL", -1001867670372)
 NH_CHAT = Config.get("NH_CHAT", -1001666665549)
@@ -144,6 +144,8 @@ async def clean_nh_chat(client, message):
         await message.delete()
 
 
+bulk_process = []
+
 @bot.on_message(filters.command("nhentai_bulk") & filters.user(ALLOWED_USERS))
 async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
@@ -159,20 +161,27 @@ async def doujins_nhentai(client, message):
     else:
         url = text
     
+    pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"
+    if pid in bulk_process:
+        return await message.reply("This link is already in process... Please wait for it to be completed!")
     status = await message.reply("Processing... Please wait.")
     doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
     
     if doujins_count == 0:
         return await status.edit("No doujins found from URL.")
-    
+
+    cancel_button = [InlineKeyboardButton("Cancel", pid)]
     doujin_list_text = "\n".join([f"→[{data['title']}]({data['url']})" for data in doujins])
-    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}", disable_web_page_preview=True)
+    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup([cancel_button]))
     
     success_count = 0
     error_count = 0
     
     for index, data in enumerate(doujins, start=1):
+        if pid not in bulk_process:
+            return await status.edit(f"{status.text.html}\n\n<b>Cancelled!</b>")
+
         try:
             doujin = await Nhentai().get(data["url"])
             doujin_info = generate_doujin_info(doujin)
@@ -204,4 +213,12 @@ async def doujins_nhentai(client, message):
         except Exception as e:
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
-        await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True)
+        await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
+
+
+@bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
+async def cancel_nh_bulk(client, callback):
+    if callback.data not in bulk_process:
+        return await callback.answer("This process is not active anymore.", show_alert=True)
+    bulk_process.remove(callback.data)
+    await callback.answer("This process will be cancelled soon!", show_alert=True)
