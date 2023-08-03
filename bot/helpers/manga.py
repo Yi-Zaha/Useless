@@ -428,7 +428,7 @@ class Nhentai:
                     else t
                 )
                 tag_name = (
-                    t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "")
+                    t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "").replace(".", "_")
                 )
                 tag_mapping[tag_type].append(f"#{tag_name}")
 
