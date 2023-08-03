@@ -156,7 +156,8 @@ async def doujins_nhentai(client, message):
     for cmd in message.command[:-1]:
         for flag in flags:
             if flag in cmd:
-                message.command.remove(cmd)
+                if cmd in message.command:
+                    message.command.remove(cmd)
     text = " ".join(message.command[1:])
     if "|" in text:
         try:
