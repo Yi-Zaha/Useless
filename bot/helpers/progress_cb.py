@@ -39,6 +39,9 @@ class Stream(io.BytesIO):
 
     def seek(self, n, seek_type=None):
         pass
+    
+    def getvalue(self):
+        return self.buffer
 
 
 async def progress_cb(
