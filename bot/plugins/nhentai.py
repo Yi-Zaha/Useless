@@ -167,14 +167,14 @@ async def doujins_nhentai(client, message):
         return await status.edit("No doujins found from URL.")
     
     doujin_list_text = "\n".join([f"→[{data['title']}]({data['url']})" for data in doujins])
-    await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}")
+    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}")
     
     success_count = 0
     error_count = 0
     
     for index, data in enumerate(doujins, start=1):
         try:
-            doujin = Nhentai().get(data["url"])
+            doujin = await Nhentai().get(data["url"])
             doujin_info = generate_doujin_info(doujin)
             graph_link = await generate_telegraph_link(doujin)
             
