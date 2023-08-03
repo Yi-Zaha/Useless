@@ -154,11 +154,10 @@ async def doujins_nhentai(client, message):
     flags = ("-en")
     en = flags[0] in message.text
     for flag in flags:
-        for cmd in message.command[:-1]:
-            if flag in cmd:
-                message.command.remove(cmd)
+        if flag in message.text:
+            message.text = message.text.replace(flag, "", 1)
                 
-    text = " ".join(message.command[1:])
+    text = message.text.split(" ", 1)[1]
     if "|" in text:
         try:
             url, chat = map(str.strip, text.split("|"))
