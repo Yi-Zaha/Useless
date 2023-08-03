@@ -264,7 +264,7 @@ async def media_upload(client, message):
 async def media_rename(client, message):
     reply = message.reply_to_message
     command = message.text.split(" ")
-    if not (getattr(reply, "media", False) or len(command) == 1):
+    if not (getattr(reply, "media", None) or len(command) > 1):
         return await message.reply(
             "Reply to a media and provide a file name to rename."
         )
