@@ -167,7 +167,7 @@ async def doujins_nhentai(client, message):
         return await status.edit("No doujins found from URL.")
     
     doujin_list_text = "\n".join([f"→[{data['title']}]({data['url']})" for data in doujins])
-    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}")
+    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}", disable_web_page_preview=True)
     
     success_count = 0
     error_count = 0
@@ -204,4 +204,4 @@ async def doujins_nhentai(client, message):
         except Exception as e:
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
-        await status.edit(f"{status.text.html}\n\n{progress_text}")
+        await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True)
