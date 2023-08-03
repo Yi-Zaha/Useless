@@ -86,7 +86,7 @@ async def nhentai_handler(client, message):
     for flag in flags:
         for cmd in message.command:
             if flag in cmd:
-                message.remove(cmd)
+                message.command.remove(cmd)
     status = await message.reply("Processing... Please wait.")
     if len(message.command) == 1:
         return await status.edit("Please provide the doujin's code or URL.")
