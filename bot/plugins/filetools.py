@@ -317,17 +317,22 @@ async def media_rename(client, message):
         progress=progress_cb,
         progress_args=(status, time.time(), "Downloading...", file_name),
     )
-    await send_media(
-        media_type,
-        chat_id,
-        downloaded_file,
-        file_name=output_name,
-        caption=f"<code>{output_name}</code>",
-        message=status,
-        thumb=thumb,
-        protect_content=protect_content,
-        **extra_args,
-    )
+    try:
+        await send_media(
+            media_type,
+            chat_id,
+            downloaded_file,
+            file_name=output_name,
+            caption=f"<code>{output_name}</code>",
+            message=status,
+            thumb=thumb,
+            protect_content=protect_content,
+            **extra_args,
+        )
+    except Exception as e:
+        await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
 
     end_time = datetime.now()
     time_taken = (end_time - start_time).seconds
