@@ -160,6 +160,7 @@ async def doujins_nhentai(client, message):
             pass
     else:
         url = text
+        chat = message.chat.id
     
     pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"
     if pid in bulk_process:
@@ -193,18 +194,10 @@ async def doujins_nhentai(client, message):
             pdf, cbz = await download_doujin_files(doujin)
             
             try:
-                await client.send_message(message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN)
+                await client.send_message(chat, doujin_info, parse_mode=ParseMode.MARKDOWN)
                 await asyncio.gather(
-                    client.send_document(message.chat.id, pdf),
-                    client.send_document(message.chat.id, cbz)
-                )
-                success_count += 1
-            except FloodWait as fw:
-                await asyncio.sleep(fw.value + 5)
-                await client.send_message(message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN)
-                await asyncio.gather(
-                    client.send_document(message.chat.id, pdf),
-                    client.send_document(message.chat.id, cbz)
+                    client.send_document(chat, pdf),
+                    client.send_document(chat, cbz)
                 )
                 success_count += 1
             finally:
