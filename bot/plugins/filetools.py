@@ -263,14 +263,14 @@ async def media_upload(client, message):
 @bot.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(SUDOS))
 async def media_rename(client, message):
     reply = message.reply_to_message
-    if not (getattr(reply, "media", False) or len(message.command) == 1):
+    command = message.text.split(" ")
+    if not (getattr(reply, "media", False) or len(command) == 1):
         return await message.reply(
             "Reply to a media and provide a file name to rename."
         )
 
     status = await message.reply("Processing...")
     media = getattr(reply, reply.media._value_)
-    command = message.text.split(" ")
     media_type = command[0].split("_")
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
     flags = ("-f", "-t", "-nt", "-protect")
