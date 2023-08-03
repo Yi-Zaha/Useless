@@ -84,7 +84,7 @@ async def nhentai_handler(client, message):
     flags = ("-wt", )
     no_graph = flags[0] in message.text
     for flag in flags:
-        for cmd in message.command:
+        for cmd in message.command[:-1]:
             if flag in cmd:
                 message.command.remove(cmd)
     status = await message.reply("Processing... Please wait.")
