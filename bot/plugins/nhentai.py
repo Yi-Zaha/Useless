@@ -4,7 +4,7 @@ import re
 
 from pyrogram import filters
 from pyrogram.enums import ParseMode
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, PeerIdInvalid, ChannelIdInvalid
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
@@ -205,6 +205,8 @@ async def doujins_nhentai(client, message):
             finally:
                 os.remove(pdf)
                 os.remove(cbz)
+        except (ChannelIdInvalid, PeerIdInvalid):
+            return await status.edit(f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>")
         except Exception as e:
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
