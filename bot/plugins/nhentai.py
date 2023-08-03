@@ -46,10 +46,10 @@ async def nh_handler(client, message):
         file=doujin.title.replace("/", "|").split("|")[0][:45].strip()
         + " @Nhentai_Doujins",
     )
-    graph_link = await generate_telegraph_link(doujin)
-    graph_link = graph_link or doujin.read_url
-    graph_post = f"[{doujin.title}]({graph_link})"
-    doujin_info = doujin_info.replace(doujin_info.split("\n")[0], graph_post)
+    if not no_graph:
+        graph_link = await generate_telegraph_link(doujin)
+        graph_post = f"[{doujin.title}]({graph_link or doujin.read_url})"
+        doujin_info = doujin_info.replace(doujin_info.split("\n")[0], graph_post)
 
     temp = await client.send_message(LOG_CHAT, graph_link)
     await asyncio.sleep(3)
@@ -81,6 +81,12 @@ async def nh_handler(client, message):
 
 @bot.on_message(filters.command("nhentai"))
 async def nhentai_handler(client, message):
+    flags = ("-wt", )
+    no_graph = flags[0] in message.text
+    for flag in flags:
+        for cmd in message.command:
+            if flag in cmd:
+                message.remove(cmd)
     status = await message.reply("Processing... Please wait.")
     if len(message.command) == 1:
         return await status.edit("Please provide the doujin's code or URL.")
@@ -94,7 +100,7 @@ async def nhentai_handler(client, message):
     doujin_info = generate_doujin_info(doujin)
     await status.edit(f"Processing... Downloading [{doujin.title}]({doujin.url})")
 
-    graph_link = await generate_telegraph_link(doujin)
+    graph_link = await generate_telegraph_link(doujin) if not no_graph else None
     graph_link = graph_link or doujin.read_url
     graph_post = f"[{doujin.title}]({graph_link})"
     doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), graph_post)
@@ -151,8 +157,8 @@ async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
-    flags = ("-en", )
-    en = flags[0] in message.text
+    flags = ("-en", "-wt")
+    en, no_graph = flags[0] in message.text, flags[1] in message.text
     for flag in flags:
         if flag in message.text:
             message.text = message.text.replace(flag, "", 1)
@@ -198,7 +204,7 @@ async def doujins_nhentai(client, message):
             doujin_info = generate_doujin_info(doujin)
             graph_link = await generate_telegraph_link(doujin)
             title_with_graph = f"[{doujin.title}]({graph_link})"
-            if graph_link:
+            if graph_link and not no_graph:
                 doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), title_with_graph)
             
             pdf, cbz = await download_doujin_files(doujin)
