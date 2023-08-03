@@ -7,7 +7,7 @@ from datetime import datetime
 
 from pyrogram import filters
 
-from bot import SUDOS, bot
+from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.progress_cb import Stream, progress_cb
 from bot.utils.aiohttp_helper import AioHttp, get_name_and_size_from_response
 from bot.utils.media import get_video_duration, get_video_ss
@@ -260,7 +260,7 @@ async def media_upload(client, message):
         )
 
 
-@bot.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(SUDOS))
+@bot.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(ALLOWED_USERS))
 async def media_rename(client, message):
     reply = message.reply_to_message
     command = message.text.split(" ")
