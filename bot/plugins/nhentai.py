@@ -151,7 +151,7 @@ async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
-    flags = ("-en")
+    flags = ("-en", )
     en = flags[0] in message.text
     for flag in flags:
         if flag in message.text:
