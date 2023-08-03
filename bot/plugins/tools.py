@@ -35,7 +35,7 @@ async def noformat_text(client, message):
 
 
 @bot.on_message(
-    filters.command(["setthumb", "thumbnail", "thumb"]) & filters.user(SUDOS)
+    filters.command(["setthumb", "thumbnail", "thumb"]) & filters.user(ALLOWED_USERS)
 )
 async def set_thumbnail(client, message):
     reply = message.reply_to_message
