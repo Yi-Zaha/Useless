@@ -338,6 +338,8 @@ async def media_rename(client, message):
 
     if thumb and thumb != "thumb.jpg":
         os.remove(thumb)
+    os.remove(downloaded_file)
+
 
 """
 async def media_rename(client, message):
