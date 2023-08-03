@@ -152,7 +152,7 @@ async def doujins_nhentai(client, message):
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
     flags = ("-en")
-    en = flags[0]
+    en = flags[0] in message.text
     for flag in flags:
         for cmd in message.command[:-1]:
             if flag in cmd:
