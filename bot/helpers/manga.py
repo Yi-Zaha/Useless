@@ -8,7 +8,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import pyminizip
 from bs4 import BeautifulSoup
@@ -373,6 +373,20 @@ class PS:
 
 
 class Nhentai:
+    @staticmethod
+    async def doujins_from_url(url):
+        parsed_url = urlparse(url)
+        origin_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        content = await AioHttp.request(url)
+        soup = BeautifulSoup(content, "html.parser")
+        items = soup.find_all("a", "cover")
+        doujins = []
+        for item in items:
+            doujin_url = urljoin(origin_url, item["href"])
+            doujin_title = item.find("div", "caption").text.strip()
+            doujins.append({"url": doujin_url, "title": doujin_title})
+        return doujins
+
     async def get(self, link):
         if not link.isdigit():
             link = link

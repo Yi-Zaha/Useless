@@ -3,6 +3,7 @@ import os
 
 from pyrogram import filters
 from pyrogram.enums import ParseMode
+from pyrogram.errors import FloodWait
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
@@ -140,3 +141,65 @@ async def telegraph_nhentai(client, message):
 async def clean_nh_chat(client, message):
     if "➤ Tags:" in str(message.text):
         await message.delete()
+
+
+@bot.on_message(filters.command("nhentai_parodies") & filters.user(ALLOWED_USERS))
+async def doujins_nhentai(client, message):
+    if len(message.command) == 1:
+        return await message.reply("Please provide the doujin's code or URL.")
+    
+    if "|" in message.text:
+        try:
+            url, chat = map(str.strip, message.text.split("|"))
+            chat = int(chat)
+        except ValueError:
+            pass
+    else:
+        url = message.text
+    
+    status = await message.reply("Processing... Please wait.")
+    doujins = Nhentai.doujins_from_url(url)
+    doujins_count = len(doujins)
+    
+    if doujins_count == 0:
+        return await status.edit("No doujins found from URL.")
+    
+    doujin_list_text = "\n".join([f"→[{data['title']}]({data['url']})" for data in doujins])
+    await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}")
+    
+    success_count = 0
+    error_count = 0
+    
+    for index, data in enumerate(doujins, start=1):
+        try:
+            doujin = Nhentai().get(data["url"])
+            doujin_info = generate_doujin_info(doujin)
+            graph_link = await generate_telegraph_link(doujin)
+            
+            if graph_link:
+                doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), graph_link)
+            
+            pdf, cbz = await download_doujin_files(doujin)
+            
+            try:
+                await client.send_message(message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN)
+                await asyncio.gather(
+                    client.send_document(message.chat.id, pdf),
+                    client.send_document(message.chat.id, cbz)
+                )
+                success_count += 1
+            except FloodWait as fw:
+                await asyncio.sleep(fw.value + 5)
+                await client.send_message(message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN)
+                await asyncio.gather(
+                    client.send_document(message.chat.id, pdf),
+                    client.send_document(message.chat.id, cbz)
+                )
+                success_count += 1
+            finally:
+                os.remove(pdf)
+                os.remove(cbz)
+        except Exception as e:
+            error_count += 1
+        progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
+        await status.edit(f"{status.text.html}\n\n{progress_text}")

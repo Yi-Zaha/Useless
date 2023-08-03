@@ -330,7 +330,7 @@ async def media_rename(client, message):
             **extra_args,
         )
     except Exception as e:
-        await status.edit(
+        return await status.edit(
             f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
         )
 
