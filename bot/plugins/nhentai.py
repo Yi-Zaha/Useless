@@ -183,7 +183,7 @@ async def doujins_nhentai(client, message):
     
     for index, data in enumerate(doujins, start=1):
         if pid not in bulk_process:
-            return await status.edit(f"{status.text.html}\n\n<b>Cancelled!</b>")
+            return await status.edit(f"{status.text.html}\n\n<b>Cancelled!</b>", disable_web_page_preview=True)
 
         try:
             doujin = await Nhentai().get(data["url"])
