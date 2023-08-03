@@ -115,7 +115,7 @@ async def send_media(media_type, chat, file, message=None, progress=None, **kwar
 
 
 @bot.on_message(filters.command(["download", "dl"]) & filters.user(SUDOS))
-async def download_media(client, message):
+async def media_download(client, message):
     status = await message.reply("Processing...")
     input_text = " ".join(message.command[1:]) if len(message.command) > 1 else ""
     reply = message.reply_to_message
@@ -188,7 +188,7 @@ async def download_media(client, message):
 
 
 @bot.on_message(filters.regex(r"^/(upload|ul) ?(.*)", re.I) & filters.user(SUDOS))
-async def upload_media(client, message):
+async def media_upload(client, message):
     status = await message.reply("Processing..")
     command = message.text.split(" ")
     if len(command) == 1:
@@ -259,7 +259,7 @@ async def upload_media(client, message):
 
 
 @bot.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(SUDOS))
-async def rename_media(client, message):
+async def media_rename(client, message):
     reply = message.reply_to_message
     if not (getattr(reply, "media", False) or len(message.command) == 1):
         return await message.reply(
@@ -271,11 +271,12 @@ async def rename_media(client, message):
     command = message.text.split(" ")
     media_type = command[0].split("_")
     media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
-    flags = ("-f", "-t", "-protect")
-    force_doc, thumb, protect_content = (
+    flags = ("-f", "-t", "-nt", "-protect")
+    force_doc, thumb, no_thumb, protect_content = (
         flags[0] in message.text,
         flags[1] in message.text,
-        flags[1] in message.text,
+        flags[2] in message.text,
+        flags[3] in message.text,
     )
     thumb = "thumb.jpg" if thumb else None
     extra_args = {}
@@ -289,6 +290,88 @@ async def rename_media(client, message):
                     "width": media.thumbs[-1].width,
                 }
             )
+    if no_thumb:
+        thumb = None
+
+    for cmd in command[:-1]:
+        for flag in flags:
+            if flag in cmd:
+                command.remove(cmd)
+
+    file_name = media.file_name
+    output_name = " ".join(command[1:])
+    chat_id = message.chat.id
+    if "|" in output_name:
+        try:
+            output_name, chat_id = map(str.strip, output_name.split("|"))
+            chat_id = int(chat_id)
+        except ValueError:
+            pass
+
+    start_time = datetime.now()
+    
+    downloaded_file = await reply.download(
+        file_name="downloads/",
+        progress=progress_cb,
+        progress_args=(status, time.time(), "Downloading...", file_name),
+    )
+    await send_media(
+        media_type,
+        chat_id,
+        downloaded_file,
+        messsage=status,
+        progress=progress_cb,
+        progres_args=(status, time.time(), "Downloading...", output_name),
+        file_name=output_name,
+        thumb=thumb,
+        protect_content=protect_content,
+        **extra_args,
+    )
+
+    end_time = datetime.now()
+    time_taken = (end_time - start_time).seconds
+    success_text = f"Renamed <code>{file_name}</code> to <code>{output_name}</code> in <code>{time_taken}</code> seconds"
+    if chat_id != message.chat.id:
+        success_text += f" and sent to chat ID <code>{chat_id}</code>"
+    success_text += "."
+    await status.edit(success_text)
+
+    if thumb and thumb != "thumb.jpg":
+        os.remove(thumb)
+
+"""
+async def media_rename(client, message):
+    reply = message.reply_to_message
+    if not (getattr(reply, "media", False) or len(message.command) == 1):
+        return await message.reply(
+            "Reply to a media and provide a file name to rename."
+        )
+
+    status = await message.reply("Processing...")
+    media = getattr(reply, reply.media._value_)
+    command = message.text.split(" ")
+    media_type = command[0].split("_")
+    media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
+    force_doc, thumb, no_thumb, protect_content = (
+        flags[0] in message.text,
+        flags[1] in message.text,
+        flags[2] in message.text,
+        flags[3] in message.text,
+    )
+    thumb = "thumb.jpg" if thumb else None
+    extra_args = {}
+    if not thumb and media.thumbs:
+        thumb = await client.download_media(media.thumbs[-1].file_id)
+        if media_type in ("vid", "video") and reply.video:
+            extra_args.update(
+                {
+                    "duration": media.duration,
+                    "height": media.thumbs[-1].height,
+                    "width": media.thumbs[-1].width,
+                }
+            )
+    if no_thumb:
+        thumb = None
     for cmd in command[:-1]:
         for flag in flags:
             if flag in cmd:
@@ -332,3 +415,4 @@ async def rename_media(client, message):
 
     if thumb and thumb != "thumb.jpg":
         os.remove(thumb)
+"""
