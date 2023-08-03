@@ -189,9 +189,9 @@ async def doujins_nhentai(client, message):
             doujin = await Nhentai().get(data["url"])
             doujin_info = generate_doujin_info(doujin)
             graph_link = await generate_telegraph_link(doujin)
-            
+            title_with_graph = f"[{doujin.title}]({graph_link})"
             if graph_link:
-                doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), graph_link)
+                doujin_info = doujin_info.replace(doujin_info.split("\n")[0].strip(), title_with_graph)
             
             pdf, cbz = await download_doujin_files(doujin)
             
