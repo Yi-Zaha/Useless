@@ -153,11 +153,11 @@ async def doujins_nhentai(client, message):
         return await message.reply("Please provide the nhentai doujins Url.")
     flags = ("-en")
     en = flags[0]
-    for cmd in message.command[:-1]:
-        for flag in flags:
+    for flag in flags:
+        for cmd in message.command[:-1]:
             if flag in cmd:
-                if cmd in message.command:
-                    message.command.remove(cmd)
+                message.command.remove(cmd)
+                
     text = " ".join(message.command[1:])
     if "|" in text:
         try:
