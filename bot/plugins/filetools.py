@@ -33,6 +33,9 @@ def get_ss_and_duration(video_path: str):
 
 async def send_media(media_type, chat, file, message=None, progress=progress_cb, **kwargs):
     c_time = time.time()
+    file_name = kwargs.get("file_name", None)
+    if file_name is None:
+        file_name = os.path.basename(str(file))
     if media_type in ("vid", "video"):
         ss, duration, width, height = get_ss_and_duration(file)
         duration = kwargs.pop("duration", duration)
@@ -51,7 +54,7 @@ async def send_media(media_type, chat, file, message=None, progress=progress_cb,
                 message,
                 c_time,
                 "Uploading...",
-                getattr(file, "name", file),
+                file_name,
             ),
             **kwargs,
         )
@@ -67,7 +70,7 @@ async def send_media(media_type, chat, file, message=None, progress=progress_cb,
                 message,
                 c_time,
                 "Uploading...",
-                getattr(file, "name", file),
+                file_name,
             ),
             **kwargs,
         )
@@ -81,7 +84,7 @@ async def send_media(media_type, chat, file, message=None, progress=progress_cb,
                 message,
                 c_time,
                 "Uploading...",
-                getattr(file, "name", file),
+                file_name,
             ),
             **kwargs,
         )
@@ -95,7 +98,7 @@ async def send_media(media_type, chat, file, message=None, progress=progress_cb,
                 message,
                 c_time,
                 "Uploading...",
-                getattr(file, "name", file),
+                file_name,
             ),
             **kwargs,
         )
@@ -108,7 +111,7 @@ async def send_media(media_type, chat, file, message=None, progress=progress_cb,
                 message,
                 c_time,
                 "Uploading...",
-                getattr(file, "name", file),
+                file_name,
             ),
             **kwargs,
         )
