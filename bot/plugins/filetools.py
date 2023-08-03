@@ -31,7 +31,7 @@ def get_ss_and_duration(video_path: str):
     return thumb, duration, width, height
 
 
-async def send_media(media_type, chat, file, message=None, progress=None, **kwargs):
+async def send_media(media_type, chat, file, message=None, progress=progress_cb, **kwargs):
     c_time = time.time()
     if media_type in ("vid", "video"):
         ss, duration, width, height = get_ss_and_duration(file)
@@ -237,7 +237,6 @@ async def media_upload(client, message):
                 chat,
                 file,
                 message=status,
-                progress=progress_cb,
                 thumb=thumb,
                 caption=caption,
                 protect_content=protect_content,
