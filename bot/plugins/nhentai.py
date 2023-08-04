@@ -57,7 +57,7 @@ async def download_doujin_files(doujin, filename=None):
         filename = str(doujin.code)
     global DL_LOCK
     async with DL_LOCK:
-        pdf, cbz = await doujin.dl_chapter(file, "both")
+        pdf, cbz = await doujin.dl_chapter(filename, "both")
         return pdf, cbz
 
 

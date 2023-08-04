@@ -79,21 +79,6 @@ async def on_start(client, message):
                     )
                 )
                 sent_ids.append(sent.id)
-            except FloodWait as fw:
-                await asyncio.sleep(fw.value + 5)
-                sent = (
-                    await msg.copy(
-                        message.chat.id,
-                        caption=getattr(msg.caption, "html", None),
-                        protect_content=protect_content,
-                    )
-                    if msg.media
-                    else await client.send_message(
-                        message.chat.id,
-                        msg.text.markdown,
-                        protect_content=protect_content,
-                    )
-                )
             except Exception:
                 pass
 

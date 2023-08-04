@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import get_link, get_soup, retry_func
+from bot.utils.functions import get_link, get_soup, retry_func, images_to_graph
 from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
 
 
