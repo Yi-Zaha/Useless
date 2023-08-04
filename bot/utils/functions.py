@@ -274,7 +274,7 @@ def wrap(source):
             flood_wrap = retry_on_flood(method)
             setattr(source, name, flood_wrap)
 
-wrap(Messages)
+# wrap(Messages)
 
 async def restart_bot():
     pull_res = await run_cmd("git fetch -f && git pull -f")
