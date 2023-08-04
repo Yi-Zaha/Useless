@@ -108,7 +108,7 @@ async def hanime_info(client, callback):
         )
         os.remove(file)
 
-    await message.answer()
+    await callback.answer()
 
 
 @bot.on_callback_query(filters.regex(r"^hanimelinks_(.*)"))
