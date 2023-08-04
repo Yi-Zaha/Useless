@@ -333,7 +333,7 @@ class PS:
 
         to_download = mode.lower() in ("pdf", "cbz", "both")
         if to_download:
-            
+            files = []
             tasks = []
             images = []
             for n, link in enumerate(image_urls):
