@@ -242,11 +242,46 @@ async def images_to_graph(title, image_urls: list, author=None, author_url=None)
 
 # Other Utility Functions
 
+def generate_share_url(mode, first_msg_id, last_msg_id):
+    share_type = (
+        "TimedBatchMsgs"
+        if mode.lower() == "expiry"
+        else "ProtectedBatchMsgs"
+        if mode.lower() == "protect"
+        else "BatchMsgs"
+    )
+    b64_code = b64_encode(f"{share_type}_{first_msg_id}-{last_msg_id}")
+    return f"https://telegram.me/{bot.me.username}?start=Sharem-{b64_code}"
+
+def retry_on_flood(function):
+    async def wrapper(*args, **kwargs):
+        while True:
+            try:
+                return await function(*args, **kwargs)
+            except FloodWait as fw:
+                LOGS.info(f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})")
+                await asyncio.sleep(fw.value)
+                continue
+            except Exception:
+                raise
+    return wrapper
+
+def wrap(source):
+    for name in dir(source):
+        method = getattr(source, name)
+        
+        if not name.startswith("_"):
+            flood_wrap = retry_on_flood(method)
+            setattr(source, name, flood_wrap)
+
+wrap(Messages)
+
 async def restart_bot():
     pull_res = await run_cmd("git fetch -f && git pull -f")
     if "requirements.txt" in pull_res[0]:
         await run_cmd("pip install -U -r requirements.txt")
     os.execl(sys.executable, sys.executable, "-m", "bot")
+
 bot.reboot = restart_bot
 
 async def edit_and_delete(message, text=None, **kwargs):
@@ -282,29 +317,6 @@ async def ask_msg(
     if response.text and response.text.lower().split()[0] in ["/cancel"]:
         await request.edit("Cancelled!")
         raise asyncio.CancelledError
-
-def retry_on_flood(function):
-    async def wrapper(*args, **kwargs):
-        while True:
-            try:
-                return await function(*args, **kwargs)
-            except FloodWait as fw:
-                LOGS.info(f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})")
-                await asyncio.sleep(fw.value)
-                continue
-            except Exception:
-                raise
-    return wrapper
-
-def wrap(source):
-    for name in dir(source):
-        method = getattr(source, name)
-        
-        if not name.startswith("_"):
-            flood_wrap = retry_on_flood(method)
-            setattr(source, name, flood_wrap)
-
-wrap(Messages)
 
 async def run_cmd(cmd: str) -> tuple[str, str]:
     process = await asyncio.create_subprocess_shell(
