@@ -248,6 +248,8 @@ async def doujins_nhentai(client, message):
         await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
     if en and success_count == 0:
         await status.edit(f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>", disable_web_page_preview=True)
+    else:
+        await status.edit_reply_markup(None)
     BULK_PROCESS.remove(pid)
 
 @bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
