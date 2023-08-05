@@ -26,7 +26,7 @@ SUBS_CHANNEL = Config.get("SUBS_CHANNEL", -1001606385356)
 async def on_start(client, message):
     text = message.text.split(" ", 1)[1] if len(message.text.split(" ")) > 1 else ""
 
-    if text.startswith("Sharem-"):
+    if text.startswith(("Sharem-", "cached-")):
         b64_code = text.split("-")[1]
         b64_string = b64_decode(b64_code)
         if not b64_string:

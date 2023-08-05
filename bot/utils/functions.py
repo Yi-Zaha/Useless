@@ -251,7 +251,7 @@ def generate_share_url(mode, first_msg_id, last_msg_id):
         else "BatchMsgs"
     )
     b64_code = b64_encode(f"{share_type}_{first_msg_id}-{last_msg_id}")
-    return f"https://telegram.me/{bot.me.username}?start=Sharem-{b64_code}"
+    return f"https://telegram.me/{bot.me.username}?start=cached-{b64_code}"
 
 def retry_on_flood(function):
     async def wrapper(*args, **kwargs):
