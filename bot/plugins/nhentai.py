@@ -10,6 +10,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
 from bot.config import Config
+from bot.logger import logger
 from bot.helpers.manga import Nhentai
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import b64_encode, generate_share_url, images_to_graph
@@ -250,11 +251,11 @@ async def doujins_nhentai(client, message):
                 BULK_PROCESS.remove(pid)
             return await status.edit(f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>", disable_web_page_preview=True)
         except Exception as e:
-            logger.info(f"Error occurred while sending doujin no. {doujin.code}: {e}")
+            LOGGER(__name__).info(f"Error occurred while sending doujin no. {doujin.code}: {e}")
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
         await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
-    if en and success_count == 0:
+    if en and success_count == 0 and error_count == 0:
         await status.edit(f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>", disable_web_page_preview=True)
     else:
         await status.edit_reply_markup(None)
