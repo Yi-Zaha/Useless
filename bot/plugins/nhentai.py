@@ -250,6 +250,7 @@ async def doujins_nhentai(client, message):
                 BULK_PROCESS.remove(pid)
             return await status.edit(f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>", disable_web_page_preview=True)
         except Exception as e:
+            logger.info(f"Error occurred while sending doujin no. {doujin.code}: {e}")
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
         await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
