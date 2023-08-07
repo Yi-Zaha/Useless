@@ -233,7 +233,7 @@ async def doujins_nhentai(client, message):
             
             try:
                 if no_graph:
-                    cover_img = await AioHttp.download(doujin.image_urls[0], headers={"Referer": doujin.url})
+                    cover_img, *_ = await AioHttp.download(doujin.image_urls[0], headers={"Referer": doujin.url})
                     await client.send_photo(chat, cover_img, caption=doujin_info, parse_mode=ParseMode.MARKDOWN)
                     os.remove(cover_img)
                 else:
