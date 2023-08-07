@@ -1,4 +1,5 @@
 import asyncio
+import io
 import os
 import re
 
@@ -10,6 +11,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
 from bot.config import Config
 from bot.helpers.manga import Nhentai
+from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import b64_encode, generate_share_url, images_to_graph
 
 NH_CHANNEL = Config.get("NH_CHANNEL", -1001867670372)
@@ -229,7 +231,12 @@ async def doujins_nhentai(client, message):
             pdf, cbz = await download_doujin_files(doujin)
             
             try:
-                await client.send_message(chat, doujin_info, parse_mode=ParseMode.MARKDOWN)
+                if no_graph:
+                    cover_img = await AioHttp.download(doujin.image_urls[0], headers={"Referer": doujin.url})
+                    await client.send_photo(chat, cover_img, caption=doujin_info, parse_mode=ParseMode.MARKDOWN)
+                    os.remove(cover_img)
+                else:
+                    await client.send_message(chat, doujin_info, parse_mode=ParseMode.MARKDOWN)
                 await asyncio.gather(
                     client.send_document(chat, pdf),
                     client.send_document(chat, cbz)
