@@ -10,7 +10,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
 from bot.config import Config
-from bot.logger import logger
+from bot.logger import LOGGER
 from bot.helpers.manga import Nhentai
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import b64_encode, generate_share_url, images_to_graph
