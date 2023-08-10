@@ -200,9 +200,14 @@ async def reply_to_pms(client, message):
 async def storefiles_event(client, message):
     while True:
         try:
-            await message.reply("Forward (or Send the link of) the first message from the DB channel.")
+            await message.reply(
+                "Forward (or Send the link of) the first message from the DB channel."
+            )
             msg1 = await client.listen.Message(
-                filters=(filters.chat(message.chat.id) & filters.forwarded | (filters.text & ~filters.forwarded)),
+                filters=(
+                    filters.chat(message.chat.id) & filters.forwarded
+                    | (filters.text & ~filters.forwarded)
+                ),
                 id=filters.user(message.from_user.id),
                 timeout=60,
             )
@@ -219,9 +224,14 @@ async def storefiles_event(client, message):
 
     while True:
         try:
-            await message.reply("Forward (or Send the link of) the last message from the DB channel.")
+            await message.reply(
+                "Forward (or Send the link of) the last message from the DB channel."
+            )
             msg2 = await client.listen.Message(
-                filters=(filters.chat(message.chat.id) & filters.forwarded | (filters.text & ~filters.forwarded)),
+                filters=(
+                    filters.chat(message.chat.id) & filters.forwarded
+                    | (filters.text & ~filters.forwarded)
+                ),
                 id=filters.user(message.from_user.id),
                 timeout=60,
             )

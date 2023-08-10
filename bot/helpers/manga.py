@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import get_link, get_soup, retry_func, images_to_graph
+from bot.utils.functions import get_link, get_soup, images_to_graph, retry_func
 from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
 
 
@@ -131,7 +131,7 @@ class IManga:
                 f"{link}?{extra}"
                 for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
             ]
-        
+
         to_download = mode.lower() in ("pdf", "cbz", "both")
         files = []
         if to_download:
@@ -142,7 +142,9 @@ class IManga:
                 ext = ext[1] if len(ext) > 1 else ".jpg"
                 filename = f"{dir}/{index}{ext}"
                 task = asyncio.create_task(
-                    retry_func(AioHttp.download(link, filename=filename, headers=headers))
+                    retry_func(
+                        AioHttp.download(link, filename=filename, headers=headers)
+                    )
                 )
                 tasks.append(task)
                 images.append(filename)
@@ -438,7 +440,11 @@ class Nhentai:
                     else t
                 )
                 tag_name = (
-                    t.text.strip().split("\n")[0].replace(" ", "_").replace("-", "").replace(".", "_")
+                    t.text.strip()
+                    .split("\n")[0]
+                    .replace(" ", "_")
+                    .replace("-", "")
+                    .replace(".", "_")
                 )
                 tag_mapping[tag_type].append(f"#{tag_name}")
 

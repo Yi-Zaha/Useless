@@ -9,7 +9,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
     if isinstance(video, io.BytesIO):
         video_data = video.getvalue()
         video = cv2.VideoCapture()
-        video.open('dummy.mp4', cv2.CAP_FFMPEG)
+        video.open("dummy.mp4", cv2.CAP_FFMPEG)
         video.write(video_data)
         video.set(cv2.CAP_PROP_POS_FRAMES, 0)
     else:
@@ -26,6 +26,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
 
     video.release()
     return ss_path
+
 
 def get_video_duration(path: str) -> int:
     video = cv2.VideoCapture(path)

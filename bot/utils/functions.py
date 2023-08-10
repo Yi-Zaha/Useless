@@ -19,7 +19,7 @@ from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
 from pyrogram.methods.messages import Messages
 
-from bot import bot, LOGS
+from bot import LOGS, bot
 
 # Data Caches
 chat_photos = {}
@@ -28,6 +28,7 @@ chat_messages = cachetools.TTLCache(maxsize=128, ttl=30 * 60)
 
 
 # Utility Functions
+
 
 def async_wrap(func):
     @wraps(func)
@@ -41,13 +42,16 @@ def async_wrap(func):
             return result
         finally:
             await loop.run_in_executor(None, executor.shutdown, True)
+
     return wrapper
+
 
 def b64_encode(string):
     string_bytes = string.encode("ascii")
     base64_bytes = base64.urlsafe_b64encode(string_bytes)
     base64_string = base64_bytes.decode("ascii").rstrip("=")
     return base64_string
+
 
 def b64_decode(base64_string):
     base64_string = base64_string.rstrip("=")
@@ -56,6 +60,7 @@ def b64_decode(base64_string):
     string = string_bytes.decode("ascii")
     return string
 
+
 def is_url(url: str) -> bool:
     try:
         result = urlparse(url)
@@ -63,11 +68,13 @@ def is_url(url: str) -> bool:
     except ValueError:
         return False
 
+
 def split_list(lst: list, index: int) -> list[list]:
     return [lst[i : i + index] for i in range(0, len(lst), index)]
 
 
 # Network Functions
+
 
 @async_wrap
 def get_link(link: str, post: bool = False, cloud: bool = False, *args, **kwargs):
@@ -76,6 +83,7 @@ def get_link(link: str, post: bool = False, cloud: bool = False, *args, **kwargs
     response = method(link, *args, **kwargs)
     response.raise_for_status()
     return response
+
 
 @async_wrap
 def get_soup(
@@ -94,6 +102,7 @@ def get_soup(
 
 # Time and Numeric Functions
 
+
 def is_numeric(inp: str):
     inp = inp.strip()
     try:
@@ -107,6 +116,7 @@ def is_numeric(inp: str):
             pass
     return False
 
+
 def humanbytes(size):
     if not size:
         return "0 B"
@@ -116,6 +126,7 @@ def humanbytes(size):
             break
         size /= 1024
     return f"{size:.2f}{unit}B" if isinstance(size, float) else f"{size}{unit}B"
+
 
 def readable_time(seconds: int) -> str:
     count = 0
@@ -147,6 +158,7 @@ def readable_time(seconds: int) -> str:
 
 # Chat and Message Functions
 
+
 async def is_user_subscribed(user_id: int, chat_id: int):
     try:
         member = await bot.get_chat_member(chat_id, user_id)
@@ -164,6 +176,7 @@ async def is_user_subscribed(user_id: int, chat_id: int):
         return None
     return False
 
+
 async def get_chat_pic(chat_id: int, refresh: bool = None):
     if not refresh and chat_photos.get(chat_id):
         return chat_photos[chat_id]
@@ -177,6 +190,7 @@ async def get_chat_pic(chat_id: int, refresh: bool = None):
     except BaseException:
         pass
 
+
 async def get_chat_invite_link(chat_id: int, refresh: bool = None):
     if not refresh and invitation_links.get(chat_id):
         return invitation_links[chat_id]
@@ -187,6 +201,7 @@ async def get_chat_invite_link(chat_id: int, refresh: bool = None):
         return link
     except BaseException:
         return None
+
 
 async def get_chat_messages(chat, first_msg_id, last_msg_id, refresh=None):
     ids_range = list(range(first_msg_id, last_msg_id))
@@ -204,6 +219,7 @@ async def get_chat_messages(chat, first_msg_id, last_msg_id, refresh=None):
     chat_messages[_id] = messages
     return messages
 
+
 async def get_chat_link_from_msg(message):
     if message.chat.username:
         return f"https://t.me/{message.chat.username}"
@@ -213,7 +229,9 @@ async def get_chat_link_from_msg(message):
         chat_invite = await get_chat_invite_link(message.chat.id)
         return chat_invite if chat_invite else message.link.replace("-100", "")
 
+
 # Telegraph Functions
+
 
 @async_wrap
 def post_to_telegraph(
@@ -230,6 +248,7 @@ def post_to_telegraph(
         return None
     return page["url"].replace("telegra.ph", "te.legra.ph")
 
+
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):
     graph_link = await post_to_telegraph(
         title,
@@ -242,6 +261,7 @@ async def images_to_graph(title, image_urls: list, author=None, author_url=None)
 
 # Other Utility Functions
 
+
 def generate_share_url(mode, first_msg_id, last_msg_id):
     share_type = (
         "TimedBatchMsgs"
@@ -253,28 +273,35 @@ def generate_share_url(mode, first_msg_id, last_msg_id):
     b64_code = b64_encode(f"{share_type}_{first_msg_id}-{last_msg_id}")
     return f"https://telegram.me/{bot.me.username}?start=cached-{b64_code}"
 
+
 def retry_on_flood(function):
     async def wrapper(*args, **kwargs):
         while True:
             try:
                 return await function(*args, **kwargs)
             except FloodWait as fw:
-                LOGS.info(f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})")
+                LOGS.info(
+                    f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})"
+                )
                 await asyncio.sleep(fw.value)
                 continue
             except Exception:
                 raise
+
     return wrapper
+
 
 def wrap(source):
     for name in dir(source):
         method = getattr(source, name)
-        
+
         if not name.startswith("_"):
             flood_wrap = retry_on_flood(method)
             setattr(source, name, flood_wrap)
 
+
 wrap(Messages)
+
 
 async def restart_bot():
     pull_res = await run_cmd("git fetch -f && git pull -f")
@@ -282,7 +309,9 @@ async def restart_bot():
         await run_cmd("pip install -U -r requirements.txt")
     os.execl(sys.executable, sys.executable, "-m", "bot")
 
+
 bot.reboot = restart_bot
+
 
 async def edit_and_delete(message, text=None, **kwargs):
     time = kwargs.pop("time", 8)
@@ -296,6 +325,7 @@ async def edit_and_delete(message, text=None, **kwargs):
 
     await asyncio.sleep(int(time))
     await message.delete()
+
 
 async def ask_msg(
     msg: types.Message,
@@ -318,12 +348,14 @@ async def ask_msg(
         await request.edit("Cancelled!")
         raise asyncio.CancelledError
 
+
 async def run_cmd(cmd: str) -> tuple[str, str]:
     process = await asyncio.create_subprocess_shell(
         cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     stdout, stderr = await process.communicate()
     return stdout.decode().strip(), stderr.decode().strip()
+
 
 async def retry_func(func, tries=5):
     while tries:

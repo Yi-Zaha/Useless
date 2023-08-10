@@ -8,7 +8,7 @@ from datetime import datetime
 from pyrogram import filters
 
 from bot import ALLOWED_USERS, SUDOS, bot
-from bot.helpers.progress_cb import Stream, progress_cb
+from bot.helpers.progress_cb import progress_cb
 from bot.utils.aiohttp_helper import AioHttp, get_name_and_size_from_response
 from bot.utils.media import get_video_duration, get_video_ss
 from bot.utils.pdf import get_image_size
@@ -31,7 +31,9 @@ def get_ss_and_duration(video_path: str):
     return thumb, duration, width, height
 
 
-async def send_media(media_type, chat, file, message=None, progress=progress_cb, **kwargs):
+async def send_media(
+    media_type, chat, file, message=None, progress=progress_cb, **kwargs
+):
     c_time = time.time()
     file_name = kwargs.get("file_name", None)
     if file_name is None:
@@ -311,7 +313,7 @@ async def media_rename(client, message):
             pass
 
     start_time = datetime.now()
-    
+
     downloaded_file = await reply.download(
         file_name="downloads/",
         progress=progress_cb,

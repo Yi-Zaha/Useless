@@ -1,17 +1,16 @@
 import asyncio
-import io
 import os
 import re
 
 from pyrogram import filters
 from pyrogram.enums import ParseMode
-from pyrogram.errors import FloodWait, PeerIdInvalid, ChannelInvalid
+from pyrogram.errors import ChannelInvalid, PeerIdInvalid
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot import ALLOWED_USERS, CACHE_CHAT, LOG_CHAT, bot
+from bot import ALLOWED_USERS, CACHE_CHAT, bot
 from bot.config import Config
-from bot.logger import LOGGER
 from bot.helpers.manga import Nhentai
+from bot.logger import LOGGER
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import b64_encode, generate_share_url, images_to_graph
 
@@ -27,33 +26,31 @@ async def generate_doujin_info(doujin, graph=False):
             doujin.title,
             doujin.image_urls,
             author="Nhentai Hub",
-            author_url="https://telegram.me/Nhentai_Doujins"
+            author_url="https://telegram.me/Nhentai_Doujins",
         )
         doujin.read_url = graph_link or doujin.read_url
-    
-    msg = (
-        f"[{doujin.title}]({doujin.read_url})\n"
-        f"\n➤ **Code:** {doujin.code}"
-    )
-    
+
+    msg = f"[{doujin.title}]({doujin.read_url})\n" f"\n➤ **Code:** {doujin.code}"
+
     if doujin.categories:
         msg += f"\n➤ **Type:** {' '.join(doujin.categories)}"
-    
+
     if doujin.parodies:
         msg += f"\n➤ **Parodies:** {' '.join(doujin.parodies)}"
-    
+
     if doujin.artists:
         msg += f"\n➤ **Artists:** {' '.join(doujin.artists)}"
-    
+
     if doujin.languages:
         msg += f"\n➤ **Languages:** {' '.join(doujin.languages)}"
-    
+
     msg += f"\n➤ **Pages:** {doujin.pages}"
-    
+
     if doujin.tags:
         msg += f"\n➤ **Tags:** {' '.join(doujin.tags)}"
-    
+
     return msg
+
 
 async def download_doujin_files(doujin, filename=None):
     if not filename:
@@ -116,7 +113,7 @@ async def nh_handler(client, message):
 
 @bot.on_message(filters.command("nhentai"))
 async def nhentai_handler(client, message):
-    flags = ("-wt", )
+    flags = ("-wt",)
     no_graph = flags[0] in message.text
     for flag in flags:
         for cmd in message.command[:-1]:
@@ -185,7 +182,7 @@ async def doujins_nhentai(client, message):
     for flag in flags:
         if flag in message.text:
             message.text = message.text.replace(flag, "", 1)
-                
+
     text = message.text.split(" ", 1)[1]
     if "|" in text:
         try:
@@ -196,29 +193,40 @@ async def doujins_nhentai(client, message):
     else:
         url = text
         chat = message.chat.id
-    
+
     pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"[:64]
     if pid in BULK_PROCESS:
-        return await message.reply("This link is already in process... Please wait for it to be completed!")
+        return await message.reply(
+            "This link is already in process... Please wait for it to be completed!"
+        )
     if pid not in BULK_PROCESS:
         BULK_PROCESS.append(pid)
     status = await message.reply("Processing... Please wait.")
     doujins = await Nhentai.doujins_from_url(url)
     doujins_count = len(doujins)
-    
+
     if doujins_count == 0:
         return await status.edit("No doujins found from URL.")
 
     cancel_button = [InlineKeyboardButton("Cancel", pid)]
-    doujin_list_text = "\n".join([f"→[{data['title']}]({data['url']})" for data in doujins])
-    status = await status.edit(f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}", disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup([cancel_button]))
-    
+    doujin_list_text = "\n".join(
+        [f"→[{data['title']}]({data['url']})" for data in doujins]
+    )
+    status = await status.edit(
+        f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}",
+        disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup([cancel_button]),
+    )
+
     success_count = 0
     error_count = 0
-    
+
     for index, data in enumerate(doujins, start=1):
         if pid not in BULK_PROCESS:
-            return await status.edit(f"{status.text.html}\n\n<b>Cancelled!</b>", disable_web_page_preview=True)
+            return await status.edit(
+                f"{status.text.html}\n\n<b>Cancelled!</b>",
+                disable_web_page_preview=True,
+            )
 
         try:
             doujin = await Nhentai().get(data["url"])
@@ -226,17 +234,25 @@ async def doujins_nhentai(client, message):
                 continue
             doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
             pdf, cbz = await download_doujin_files(doujin)
-            
+
             try:
                 if no_graph:
-                    cover_img, *_ = await AioHttp.download(doujin.image_urls[0], headers={"Referer": doujin.url})
-                    await client.send_photo(chat, cover_img, caption=doujin_info, parse_mode=ParseMode.MARKDOWN)
+                    cover_img, *_ = await AioHttp.download(
+                        doujin.image_urls[0], headers={"Referer": doujin.url}
+                    )
+                    await client.send_photo(
+                        chat,
+                        cover_img,
+                        caption=doujin_info,
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
                     os.remove(cover_img)
                 else:
-                    await client.send_message(chat, doujin_info, parse_mode=ParseMode.MARKDOWN)
+                    await client.send_message(
+                        chat, doujin_info, parse_mode=ParseMode.MARKDOWN
+                    )
                 await asyncio.gather(
-                    client.send_document(chat, pdf),
-                    client.send_document(chat, cbz)
+                    client.send_document(chat, pdf), client.send_document(chat, cbz)
                 )
                 success_count += 1
             finally:
@@ -245,21 +261,36 @@ async def doujins_nhentai(client, message):
         except (ChannelInvalid, PeerIdInvalid):
             if pid in BULK_PROCESS:
                 BULK_PROCESS.remove(pid)
-            return await status.edit(f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>", disable_web_page_preview=True)
+            return await status.edit(
+                f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>",
+                disable_web_page_preview=True,
+            )
         except Exception as e:
-            LOGGER(__name__).info(f"Error occurred while sending doujin no. {doujin.code}: {e}")
+            LOGGER(__name__).info(
+                f"Error occurred while sending doujin no. {doujin.code}: {e}"
+            )
             error_count += 1
         progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
-        await status.edit(f"{status.text.html}\n\n{progress_text}", disable_web_page_preview=True, reply_markup=status.reply_markup)
+        await status.edit(
+            f"{status.text.html}\n\n{progress_text}",
+            disable_web_page_preview=True,
+            reply_markup=status.reply_markup,
+        )
     if en and success_count == 0 and error_count == 0:
-        await status.edit(f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>", disable_web_page_preview=True)
+        await status.edit(
+            f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>",
+            disable_web_page_preview=True,
+        )
     else:
         await status.edit_reply_markup(None)
     BULK_PROCESS.remove(pid)
 
+
 @bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
 async def cancel_nh_bulk(client, callback):
     if callback.data not in BULK_PROCESS:
-        return await callback.answer("This process is not active anymore.", show_alert=True)
+        return await callback.answer(
+            "This process is not active anymore.", show_alert=True
+        )
     BULK_PROCESS.remove(callback.data)
     await callback.answer("This process will be cancelled soon!", show_alert=True)
