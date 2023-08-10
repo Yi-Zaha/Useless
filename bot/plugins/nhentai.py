@@ -90,10 +90,6 @@ async def nh_handler(client, message):
         + " @Nhentai_Doujins",
     )
 
-    temp = await client.send_message(LOG_CHAT, graph_link)
-    await asyncio.sleep(3)
-    await temp.delete()
-
     first_msg = await client.send_message(
         CACHE_CHAT, doujin_info, disable_web_page_preview=True
     )
