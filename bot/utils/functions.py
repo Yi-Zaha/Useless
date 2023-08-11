@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from html_telegraph_poster import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
-from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
+from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
 from pyrogram.methods.messages import Messages
 
 from bot import LOGS, bot
@@ -285,6 +285,14 @@ def retry_on_flood(function):
                 )
                 await asyncio.sleep(fw.value)
                 continue
+            except RPCError as err:
+                if err.MESSAGE == "FloodWait":
+                    LOGS.info(
+                        f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})"
+                    )
+                    await asyncio.sleep(err.value)
+                    continue
+                raise
             except Exception:
                 raise
 
