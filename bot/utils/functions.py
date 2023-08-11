@@ -275,6 +275,7 @@ def retry_on_flood(function):
             try:
                 return await function(*args, **kwargs)
             except FloodWait as fw:
+                fw.value += 1
                 LOGS.info(
                     f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})"
                 )
@@ -282,6 +283,7 @@ def retry_on_flood(function):
                 continue
             except RPCError as err:
                 if err.MESSAGE == "FloodWait":
+                    err.value += 1
                     LOGS.info(
                         f"Floodwait, Waiting for {fw.value} seconds before continuing (required by {function.__qualname__})"
                     )
