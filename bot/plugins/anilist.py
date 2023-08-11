@@ -153,6 +153,7 @@ async def manga_query(client, callback):
     if splited[0].startswith("p"):
         text, image = await ani.get_pmanga(id=ani_id)
         await client.send_photo(callback.message.chat.id, image, caption=text)
+        await callback.message.delete()
         return
 
     text, image, reply_markup = await ani.get_anime_manga(None, "anime_manga", ani_id)
