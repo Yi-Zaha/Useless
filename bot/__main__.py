@@ -42,7 +42,7 @@ async def main():
     await idle()
 
 
-async run_main():
+async def run_main():
     try:
         await start_clients()
         await main()
