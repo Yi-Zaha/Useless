@@ -2,7 +2,6 @@ import asyncio
 import string
 
 from pyrogram import filters
-from pyrogram.errors import FloodWait
 
 from bot import SUDOS, bot
 from bot.config import Config
@@ -51,7 +50,7 @@ async def update_phub_index():
     )
 
     for message in messages:
-        if "Status :" in str(message.caption):
+        if "→Status:" in str(message.caption):
             name = message.caption.splitlines()[0].split("|")[0].replace("─=≡", "").strip()
             chat_id = str(message.chat.id).replace("-100", "")
             link = f"https://t.me/c/{chat_id}/{message.id}"
@@ -81,9 +80,6 @@ async def update_phub_index():
     for f, post_text in posts.items():
         if post_text:
             try:
-                await bot.edit_message_text(INDEX_CHANNEL, index_post_id, post_text)
-            except FloodWait as fw:
-                await asyncio.sleep(fw.value)
                 await bot.edit_message_text(INDEX_CHANNEL, index_post_id, post_text)
             except Exception as e:
                 print(f"Error in updating PH Index post id {index_post_id}: {e}")
