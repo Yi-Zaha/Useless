@@ -10,7 +10,7 @@ from bot.logger import LOGGER
 from bot.utils.db import dB
 from bot.utils.functions import get_chat_messages
 
-PHUB_CHANNEL = Config.get("PORNHWA_HUB", -1001606385356)
+PHUB_CHANNEL = Config.get("PORNHWA_HUB", -1001705095281)
 INDEX_CHANNEL = Config.get("PORNHWA_HUB_INDEX", -1001749847496)
 UPDATING_INDEX = None
 
@@ -59,8 +59,13 @@ async def update_phub_index():
                 index_key = name[0]
             else:
                 index_key = "#"
-
-            tick = "🔷" if "releasing" in message.caption.lower() else "🔶"
+            
+            if "releasing" in message.caption.lower():
+                tick = "🔷"
+            elif "finished" in message.caption.lower():
+                tick = "🔶"
+            elif "incomplete" in message.caption.lower():
+                tick = "♦️"
 
             i_text = f"{tick} <a href='{link}'>{name}</a>\n"
             index[index_key][name] = i_text
