@@ -28,8 +28,9 @@ async def send_logs(client, message):
 async def noformat_text(client, message):
     if not message.reply_to_message or not message.reply_to_message.text:
         return await message.reply("Reply to a text")
+    text = message.reply_to_message.text or message.reply_to_message.caption
     await message.reply(
-        f"<code>{message.reply_to_message.text.markdown}</code>",
+        f"<code>{text.markdown}</code>",
         parse_mode=ParseMode.HTML,
     )
 
