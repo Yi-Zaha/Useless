@@ -844,7 +844,7 @@ def get_pmanga(name=None, id=None):
         <b>→Rating:</b> <code>{manga["average_score"] or "N/A"}</code>
         <b>→Status:</b> <code>{manga["release_status"]}</code>
         <b>→Chapters:</b> <code>{manga["chapters"] or "N/A"}</code>
-        <b>→Genres:</b> {", ".join(manga["genres"])}
+        <b>→Genres:</b> <code>{", ".join(manga["genres"])}</code>
         <b>══════════════════════</b>
         """
     )
