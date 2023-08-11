@@ -83,7 +83,7 @@ async def nh_handler(client, message):
 
     pdf, cbz = await download_doujin_files(
         doujin,
-        filename=doujin.title.replace("/", "|").split("|")[0][:45].strip()
+        filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
         + " @Nhentai_Doujins",
     )
 
