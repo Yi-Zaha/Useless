@@ -354,6 +354,8 @@ async def ask_msg(
     if response.text and response.text.lower().split()[0] in ["/cancel"]:
         await request.edit("Cancelled!")
         raise asyncio.CancelledError
+    
+    return request, response
 
 
 async def run_cmd(cmd: str) -> tuple[str, str]:
