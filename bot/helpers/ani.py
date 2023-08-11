@@ -823,3 +823,29 @@ def get_anime_cover(name: str) -> str:
     except BaseException:
         anime = dict()
     return anime.get("cover_image")
+
+
+@async_wrap
+def get_pmanga(name=None, id=None):
+    if not (name or id):
+        raise ValueError("Either give the name to search for or the manga id.")
+    anilist = Anilist()
+    if id:
+        manga = anilist.get_manga_with_id(id)
+    else:
+        manga = anilist.get_manga(name)
+    title = f'{manga["name_english"]} | {manga["name_romaji"]}' if manga["name_english"] else manga["name_romaji"]
+    caption = textwrap.dedent(
+        f"""
+        <b>─=≡ {title} ≡=─</b>
+        
+        <b>══════════════════════</b>
+        <b>→Type:</b> <code>{manga["release_format"]}</code>
+        <b>→Rating:</b> <code>{manga["average_score"] or "N/A"}</code>
+        <b>→Status:</b> <code>{manga["release_status"]}</code>
+        <b>→Chapters:</b> <code>{manga["chapters"] or "N/A"}</code>
+        <b>→Genres:</b> {", ".join(manga["genres"])}
+        <b>══════════════════════</b>
+        """
+    )
+    return caption, manga.get("cover_image")
