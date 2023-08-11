@@ -17,7 +17,6 @@ from html_telegraph_poster import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
-from pyrogram.methods.messages import Messages
 
 from bot import LOGS, bot
 
@@ -211,11 +210,7 @@ async def get_chat_messages(chat, first_msg_id, last_msg_id, refresh=None):
             return chat_messages[_id]
     messages = []
     for ids in split_list(ids_range, 200):
-        try:
-            messages += await bot.get_messages(chat, ids)
-        except FloodWait as fw:
-            await asyncio.sleep(fw.value)
-            messages += await bot.get_messages(chat, ids)
+        messages += await bot.get_messages(chat, ids)
     chat_messages[_id] = messages
     return messages
 
@@ -299,16 +294,16 @@ def retry_on_flood(function):
     return wrapper
 
 
-def wrap(source):
-    for name in dir(source):
-        method = getattr(source, name)
+def _wrap(client):
+    for name in dir(client):
+        method = getattr(client, name)
 
-        if not name.startswith("_"):
+        if name.startswith(("send_", "get_")):
             flood_wrap = retry_on_flood(method)
-            setattr(source, name, flood_wrap)
+            setattr(client, name, flood_wrap)
 
 
-wrap(Messages)
+_wrap(bot)
 
 
 async def restart_bot():
