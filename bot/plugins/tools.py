@@ -26,9 +26,9 @@ async def send_logs(client, message):
 
 @bot.on_message(filters.command("noformat") & filters.user(ALLOWED_USERS))
 async def noformat_text(client, message):
-    if not message.reply_to_message or not message.reply_to_message.text:
+    text = message.reply_to_message.text or message.reply_to_message.caption if message.reply_to_message else None
+    if not text:
         return await message.reply("Reply to a text")
-    text = message.reply_to_message.text or message.reply_to_message.caption
     await message.reply(
         f"<code>{text.markdown}</code>",
         parse_mode=ParseMode.HTML,
