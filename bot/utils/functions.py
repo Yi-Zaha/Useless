@@ -309,6 +309,7 @@ _wrap(bot)
 if bot.user:
     _wrap(bot.user)
 
+
 async def restart_bot():
     pull_res = await run_cmd("git fetch -f && git pull -f")
     if "requirements.txt" in pull_res[0]:

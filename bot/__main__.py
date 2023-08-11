@@ -9,24 +9,24 @@ from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB
 
 
-def start_clients():
+async def start_clients():
     LOGS.info("Initializing clients...")
-    bot.start()
+    await bot.start()
     if bot.user:
-        bot.user.start()
+        await bot.user.start()
 
-    bot.send_message(LOG_CHAT, "BOT IS ONLINE!")
+    await bot.send_message(LOG_CHAT, "BOT IS ONLINE!")
     if bot.user:
-        bot.user.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
+        await bot.user.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
 
 
-def stop_clients():
+async def stop_clients():
     LOGS.info("Stopping clients...")
-    bot.send_message(LOG_CHAT, "BOT IS GOING OFFLINE.")
-    bot.stop()
+    await bot.send_message(LOG_CHAT, "BOT IS GOING OFFLINE.")
+    await bot.stop()
     if bot.user:
-        bot.user.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
-        bot.user.stop()
+        await bot.user.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
+        await bot.user.stop()
 
 
 async def main():
@@ -42,13 +42,16 @@ async def main():
     await idle()
 
 
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop_policy().get_event_loop()
-    start_clients()
+async run_main():
     try:
-        loop.run_until_complete(main())
+        await start_clients()
+        await main()
     except Exception as e:
         LOGS.error(str(e))
     finally:
-        stop_clients()
-        loop.close()
+        await stop_clients()
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop_policy().get_event_loop()
+    looo.run_until_complete(run_main())
