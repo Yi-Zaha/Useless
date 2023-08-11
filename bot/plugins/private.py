@@ -19,7 +19,7 @@ from bot.utils.functions import (
     readable_time,
 )
 
-SUBS_CHANNEL = Config.get("SUBS_CHANNEL", -1001606385356)
+SUBS_CHANNEL = Config.get("SUBS_CHANNEL", -1001705095281)
 
 
 @bot.on_message(filters.private & filters.command("start"))
