@@ -51,7 +51,7 @@ async def update_phub_index():
 
     for message in messages:
         if "→Status:" in str(message.caption):
-            name = message.caption.splitlines()[0].split("|")[0].replace("─=≡", "").strip()
+            name = message.caption.splitlines()[0].replace("─=≡", "").replace("≡=─", "").strip()
             chat_id = str(message.chat.id).replace("-100", "")
             link = f"https://t.me/c/{chat_id}/{message.id}"
             if name[0].isalpha():
