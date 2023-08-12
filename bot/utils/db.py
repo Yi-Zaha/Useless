@@ -43,7 +43,7 @@ class DB(metaclass=Singleton):
 
     async def insert_data(self, query, extra={}):
         extra = extra or {}
-        doc = {**query, **extra)
+        doc = {**query, **extra}
         await self.col.update_one(query, {"$set": doc}, upsert=True)
         return doc
 
