@@ -41,12 +41,11 @@ class DB(metaclass=Singleton):
     def find(self, *args, **kwargs):
         return self.col.find(*args, **kwargs)
 
-    async def insert_data(self, query, extra=None):
+    async def insert_data(self, query, extra={}):
         extra = extra or {}
-        if await self.col.find_one(query):
-            return await self.col.update_one(query, {"$set": extra})
-        doc = {**query, **extra}
-        return await self.col.insert_one(doc)
+        doc = {**query, **extra)
+        await self.col.update_one(query, {"$set": doc}, upsert=True)
+        return doc
 
 
 class UserDB(DB):
