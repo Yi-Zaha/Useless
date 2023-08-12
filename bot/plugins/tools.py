@@ -52,7 +52,7 @@ async def set_thumbnail(client, message):
             "Reply to a photo or a document with thumb to set default thumbnail."
         )
 
-    thumb_url = upload_image(file)
+    thumb_url = upload_image(file).replace("telegra.ph", "graph.org")
     await dB.set_key("THUMBNAIL", thumb_url)
     await message.reply("Default thumbnail set!")
 

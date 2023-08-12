@@ -33,7 +33,7 @@ async def main():
     Path("cache").mkdir(exist_ok=True)
 
     if thumb_url := await dB.get_key("THUMBNAIL"):
-        await AioHttp.download(thumb_url, filename="thumb.jpg")
+        await AioHttp.download(thumb_url.replace("telegra.ph", "graph.org"), filename="thumb.jpg")
 
     if ascheduler.get_jobs():
         LOGS.info("Async Scheduler started.")
