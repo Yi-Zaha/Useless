@@ -364,9 +364,9 @@ class PS:
             if mode.lower() in ("pdf", "both"):
                 pdf_file = get_path(title + ".pdf")
                 try:
-                    imgtopdf(pdf_file, images, author="t.me/Adult_Mangas")
+                    imgtopdf(pdf_file, images, author="t.me/Pornhwa_Collection")
                 except BaseException:
-                    images_to_pdf(pdf_file, images, author="t.me/Adult_Mangas")
+                    images_to_pdf(pdf_file, images, author="t.me/Pornhwa_Collection")
 
                 if file_pass:
                     pdf_file = encrypt_pdf(pdf_file, file_pass)

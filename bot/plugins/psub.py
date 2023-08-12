@@ -380,7 +380,7 @@ async def update_subs(get_updates=new_updates):
                             )
 
                         else:
-                            filename = f"{ch} {title} @Adult_Mangas"
+                            filename = f"{ch} {title} @Pornhwa_Collection"
                             chapter_file = await PS.dl_chapter(
                                 ch_url, filename, file_mode, **iargs(PS.iargs(ps))
                             )

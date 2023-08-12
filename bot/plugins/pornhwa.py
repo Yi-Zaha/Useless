@@ -33,7 +33,7 @@ async def readp_handler(client, message):
     try:
         link = await ps_link(site, name, chapter)
         args = iargs(site)
-        pdfname = f"""Ch - {chapter.replace("-", ".")} {name.title().replace("'S", "'s").replace("’S", "'s")} @Adult_Mangas"""
+        pdfname = f"""Ch - {chapter.replace("-", ".")} {name.title().replace("'S", "'s").replace("’S", "'s")} @Pornhwa_Collection"""
         file = await PS.dl_chapter(link, pdfname, "pdf", **args)
         thumb = "thumb.jpg" if is_thumb else None
         await bot.send_document(message.chat.id, file, thumb=thumb)
@@ -107,9 +107,9 @@ async def bulkp_handler(client, message):
         for ch_link in chapters:
             chapter = zeroint(ch_from_url(ch_link))
             pdfname = (
-                f"{cache_dir}/Ch - {chapter} {title} @Adult_Mangas"
+                f"{cache_dir}/Ch - {chapter} {title} @Pornhwa_Collection"
                 if is_numeric(chapter)
-                else f"{cache_dir}/{chapter} {title} @Adult_Mangas"
+                else f"{cache_dir}/{chapter} {title} @Pornhwa_Collection"
             )
             chapter_file = await PS.dl_chapter(
                 ch_link,
@@ -147,14 +147,15 @@ async def bulkp_handler(client, message):
                         os.remove(chapter_file)
                         continue
                     start, *_, end = pdf_batch.keys()
-                    pdfname = f"Ch [{start} - {end}] {title} @Adult_Mangas.pdf"
+                    caption = f"<i>Ch [{start} - {end}]</i>"
+                    if showpass and pdf_pass:
+                        caption += f"\n<b>Password:</b> <code>{pdf_pass}</code>"
+                    pdfname = f"Ch [{start} - {end}] {title} @Pornhwa_Collection.pdf"
                     merged_file = merge_pdfs(pdfname, pdf_batch.values(), pdf_pass)
                     upload_msg = await bot.send_document(
                         chat_id,
                         merged_file,
-                        caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
-                        if pdf_pass and showpass
-                        else None,
+                        caption=caption,
                         thumb=thumb,
                         protect_content=protect_content,
                     )
