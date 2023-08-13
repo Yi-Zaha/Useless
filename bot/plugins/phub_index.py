@@ -28,7 +28,7 @@ async def update_index(client, message):
 @bot.on_message(filters.channel & filters.chat(PHUB_CHANNEL))
 async def on_phub_handler(client, message):
     await dB.update_key("PH_LAST_ID", message.id + 1, upsert=True)
-    if "➤ Status :" in str(message.caption):
+    if "→Status:" in str(message.caption):
         try:
             await update_phub_index()
         except Exception:
