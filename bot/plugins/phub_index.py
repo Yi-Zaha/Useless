@@ -16,10 +16,10 @@ UPDATING_INDEX = None
 
 @bot.on_message(filters.command("updateindex") & filters.user(SUDOS))
 async def update_index(client, message):
-    status = await message.reply("Processing..")
+    status = await message.reply("Processing...")
     try:
         await update_phub_index()
-        await status.edit("Successfully updated PH Index.")
+        await status.edit("Successfully updated the PH Index.")
     except Exception:
         LOGGER(__name__).info("Error raised in updating PH Index", exc_info=True)
         await status.edit("Updating PH Index raised some errors (Check Logs).")
@@ -41,7 +41,9 @@ async def update_phub_index():
         return
     UPDATING_INDEX = True
 
-    index_post_id = 62
+    index_posts = await get_chat_messages(
+        INDEX_CHANNEL, first_msg_id=62, last_msg_id=89
+    )
     index = {"#": {}, **{alpha: {} for alpha in string.ascii_uppercase}}
     posts = {}
 
@@ -77,12 +79,16 @@ async def update_phub_index():
                 text = texts[name]
                 posts[f] += text
 
-    for f, post_text in posts.items():
-        if post_text:
-            try:
-                await bot.edit_message_text(INDEX_CHANNEL, index_post_id, post_text)
-            except Exception as e:
-                print(f"Error in updating PH Index post id {index_post_id}: {e}")
-        index_post_id += 1
+    updated = []
+    for index_post, post_text in zip(index_posts, posts.values()):
+        if not post_text or index_post.text.html == post_text:
+            continue
+
+        try:
+           await index_post.edit(post_text)
+           updated.append(index_post.id)
+        except Exception as e:
+            print(f"Error in updating PH Index post id {index_post_id}: {e}")
 
     UPDATING_INDEX = False
+    return updated
