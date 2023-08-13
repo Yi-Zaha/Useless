@@ -98,7 +98,7 @@ async def nh_handler(client, message):
     buttons = [[InlineKeyboardButton("⛩️ Read Here ⛩️", url=url)]]
     mess = await client.send_message(
         NH_CHANNEL,
-        doujin_info.replace(doujin_info.splitlines()[0], f"[{doujin.title}]({url})"),
+        doujin_info,
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
