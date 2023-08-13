@@ -22,7 +22,7 @@ async def update_index(client, message):
         await status.edit("Successfully updated PH Index.")
     except Exception:
         LOGGER(__name__).info("Error raised in updating PH Index", exc_info=True)
-        await status.edit("PH Index updated with some errors (Check Logs).")
+        await status.edit("Updating PH Index raised some errors (Check Logs).")
 
 
 @bot.on_message(filters.channel & filters.chat(PHUB_CHANNEL))
