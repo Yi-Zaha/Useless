@@ -31,6 +31,11 @@ def convert_img(path: Path) -> Image.Image:
     return img
 
 
+def resize_img(path: Path):
+    img = convert_img(path)
+    img.save(path, "PNG")
+
+
 def pil_image(path: Path) -> tuple[BytesIO, int, int]:
     img = convert_img(path)
     width, height = img.width, img.height

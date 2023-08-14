@@ -11,20 +11,20 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import pyminizip
-from bs4 import BeautifulSoup
-
 from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_link, get_soup, images_to_graph, retry_func
-from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
+from bot.utils.pdf import (encrypt_pdf, get_path, images_to_pdf, imgtopdf,
+                           resize_img)
+from bs4 import BeautifulSoup
+from html_telegraph_poster.upload_images import upload_image
 
 
 class IManga:
     def __init__(self, manga_id, nelo=False):
         self.base_url = (
-            "https://ww5.manganelo.tv/manga/" if nelo else "https://readmanganato.com/"
-        )
+            "https://ww5.manganelo.tv/manga/" if nelo else "https://readmanganato.com/")
         self.nelo = nelo
         self.url = ""
         self.id = manga_id
@@ -52,7 +52,8 @@ class IManga:
             .find_next("td", class_="table-value")
             .text.strip()
         )
-        self.poster_url = soup.select_one(".story-info-left img.img-loading")["src"]
+        self.poster_url = soup.select_one(
+            ".story-info-left img.img-loading")["src"]
         if self.nelo and self.poster_url:
             self.poster_url = "https://ww5.manganelo.tv" + self.poster_url
         self.description = html.unescape(
@@ -64,10 +65,11 @@ class IManga:
             .findNext("td", class_="table-value")
             .find_all("a", "a-h")
         ]
-        self.views = soup.find("div", class_="story-info-right-extent").find_all(
-            "span", class_="stre-value"
-        )
-        self.views = self.views[1].text.strip() if len(self.views) > 1 else None
+        self.views = soup.find("div",
+                               class_="story-info-right-extent").find_all("span",
+                                                                          class_="stre-value")
+        self.views = self.views[1].text.strip() if len(
+            self.views) > 1 else None
         self.authors = [
             x.strip()
             for x in soup.find("i", class_="info-author")
@@ -75,8 +77,7 @@ class IManga:
             .text.split(" - ")
         ]
         self.updated = soup.select_one(
-            ".story-info-right-extent span.stre-value"
-        ).text.strip()
+            ".story-info-right-extent span.stre-value").text.strip()
         self.chapters = self._parse_chapters(soup)
         return self
 
@@ -115,64 +116,85 @@ class IManga:
         elif "hentai2read" in chapter_url:
             img_base = "https://static.hentai.direct/hentai"
             regex = r"'images' : (.*)"
-            image_urls = ast.literal_eval(
-                re.findall(regex, soup.prettify())[0].strip(",")
-            )
-            image_urls = [img_base + img.replace("\\", "") for img in image_urls]
+            image_urls = ast.literal_eval(re.findall(
+                regex, soup.prettify())[0].strip(","))
+            image_urls = [
+                img_base +
+                img.replace(
+                    "\\",
+                    "") for img in image_urls]
         elif "mangatoto" in chapter_url:
             regex = r"const imgHttpLis = (.*);"
-            image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
+            image_urls = ast.literal_eval(
+                re.findall(regex, soup.prettify())[0])
         elif "mangapark" in chapter_url:
             data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
             image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0][
                 "state"
             ]["data"]["data"]["imageSet"]
             image_urls = [
-                f"{link}?{extra}"
-                for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
-            ]
+                f"{link}?{extra}" for link,
+                extra in zip(
+                    image_set["httpLis"],
+                    image_set["wordLis"])]
 
-        to_download = mode.lower() in ("pdf", "cbz", "both")
-        files = []
-        if to_download:
-            tasks = []
-            images = []
-            for index, link in enumerate(image_urls):
-                ext = os.path.splitext(link)
-                ext = ext[1] if len(ext) > 1 else ".jpg"
-                filename = f"{dir}/{index}{ext}"
-                task = asyncio.create_task(
-                    retry_func(
-                        AioHttp.download(link, filename=filename, headers=headers)
-                    )
-                )
-                tasks.append(task)
-                images.append(filename)
-
-            await asyncio.gather(*tasks)
-
-            if mode.lower() in ("pdf", "both"):
-                pdf_file = get_path(title + ".pdf")
-                author = f"https://telegram.me/{bot.me.username}"
-                try:
-                    imgtopdf(pdf_file, images, author=author)
-                except Exception:
-                    images_to_pdf(pdf_file, images, author=author)
-
-                if file_pass:
-                    pdf_file = encrypt_pdf(pdf_file, file_pass)
-                files.append(pdf_file)
-
-            if mode.lower() in ("cbz", "both"):
-                cbz_file = get_path(title + ".cbz")
-                pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
-                files.append(cbz_file)
-
-            shutil.rmtree(dir)
-            return files[0] if len(files) == 1 else files
         if mode.lower() in ("graph", "tph"):
-            graph_link = await images_to_graph(title, image_urls)
-            return graph_link
+            if image_urls:
+                first_res = await AioHttp.request(image_urls[0], re_res=True)
+                if first_res.ok:
+                    graph_link = await images_to_graph(title, image_urls)
+                    return graph_link
+
+        files = []
+        tasks = []
+        images = []
+        for index, link in enumerate(image_urls):
+            ext = os.path.splitext(link)
+            ext = ext[1] if len(ext) > 1 else ".jpg"
+            filename = f"{dir}/{index}{ext}"
+            task = asyncio.create_task(
+                retry_func(
+                    AioHttp.download(
+                        link,
+                        filename=filename,
+                        headers=headers)))
+            tasks.append(task)
+            images.append(filename)
+
+        await asyncio.gather(*tasks)
+
+        if mode.lower() in ("graph", "tph", "all"):
+            image_graph_urls = []
+            for img in images:
+                resize_img(img)
+                graph_urls.append(
+                    upload_image(img).replace(
+                        "telegra.ph", "graph.org"))
+            return await images_to_graph(
+                title,
+                image_graph_urls
+            )
+
+        if mode.lower() in ("pdf", "both"):
+            pdf_file = get_path(title + ".pdf")
+            author = f"https://telegram.me/{bot.me.username}"
+            try:
+                imgtopdf(pdf_file, images, author=author)
+            except Exception:
+                images_to_pdf(pdf_file, images, author=author)
+
+            if file_pass:
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
+            files.append(pdf_file)
+
+        if mode.lower() in ("cbz", "both"):
+            cbz_file = get_path(title + ".cbz")
+            pyminizip.compress_multiple(
+                images, [], str(cbz_file), file_pass, 5)
+            files.append(cbz_file)
+
+        shutil.rmtree(dir)
+        return files[0] if len(files) == 1 else files
 
 
 class PS:
@@ -263,8 +285,8 @@ class PS:
             for item in items.find_all("div", "data wleft"):
                 manga_url = urljoin(base, item.find("a")["href"])
                 chapter_url = urljoin(
-                    base, item.findNext("div", "chapter-item wleft").find("a")["href"]
-                )
+                    base, item.findNext(
+                        "div", "chapter-item wleft").find("a")["href"])
                 data[manga_url] = chapter_url
         elif ps == "Toonily":
             base = "https://toonily.com/"
@@ -276,7 +298,8 @@ class PS:
             data = dict()
             for item in items:
                 manga_url = item.find("a")["href"]
-                chapter_url = item.find("div", "chapter-item").find("a")["href"]
+                chapter_url = item.find(
+                    "div", "chapter-item").find("a")["href"]
                 data[manga_url] = chapter_url
         elif ps == "Manganato":
             base = "https://manganato.com/"
@@ -330,26 +353,34 @@ class PS:
             raise ValueError
         image_urls = [item.get(src) or item.get("data-src") for item in items]
 
+        if mode.lower() in ("graph", "tph"):
+            if image_urls:
+                first_res = await AioHttp.request(image_urls[0], re_res=True)
+                if first_res.ok:
+                    graph_link = await images_to_graph(title, image_urls)
+                    return graph_link
+
         tmp_dir = tempfile.mkdtemp()
         headers["Referer"] = str(response.url)
 
-        to_download = mode.lower() in ("pdf", "cbz", "both")
-        if to_download:
-            files = []
-            tasks = []
-            images = []
-            for n, link in enumerate(image_urls):
-                if not link:
-                    continue
-                link = link.strip()
-                ext = os.path.splitext(link)
-                ext = ext[1] if ext else ".jpg"
-                image = os.path.join(tmp_dir, f"{n}{ext}")
-                images.append(image)
-                task = asyncio.create_task(
-                    retry_func(AioHttp.download(link, filename=image, headers=headers))
-                )
-                tasks.append(task)
+        files = []
+        tasks = []
+        images = []
+        for n, link in enumerate(image_urls):
+            if not link:
+                continue
+            link = link.strip()
+            ext = os.path.splitext(link)
+            ext = ext[1] if ext else ".jpg"
+            image = os.path.join(tmp_dir, f"{n}{ext}")
+            images.append(image)
+            task = asyncio.create_task(
+                retry_func(
+                    AioHttp.download(
+                        link,
+                        filename=image,
+                        headers=headers)))
+            tasks.append(task)
 
             try:
                 await asyncio.gather(*tasks)
@@ -361,24 +392,42 @@ class PS:
                     shutil.rmtree(tmp_dir)
                     raise
 
-            if mode.lower() in ("pdf", "both"):
-                pdf_file = get_path(title + ".pdf")
-                try:
-                    imgtopdf(pdf_file, images, author="t.me/Pornhwa_Collection")
-                except BaseException:
-                    images_to_pdf(pdf_file, images, author="t.me/Pornhwa_Collection")
+        if mode.lower() in ("graph", "tph", "all"):
+            image_graph_urls = []
+            for img in images:
+                resize_img(img)
+                graph_urls.append(
+                    upload_image(img).replace(
+                        "telegra.ph", "graph.org"))
+            graph_url = await images_to_graph(
+                title,
+                image_graph_urls
+            )
+            files.append(graph_url)
 
-                if file_pass:
-                    pdf_file = encrypt_pdf(pdf_file, file_pass)
-                files.append(pdf_file)
+        if mode.lower() in ("pdf", "both"):
+            pdf_file = get_path(title + ".pdf")
+            try:
+                imgtopdf(
+                    pdf_file,
+                    images,
+                    author="t.me/Pornhwa_Collection")
+            except BaseException:
+                images_to_pdf(
+                    pdf_file, images, author="t.me/Pornhwa_Collection")
 
-            elif mode.lower() in ("cbz", "both"):
-                cbz_file = get_path(title + ".cbz")
-                pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
-                files.append(cbz_file)
+            if file_pass:
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
+            files.append(pdf_file)
 
-            shutil.rmtree(tmp_dir)
-            return files[0] if len(files) == 1 else files
+        elif mode.lower() in ("cbz", "both"):
+            cbz_file = get_path(title + ".cbz")
+            pyminizip.compress_multiple(
+                images, [], str(cbz_file), file_pass, 5)
+            files.append(cbz_file)
+
+        shutil.rmtree(tmp_dir)
+        return files[0] if len(files) == 1 else files
         if mode.lower() in ("graph", "tph"):
             graph_link = await images_to_graph(title, image_urls)
             return graph_link
@@ -431,8 +480,7 @@ class Nhentai:
         tdata = soup.find_all("a", "tag")
         for t in tdata:
             tag_type = next(
-                (tag_type for tag_type in tag_mapping if tag_type in t["href"]), None
-            )
+                (tag_type for tag_type in tag_mapping if tag_type in t["href"]), None)
             if tag_type:
                 t = (
                     t.find(class_="name")
@@ -456,7 +504,8 @@ class Nhentai:
                 .replace("t.", ".")
                 .replace("t3.nhentai.net", "i3.nhentai.net")
             )
-            if img_url.endswith("/") or img_url.endswith(("thumb.jpg", "cover.jpg")):
+            if img_url.endswith(
+                    "/") or img_url.endswith(("thumb.jpg", "cover.jpg")):
                 continue
             self.image_urls.append(img_url)
 
@@ -465,6 +514,18 @@ class Nhentai:
         return self
 
     async def dl_chapter(self, title, mode, file_pass=None):
+        if mode.lower() in ("graph", "tph"):
+            if self.image_urls:
+                first_res = await AioHttp.request(self.image_urls[0], re_res=True)
+                if first_res.ok:
+                    graph_link = await images_to_graph(
+                        title,
+                        self.image_urls,
+                        author="Nhentai Hub",
+                        author_url="https://telegram.dog/Nhentai_Doujins"
+                    )
+                    return graph_link
+
         dir = Path("cache/nhentai")
         dir.mkdir(exist_ok=True)
         tmp_dir = dir / str(self.code)
@@ -482,8 +543,11 @@ class Nhentai:
             image = tmp_dir / f"{n}{ext}"
             images.append(str(image))
             task = asyncio.create_task(
-                retry_func(AioHttp.download(url, filename=image, headers=headers))
-            )
+                retry_func(
+                    AioHttp.download(
+                        url,
+                        filename=image,
+                        headers=headers)))
             tasks.append(task)
 
         try:
@@ -493,6 +557,22 @@ class Nhentai:
                 await task
 
         files = []
+
+        if mode.lower() in ("graph", "tph", "all"):
+            image_graph_urls = []
+            for img in images:
+                resize_img(img)
+                graph_urls.append(
+                    upload_image(img).replace(
+                        "telegra.ph", "graph.org"))
+            graph_url = await images_to_graph(
+                title,
+                image_graph_urls,
+                author="Nhentai Hub",
+                author_url="https://telegram.dog/Nhentai_Doujins",
+            )
+            files.append(graph_url)
+
         if mode.lower() in ("pdf", "both"):
             try:
                 imgtopdf(pdf_file, images, author="t.me/Nhentai_Doujins")
@@ -503,7 +583,8 @@ class Nhentai:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
         if mode.lower() in ("cbz", "both"):
-            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
+            pyminizip.compress_multiple(
+                images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         shutil.rmtree(tmp_dir)

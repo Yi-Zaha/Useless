@@ -52,13 +52,13 @@ async def generate_doujin_info(doujin, graph=False):
     return msg
 
 
-async def download_doujin_files(doujin, filename=None):
+async def download_doujin_files(doujin, filename=None, mode="BOTH"):
     if not filename:
         filename = str(doujin.code)
     global DL_LOCK
     async with DL_LOCK:
-        pdf, cbz = await doujin.dl_chapter(filename, "both")
-        return pdf, cbz
+        result = await doujin.dl_chapter(filename, mode)
+        return result
 
 
 @bot.on_message(filters.command("nh") & filters.user(ALLOWED_USERS))
@@ -75,22 +75,30 @@ async def nh_handler(client, message):
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
-    
-    response = await AioHttp.request(doujin.image_urls[0], re_res=True)
-    if response.ok:
-        doujin_info = await generate_doujin_info(doujin, graph=True)
-    else:
-        doujin_info = await generate_doujin_info(doujin, graph=False)
 
     await status.edit(
         f"Processing... Generating details for [{doujin.title}]({doujin.url})"
     )
 
-    pdf, cbz = await download_doujin_files(
-        doujin,
-        filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
-        + " @Nhentai_Doujins",
-    )
+    response = await AioHttp.request(doujin.image_urls[0], re_res=True)
+    if response.ok:
+        doujin_info = await generate_doujin_info(doujin, graph=True)
+        pdf, cbz = await download_doujin_files(
+            doujin,
+            filename=doujin.title.replace("/", "|").split("|")[0][:41].strip() + " @Nhentai_Doujins",
+        )
+    else:
+        doujin_info = await generate_doujin_info(doujin, graph=False)
+        graph_url, pdf, cbz = await download_doujin_files(
+            doujin,
+            filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
+            + " @Nhentai_Doujins",
+            mode="ALL",
+        )
+        if graph_url:
+            doujin_info = doujin_info.replace(
+                doujin_info.splitlines[0], f"[{doujin.title}]({graph_url})",
+            )
 
     await client.send_message(
         CACHE_CHAT, doujin_info, disable_web_page_preview=True
@@ -184,8 +192,8 @@ async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
-    flags = ("-en", "-wt")
-    en, no_graph = flags[0] in message.text, flags[1] in message.text
+    flags = ("-en", "-wt", "-reverse")
+    en, no_graph, to_reverse = (flag in message.text for flag in flags)
     for flag in flags:
         if flag in message.text:
             message.text = message.text.replace(flag, "", 1)
@@ -214,6 +222,9 @@ async def doujins_nhentai(client, message):
 
     if doujins_count == 0:
         return await status.edit("No doujins found from URL.")
+    
+    if to_reverse:
+        doujins.reverse()
 
     cancel_button = [InlineKeyboardButton("Cancel", pid)]
     doujin_list_text = "\n".join(
