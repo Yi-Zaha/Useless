@@ -565,6 +565,7 @@ class Nhentai:
                 image_graph_urls.append(
                     upload_image(img).replace(
                         "telegra.ph", "graph.org"))
+                await asyncio.sleep(0.1)
             graph_url = await images_to_graph(
                 title,
                 image_graph_urls,
