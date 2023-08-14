@@ -17,6 +17,7 @@ from html_telegraph_poster import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
+from telegraph.aio import Telegraph
 
 from bot import LOGS, bot
 
@@ -242,6 +243,13 @@ def post_to_telegraph(
     except BaseException:
         return None
     return page["url"].replace("telegra.ph/", "graph.org/")
+
+async def file_to_graph(f):
+    client = Telegraph(domain="graph.org")
+    urls = []
+    for url_part in await client.upload_file(f):
+        urls.append(f"https://{client.domain}{url_part}")
+    return urls if len(urls) > 1 else urls[0]
 
 
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):

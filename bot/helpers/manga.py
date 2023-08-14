@@ -12,13 +12,12 @@ from urllib.parse import urljoin, urlparse
 
 import pyminizip
 from bot import bot
-from bot.utils import user_agents
+from bot.utils import tph_client, user_agents
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import get_link, get_soup, images_to_graph, retry_func
+from bot.utils.functions import file_to_graph, get_link, get_soup, images_to_graph, retry_func
 from bot.utils.pdf import (encrypt_pdf, get_path, images_to_pdf, imgtopdf,
                            resize_img)
 from bs4 import BeautifulSoup
-from html_telegraph_poster.upload_images import upload_image
 
 
 class IManga:
@@ -167,9 +166,7 @@ class IManga:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                image_graph_urls.append(
-                    upload_image(img).replace(
-                        "telegra.ph", "graph.org"))
+                image_graph_urls.append(await file_to_graph(img))
             return await images_to_graph(
                 title,
                 image_graph_urls
@@ -396,9 +393,7 @@ class PS:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                image_graph_urls.append(
-                    upload_image(img).replace(
-                        "telegra.ph", "graph.org"))
+                image_graph_urls.append(await file_to_graph(img))
             graph_url = await images_to_graph(
                 title,
                 image_graph_urls
@@ -562,10 +557,7 @@ class Nhentai:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                image_graph_urls.append(
-                    upload_image(img).replace(
-                        "telegra.ph", "graph.org"))
-                await asyncio.sleep(0.1)
+                image_graph_urls.append(await file_to_graph(img))
             graph_url = await images_to_graph(
                 title,
                 image_graph_urls,

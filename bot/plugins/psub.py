@@ -3,7 +3,6 @@ import io
 import os
 from datetime import datetime, timedelta
 
-from html_telegraph_poster.upload_images import upload_image
 from pyrogram import filters
 from pyrogram.enums import ChatAction, ParseMode
 from pyrogram.types import (
@@ -18,7 +17,7 @@ from bot.helpers.psutils import ch_from_url, iargs, zeroint
 from bot.logger import LOGGER
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import pdB
-from bot.utils.functions import ask_msg, get_chat_invite_link, is_numeric
+from bot.utils.functions import ask_msg, file_to_graph, get_chat_invite_link, is_numeric
 
 PH_LOG_CHAT = -1001848617769
 DISABLED_PS = []
@@ -124,7 +123,7 @@ async def add_sub(client, message):
         thumb_url = None
     elif res.photo:
         tmp_file = await res.download()
-        thumb_url = upload_image(tmp_file)
+        thumb_url = await file_to_graph(tmp_file)
         os.remove(tmp_file)
     else:
         thumb_url = res.text

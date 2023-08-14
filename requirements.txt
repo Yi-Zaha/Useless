@@ -23,6 +23,7 @@ pyrogram==2.0.104
 python-dotenv
 reportlab
 requests
+telegraph
 tgcrypto
 uvloop
 yt-dlp
