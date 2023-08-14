@@ -417,7 +417,7 @@ class Nhentai:
         self.categories = []
         self.languages = []
         self.image_urls = []
-        self.read_url = f"{link}1" if link.endswith("/") else f"{link}/1"
+        self.read_url = f"https://nhentai.net/g/{self.code}/1"
         self.url = link
 
         tag_mapping = {
