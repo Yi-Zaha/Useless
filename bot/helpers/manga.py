@@ -175,7 +175,7 @@ class IManga:
                 image_graph_urls
             )
 
-        if mode.lower() in ("pdf", "both"):
+        if mode.lower() in ("pdf", "both", "all"):
             pdf_file = get_path(title + ".pdf")
             author = f"https://telegram.me/{bot.me.username}"
             try:
@@ -187,7 +187,7 @@ class IManga:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
-        if mode.lower() in ("cbz", "both"):
+        if mode.lower() in ("cbz", "both", "all"):
             cbz_file = get_path(title + ".cbz")
             pyminizip.compress_multiple(
                 images, [], str(cbz_file), file_pass, 5)
@@ -405,7 +405,7 @@ class PS:
             )
             files.append(graph_url)
 
-        if mode.lower() in ("pdf", "both"):
+        if mode.lower() in ("pdf", "both", "all"):
             pdf_file = get_path(title + ".pdf")
             try:
                 imgtopdf(
@@ -420,7 +420,7 @@ class PS:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
 
-        elif mode.lower() in ("cbz", "both"):
+        elif mode.lower() in ("cbz", "both", "all"):
             cbz_file = get_path(title + ".cbz")
             pyminizip.compress_multiple(
                 images, [], str(cbz_file), file_pass, 5)
@@ -573,7 +573,7 @@ class Nhentai:
             )
             files.append(graph_url)
 
-        if mode.lower() in ("pdf", "both"):
+        if mode.lower() in ("pdf", "both", "all"):
             try:
                 imgtopdf(pdf_file, images, author="t.me/Nhentai_Doujins")
             except Exception:
@@ -582,7 +582,7 @@ class Nhentai:
             if file_pass:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
             files.append(pdf_file)
-        if mode.lower() in ("cbz", "both"):
+        if mode.lower() in ("cbz", "both", "all"):
             pyminizip.compress_multiple(
                 images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
