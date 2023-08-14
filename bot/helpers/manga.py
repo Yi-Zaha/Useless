@@ -167,7 +167,7 @@ class IManga:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                graph_urls.append(
+                image_graph_urls.append(
                     upload_image(img).replace(
                         "telegra.ph", "graph.org"))
             return await images_to_graph(
@@ -396,7 +396,7 @@ class PS:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                graph_urls.append(
+                image_graph_urls.append(
                     upload_image(img).replace(
                         "telegra.ph", "graph.org"))
             graph_url = await images_to_graph(
@@ -562,7 +562,7 @@ class Nhentai:
             image_graph_urls = []
             for img in images:
                 resize_img(img)
-                graph_urls.append(
+                image_graph_urls.append(
                     upload_image(img).replace(
                         "telegra.ph", "graph.org"))
             graph_url = await images_to_graph(
