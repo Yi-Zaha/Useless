@@ -92,10 +92,10 @@ async def nh_handler(client, message):
         + " @Nhentai_Doujins",
     )
 
-    first_msg = await client.send_message(
+    await client.send_message(
         CACHE_CHAT, doujin_info, disable_web_page_preview=True
     )
-    await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
+    first_msg = await client.send_document(CACHE_CHAT, pdf, caption="**PDF VIEW**")
     last_msg = await client.send_document(CACHE_CHAT, cbz, caption="**CBZ VIEW**")
 
     url = generate_share_url("expiry", first_msg.id, last_msg.id)
