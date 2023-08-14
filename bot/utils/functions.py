@@ -241,7 +241,7 @@ def post_to_telegraph(
         page = client.post(title, author, text=content, author_url=author_url)
     except BaseException:
         return None
-    return page["url"].replace("telegra.ph", "te.legra.ph")
+    return page["url"].replace("telegra.ph/", "graph.org/")
 
 
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):

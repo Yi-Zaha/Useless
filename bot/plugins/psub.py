@@ -259,7 +259,7 @@ async def newch_log(client, message):
     )
 
 
-async def new_updates():
+async def get_new_updates():
     ps_updates = {}
     all_updates = {}
 
@@ -288,35 +288,14 @@ async def new_updates():
     return all_updates
 
 
-async def update_subs(get_updates=new_updates):
+async def update_subs(get_updates=get_new_updates):
     LOGGER(__name__).info("Updating PS Subs...")
-    subs = [sub async for sub in pdB.all_subs()]
-    subs_data = {}
-
-    for sub in subs:
+    subs = {}
+    async for sub in pdB.all_subs():
         url = sub["url"]
-        chat = sub["chat"]
-        title = sub["title"]
-        send_updates = sub["send_updates"] or False
-        file_mode = sub["file_mode"] or "pdf"
-        custom_filename = sub["custom_filename"] or "{ch} {manga}"
-        custom_caption = sub["custom_caption"] or ""
-        custom_thumb = sub["custom_thumb"] or False
-
-        if url not in subs_data:
-            subs_data[url] = []
-
-        subs_data[url].append(
-            (
-                chat,
-                title,
-                send_updates,
-                file_mode,
-                custom_filename,
-                custom_caption,
-                custom_thumb,
-            )
-        )
+        if url not in subs:
+            subs[url] = []
+        subs[url].append(sub)
 
     for ps, updates in (await get_updates()).items():
         LOGGER(__name__).info(f"Checking for PS: {ps}")
@@ -330,23 +309,21 @@ async def update_subs(get_updates=new_updates):
                 PS_SLEPT.remove(ps)
 
         for url, new_chapters in updates.items():
-            if url not in subs_data:
+            if url not in subs:
                 await pdB.add_lc(url, new_chapters[-1])
                 continue
 
             LOGGER(__name__).info(f"[{ps}] Updates for {url}: {new_chapters}")
             await asyncio.sleep(5)
 
-            for sub_data in subs_data[url]:
-                (
-                    chat,
-                    title,
-                    send_updates,
-                    file_mode,
-                    custom_filename,
-                    custom_caption,
-                    custom_thumb,
-                ) = sub_data
+            for sub in subs[url]:
+                chat = sub["chat"]
+                title = sub["title"]
+                send_updates = sub["send_updates"] or False
+                file_mode = sub["file_mode"] or "pdf"
+                custom_filename = sub["custom_filename"] or "{ch} {manga}"
+                custom_caption = sub["custom_caption"] or ""
+                custom_thumb = sub["custom_thumb"] or False
 
                 for ch_url in new_chapters:
                     ch = zeroint(ch_from_url(ch_url))

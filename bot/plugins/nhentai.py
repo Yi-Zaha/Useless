@@ -75,8 +75,13 @@ async def nh_handler(client, message):
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
+    
+    response = await AioHttp.request(doujin.image_urls[0], re_res=True)
+    if response.ok:
+        doujin_info = await generate_doujin_info(doujin, graph=True)
+    else:
+        doujin_info = await generate_doujin_info(doujin, graph=False)
 
-    doujin_info = await generate_doujin_info(doujin, graph=True)
     await status.edit(
         f"Processing... Generating details for [{doujin.title}]({doujin.url})"
     )
@@ -96,9 +101,11 @@ async def nh_handler(client, message):
     url = generate_share_url("expiry", first_msg.id, last_msg.id)
 
     buttons = [[InlineKeyboardButton("⛩️ Read Here ⛩️", url=url)]]
+
     mess = await client.send_message(
         NH_CHANNEL,
         doujin_info,
+        disable_web_page_preview=True,
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
