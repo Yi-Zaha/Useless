@@ -32,7 +32,7 @@ def convert_img(path: Path) -> Image.Image:
 
 
 def resize_img(path: Path):
-    img = convert_img(path)
+    img = Image.open(path)
     img.save(path, "PNG")
 
 
