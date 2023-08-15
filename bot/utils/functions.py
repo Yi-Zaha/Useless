@@ -260,7 +260,7 @@ async def file_to_graph(f):
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):
     html_content = ''
     for urls in image_urls:
-        if isinstance(url, str):
+        if isinstance(urls, str):
             html_content += f'<img src="{urls}"/>\n'
             continue
         html_content += f"""<img src="{urls[0]}" onerror="this.src='{urls[1]}'"/>\n"""
