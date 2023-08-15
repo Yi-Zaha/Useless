@@ -76,29 +76,24 @@ async def nh_handler(client, message):
         await status.edit("Doujin not found on nhentai.")
         return
 
+
+    doujin_info = await generate_doujin_info(doujin, graph=False)
+    
     await status.edit(
         f"Processing... Generating details for [{doujin.title}]({doujin.url})"
     )
-
-    response = await AioHttp.request(doujin.image_urls[0], re_res=True)
-    if response.ok:
-        doujin_info = await generate_doujin_info(doujin, graph=True)
-        pdf, cbz = await download_doujin_files(
-            doujin,
-            filename=doujin.title.replace("/", "|").split("|")[0][:41].strip() + " @Nhentai_Doujins",
+    
+    
+    graph_url, pdf, cbz = await download_doujin_files(
+        doujin,
+        filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
+        + " @Nhentai_Doujins",
+        mode="ALL",
+    )
+    if graph_url:
+        doujin_info = doujin_info.replace(
+            doujin_info.splitlines[0], f"[{doujin.title}]({graph_url})",
         )
-    else:
-        doujin_info = await generate_doujin_info(doujin, graph=False)
-        graph_url, pdf, cbz = await download_doujin_files(
-            doujin,
-            filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
-            + " @Nhentai_Doujins",
-            mode="ALL",
-        )
-        if graph_url:
-            doujin_info = doujin_info.replace(
-                doujin_info.splitlines[0], f"[{doujin.title}]({graph_url})",
-            )
 
     await client.send_message(
         CACHE_CHAT, doujin_info, disable_web_page_preview=True
