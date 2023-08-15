@@ -231,13 +231,12 @@ async def get_chat_link_from_msg(message):
 
 html_to_telegraph.api_url = "https://api.graph.org"
 html_to_telegraph.base_url = "https://graph.org"
-
+from html_telegraph_poster.html_to_telegraph import TelegraphPoster
 
 @async_wrap
 def post_to_telegraph(
     title: str, content: str, author: str = None, author_url: str = None
 ):
-    from html_telegraph_poster.html_to_telegraph import TelegraphPoster
     if not author and not author_url:
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
@@ -248,7 +247,7 @@ def post_to_telegraph(
     except Exception as e:
         print(e)
         return
-    return page["url"]
+    return page["url"].replace("telegra.ph", "graph.org")
 
 async def file_to_graph(f):
     client = Telegraph(domain="graph.org")
