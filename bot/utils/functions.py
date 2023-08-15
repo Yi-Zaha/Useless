@@ -247,8 +247,8 @@ def post_to_telegraph(
 async def file_to_graph(f):
     client = Telegraph(domain="graph.org")
     urls = []
-    for url_part in await client.upload_file(f):
-        urls.append(urljoin("https://graph.org", url_part))
+    for item in await client.upload_file(f):
+        urls.append(urljoin("https://graph.org", item["src"]))
     return urls if len(urls) > 1 else urls[0]
 
 
