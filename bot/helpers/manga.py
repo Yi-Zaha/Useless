@@ -479,7 +479,7 @@ class Nhentai:
                 tag_name = (
                     t.text.strip()
                     .split("\n")[0]
-                    .strip()
+                    .rstrip(".")
                     .replace(" ", "_")
                     .replace("-", "")
                     .replace(".", "_")
