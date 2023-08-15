@@ -258,9 +258,15 @@ async def file_to_graph(f):
 
 
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):
+    html_content = ''
+    for urls in image_urls:
+        if isinstance(url, str):
+            html_content += f'<img src="{urls}"/>\n'
+            continue
+        html_content += f"""<img src="{urls[0]}" onerror="this.src='{urls[1]}'"/>\n"""
     graph_link = await post_to_telegraph(
         title,
-        "".join(f"<img src='{url}'/>" for url in image_urls),
+        html_content,
         author=author,
         author_url=author_url,
     )

@@ -513,23 +513,14 @@ class Nhentai:
         images = []
         mode = mode.lower()
         if "graph" in mode or mode == "all":
-            first_res = await AioHttp.request(self.image_urls[0], re_res=True)
-            if first_res.ok:
-                graph_url = await images_to_graph(
-                    title,
-                    self.image_urls,
-                    author="Nhentai Hub",
-                    author_url="https://telegram.dog/Nhentai_Doujins"
-                )
-            else:
-                proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
-                graph_url = await images_to_graph(
-                    title,
-                    proxy_image_urls,
-                    author="Nhentai Hub",
-                    author_url="https://telegram.dog/Nhentai_Doujins"
-                )
+            proxy_image_urls = [
+                f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
+            graph_url = await images_to_graph(
+                title,
+                list(zip(self.image_url, proxy_image_urls)),
+                author="Nhentai Hub",
+                author_url="https://telegram.dog/Nhentai_Doujins"
+            )
             files.append(graph_url)
 
         if "pdf" in mode or mode in ("both", "all"):
