@@ -13,7 +13,7 @@ import cloudscraper
 import pyrogram
 import requests
 from bs4 import BeautifulSoup
-from html_telegraph_poster import html_to_telegraph, TelegraphPoster
+from html_telegraph_poster import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
@@ -229,8 +229,6 @@ async def get_chat_link_from_msg(message):
 # Telegraph Functions
 
 
-html_to_telegraph.api_url = "https://api.graph.org"
-html_to_telegraph.base_url = "https://graph.org"
 @async_wrap
 def post_to_telegraph(
     title: str, content: str, author: str = None, author_url: str = None
