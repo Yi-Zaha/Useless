@@ -28,6 +28,8 @@ async def download_images(image_urls: list[str], directory: str = None, headers:
     images = []
     tasks = []
     for n, url in enumerate(image_urls):
+        if url is None:
+            continue
         ext = os.path.splitext(url)
         ext = ext[1] if len(ext) > 1 else ".jpg"
         image = f"{dir}/{n}{ext}"
