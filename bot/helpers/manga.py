@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlparse
 
 import pyminizip
 from bot import bot
-from bot.utils import tph_client, user_agents
+from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import file_to_graph, get_link, get_soup, images_to_graph, retry_func
 from bot.utils.pdf import (encrypt_pdf, get_path, images_to_pdf, imgtopdf,
