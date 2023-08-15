@@ -236,13 +236,13 @@ def post_to_telegraph(
     if not author and not author_url:
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
-    client = TelegraphPoster()
+    client = TelegraphPoster(telegraph_api_url="https://api.graph.org", telegraph_base_url="https://graph.org")
     client.create_api_token(author)
     try:
         page = client.post(title, author, text=content, author_url=author_url)
     except BaseException:
         return None
-    return page["url"].replace("telegra.ph/", "graph.org/")
+    return page["url"]
 
 async def file_to_graph(f):
     client = Telegraph(domain="graph.org")
