@@ -523,7 +523,7 @@ class Nhentai:
                 )
             else:
                 proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in self.image_urls]
+                    f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
                 graph_url = await images_to_graph(
                     title,
                     proxy_image_urls,
