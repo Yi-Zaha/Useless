@@ -6,7 +6,7 @@ import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import cachetools
 import cloudscraper
@@ -248,7 +248,7 @@ async def file_to_graph(f):
     client = Telegraph(domain="graph.org")
     urls = []
     for url_part in await client.upload_file(f):
-        urls.append(f"https://{client.domain}{url_part}")
+        urls.append(urljoin("https://graph.org", url_part))
     return urls if len(urls) > 1 else urls[0]
 
 
