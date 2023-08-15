@@ -23,7 +23,7 @@ BULK_PROCESS = []
 async def generate_doujin_info(doujin, graph=False):
     if graph:
         graph_link = await images_to_graph(
-            doujin.title,
+            f"{doujin.title} @Nhentai_Doujins",
             doujin.image_urls,
             author="Nhentai Hub",
             author_url="https://telegram.me/Nhentai_Doujins",
@@ -75,14 +75,12 @@ async def nh_handler(client, message):
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
-
-
+    
     doujin_info = await generate_doujin_info(doujin, graph=False)
     
     await status.edit(
         f"Processing... Generating details for [{doujin.title}]({doujin.url})"
     )
-    
     
     graph_url, pdf, cbz = await download_doujin_files(
         doujin,
