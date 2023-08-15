@@ -517,7 +517,7 @@ class Nhentai:
                 f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
             graph_url = await images_to_graph(
                 title,
-                list(zip(self.image_url, proxy_image_urls)),
+                list(zip(self.image_urls, proxy_image_urls)),
                 author="Nhentai Hub",
                 author_url="https://telegram.dog/Nhentai_Doujins"
             )
