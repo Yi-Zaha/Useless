@@ -240,7 +240,7 @@ def post_to_telegraph(
     if not author and not author_url:
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
-    client = TelegraphPoster()
+    client = TelegraphPoster(use_api=True, telegraph_api_url='https://api.graph.org')
     client.create_api_token(author)
     try:
         page = client.post(title, author, text=content, author_url=author_url)
