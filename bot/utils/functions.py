@@ -237,7 +237,7 @@ html_to_telegraph.base_url = "https://graph.org"
 def post_to_telegraph(
     title: str, content: str, author: str = None, author_url: str = None
 ):
-    from html_telegraph_poster import TelegraphPoster
+    from html_telegraph_poster.html_to_telegraph import TelegraphPoster
     if not author and not author_url:
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
