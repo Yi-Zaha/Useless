@@ -244,6 +244,7 @@ def post_to_telegraph(
         page = client.post(title, author, text=content, author_url=author_url)
     except Exception as e:
         print(e)
+        return
     return page["url"]
 
 async def file_to_graph(f):
