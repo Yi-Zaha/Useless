@@ -23,7 +23,7 @@ BULK_PROCESS = []
 async def generate_doujin_info(doujin, graph=False):
     if graph:
         graph_link = await images_to_graph(
-            f"{doujin.title} @Nhentai_Doujins",
+            f"{doujin.title} | @Nhentai_Doujins",
             doujin.image_urls,
             author="Nhentai Hub",
             author_url="https://telegram.me/Nhentai_Doujins",
