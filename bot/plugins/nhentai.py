@@ -92,7 +92,7 @@ async def nh_handler(client, message):
     )
     if graph_url:
         doujin_info = doujin_info.replace(
-            doujin_info.splitlines[0], f"[{doujin.title}]({graph_url})",
+            doujin_info.splitlines()[0], f"[{doujin.title}]({graph_url})",
         )
 
     await client.send_message(
