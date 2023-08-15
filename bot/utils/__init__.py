@@ -1,6 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram import filters
-from html_telegraph_poster import html_to_telegraph
+
 
 from .aiohttp_helper import *
 from .db import *
@@ -8,8 +8,7 @@ from .functions import *
 from .media import *
 from .pdf import *
 
-html_to_telegraph.api_url = "https://api.graph.org"
-html_to_telegraph.base_url = "https://graph.org"
+
 channel_filter = filters.channel | ~filters.channel
 non_command_filter = filters.create(
     lambda filter, client, update: not update.text.startswith("/")
