@@ -242,8 +242,8 @@ def post_to_telegraph(
     client.create_api_token(author)
     try:
         page = client.post(title, author, text=content, author_url=author_url)
-    except BaseException:
-        return None
+    except Exception as e:
+        print(e)
     return page["url"]
 
 async def file_to_graph(f):
