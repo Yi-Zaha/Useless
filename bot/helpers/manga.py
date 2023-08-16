@@ -462,7 +462,7 @@ class Nhentai:
         cin_url = f"{self.cin_url}/g/{self.code}"
         content = await AioHttp.request(cin_url, headers={"User-Agent": random.choice(user_agents)})
         soup = BeautifulSoup(content, "html.parser")
-        data = json.loads(soup.find("script", id="__NEXT_DATA__"))["props"]["pageProps"]["data"]
+        data = json.loads(soup.find("script", id="__NEXT_DATA__").text)["props"]["pageProps"]["data"]
 
         if data and data.get("ok"):
             title = data["title"]
