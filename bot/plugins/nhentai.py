@@ -30,7 +30,7 @@ async def generate_doujin_info(doujin, graph=False):
         )
         doujin.read_url = graph_link or doujin.read_url
 
-    msg = f"[{doujin.title}]({doujin.read_url})\n" f"\n➤ **Code:** {doujin.code}"
+    msg = f"[{doujin.title}]({doujin.read_url})\n" f"\n➤ **Code:** [{doujin.code}](https://nhentai.net/g/{doujin.code})"
 
     if doujin.categories:
         msg += f"\n➤ **Type:** {' '.join(doujin.categories)}"
