@@ -23,14 +23,14 @@ BULK_PROCESS = []
 async def generate_doujin_info(doujin, graph=False):
     if graph:
         graph_link = await images_to_graph(
-            f"{doujin.title} | @Nhentai_Doujins",
+            f"{doujin.english_title} | @Nhentai_Doujins",
             doujin.image_urls,
             author="Nhentai Hub",
             author_url="https://telegram.me/Nhentai_Doujins",
         )
         doujin.read_url = graph_link or doujin.read_url
 
-    msg = f"[{doujin.title}]({doujin.read_url})\n" f"\n➤ **Code:** [{doujin.code}](https://nhentai.net/g/{doujin.code})"
+    msg = f"[{doujin.english_title}]({doujin.url}/1)\n" f"\n➤ **Code:** [{doujin.code}]({doujin.url})"
 
     if doujin.categories:
         msg += f"\n➤ **Type:** {' '.join(doujin.categories)}"
@@ -71,7 +71,8 @@ async def nh_handler(client, message):
     status = await message.reply("Processing... Please wait.")
     code = message.command[1]
     try:
-        doujin = await Nhentai().get(code)
+        doujin = Nhentai(code)
+        await doujin.get_data()
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
@@ -79,18 +80,18 @@ async def nh_handler(client, message):
     doujin_info = await generate_doujin_info(doujin, graph=False)
     
     await status.edit(
-        f"Processing... Generating details for [{doujin.title}]({doujin.url})"
+        f"Processing... Generating details for [{doujin.english_title}]({doujin.url})"
     )
     
     graph_url, pdf, cbz = await download_doujin_files(
         doujin,
-        filename=doujin.title.replace("/", "|").split("|")[0][:41].strip()
+        filename=doujin.pretty_title.replace("/", "|").split("|")[0][:41].strip()
         + " @Nhentai_Doujins",
         mode="ALL",
     )
     if graph_url:
         doujin_info = doujin_info.replace(
-            doujin_info.splitlines()[0], f"[{doujin.title}]({graph_url})",
+            doujin_info.splitlines()[0], f"[{doujin.english_title}]({graph_url})",
         )
 
     await client.send_message(
@@ -113,7 +114,7 @@ async def nh_handler(client, message):
     await client.send_cached_media(NH_CHANNEL, "CAADAQADRwIAArtf8EeIGkF9Fv05gQI")
     here = f"[{mess.chat.title}]({mess.link})"
     await status.edit(
-        f"<i>[{doujin.title}]({doujin.url}) has been uploaded in {here}.</i>"
+        f"<i>[{doujin.english_title}]({doujin.url}) has been uploaded in {here}.</i>"
     )
     os.remove(pdf)
     os.remove(cbz)
@@ -132,13 +133,14 @@ async def nhentai_handler(client, message):
         return await status.edit("Please provide the doujin's code or URL.")
     code = message.command[1]
     try:
-        doujin = await Nhentai().get(code)
+        doujin = await Nhentai(code)
+        await doujin.get_data()
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
 
     doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
-    await status.edit(f"Processing... Downloading [{doujin.title}]({doujin.url})")
+    await status.edit(f"Processing... Downloading [{doujin.english_title}]({doujin.url})")
 
     pdf, cbz = await download_doujin_files(doujin)
 
@@ -163,13 +165,14 @@ async def telegraph_nhentai(client, message):
 
     code = message.command[1]
     try:
-        doujin = await Nhentai().get(code)
+        doujin = await Nhentai(code)
+        await doujin.get_data()
     except Exception:
         await status.edit("Doujin not found on nhentai.")
         return
 
     doujin_info = await generate_doujin_info(doujin, graph=True)
-    await status.edit(f"Processing... [{doujin.title}]({doujin.url})")
+    await status.edit(f"Processing... [{doujin.english_title}]({doujin.url})")
 
     await status.edit(doujin_info, parse_mode=ParseMode.MARKDOWN)
 
@@ -240,7 +243,8 @@ async def doujins_nhentai(client, message):
             )
 
         try:
-            doujin = await Nhentai().get(data["url"])
+            doujin = await Nhentai(code)
+            await doujin.get_data()
             if en and "#english" not in doujin.languages:
                 continue
             doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
@@ -248,16 +252,12 @@ async def doujins_nhentai(client, message):
 
             try:
                 if no_graph:
-                    cover_img, *_ = await AioHttp.download(
-                        doujin.image_urls[0], headers={"Referer": doujin.url}
-                    )
                     await client.send_photo(
                         chat,
-                        cover_img,
+                        doujin.cover_url,
                         caption=doujin_info,
                         parse_mode=ParseMode.MARKDOWN,
                     )
-                    os.remove(cover_img)
                 else:
                     await client.send_message(
                         chat, doujin_info, parse_mode=ParseMode.MARKDOWN

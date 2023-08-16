@@ -423,6 +423,27 @@ class PS:
 
 
 class Nhentai:
+    def __init__(self, code):
+        self.base_url = "https://nhentai.net/"
+        self.cin_url = "https://cin.cx/"
+        if code.isdigit():
+            self.code = code
+            self.url = f"{self.base_url}/g/{self.code}"
+        else:
+            self.code = code.rstrip("/").split("/")[-1]
+            self.url = code
+        self.english_title = ""
+        self.japanese_title = ""
+        self.pretty_title = ""
+        self.cover_url = ""
+        self.pages = 0
+        self.tags = []
+        self.artists = []
+        self.parodies = []
+        self.languages = []
+        self.categories = []
+        self.image_urls = []
+
     @staticmethod
     async def doujins_from_url(url):
         parsed_url = urlparse(url)
@@ -432,75 +453,41 @@ class Nhentai:
         items = soup.find_all("a", "cover")
         doujins = []
         for item in items:
-            doujin_url = urljoin(origin_url, item["href"])
+            doujin_code = item["href"].rstrip("/").split("/")[-1]
             doujin_title = item.find("div", "caption").text.strip()
-            doujins.append({"url": doujin_url, "title": doujin_title})
+            doujins.append({"code": doujin_code, "title": doujin_title})
         return doujins
 
-    async def get(self, link):
-        if not link.isdigit():
-            link = link
-            code_regex = re.findall(r"\d+\.*\d+", link)
-            self.code = code_regex[0] if code_regex else "N/A"
-        else:
-            self.code = link
-            link = f"https://nhentai.to/g/{link}/"
-
-        content = await AioHttp.request(link)
+    async def get_data(self):
+        cin_url = f"{self.cin_url}/g/{self.code}"
+        content = await AioHttp.request(cin_url, headers={"User-Agent": random.choice(user_agents)})
         soup = BeautifulSoup(content, "html.parser")
-        self.title = soup.find("div", id="info").find("h1").text
-        self.tags = []
-        self.artists = []
-        self.parodies = []
-        self.categories = []
-        self.languages = []
-        self.image_urls = []
-        self.read_url = f"https://nhentai.net/g/{self.code}/1"
-        self.url = link
+        data = json.loads(soup.find("script", id="__NEXT_DATA__"))["props"]["pageProps"]["data"]
 
-        tag_mapping = {
-            "tag": self.tags,
-            "artist": self.artists,
-            "parody": self.parodies,
-            "language": self.languages,
-            "category": self.categories,
-        }
+        if data and data.get("ok"):
+            title = data["title"]
+            self.english_title = title["english"]
+            self.japanese_title = title["japanese"]
+            self.pretty_title = title["pretty"]
+            self.cover_url = f"https://t.nhentai.net/galleries/{data['images']['cover']['t'].split('/t/')[-1]}"
+            self.pages = data["num_pages"]
 
-        tdata = soup.find_all("a", "tag")
-        for t in tdata:
-            tag_type = next(
-                (tag_type for tag_type in tag_mapping if tag_type in t["href"]), None)
-            if tag_type:
-                t = (
-                    t.find(class_="name")
-                    if any(x in self.url for x in [".xxx", ".net"])
-                    else t
-                )
-                tag_name = (
-                    t.text.strip()
-                    .split("\n")[0]
-                    .rstrip(".")
-                    .replace(" ", "_")
-                    .replace("-", "")
-                    .replace(".", "_")
-                )
-                tag_mapping[tag_type].append(f"#{tag_name}")
+            tag_mapping = {
+                "tag": self.tags,
+                "artist": self.artists,
+                "parody": self.parodies,
+                "language": self.languages,
+                "category": self.categories,
+            }
+            for tag in data["tags"]:
+                tag_type = tag_mapping.get(tag["type"])
+                if tag_type:
+                    tag_type.append(f"#{tag['name'].replace(' ', '_')}")
 
-        data = soup.find_all("img", "lazyload")
-        for img in data:
-            img_url = (
-                img["data-src"]
-                .strip()
-                .replace("t.", ".")
-                .replace("t3.nhentai.net", "i3.nhentai.net")
-            )
-            if img_url.endswith(
-                    "/") or img_url.endswith(("thumb.jpg", "cover.jpg")):
-                continue
-            self.image_urls.append(img_url)
-
-        self.pages = len(self.image_urls)
-
+            for image_url in data["images"]["pages"]:
+                image_url = f"https://i.nhentai.net/galleries{image_url.replace('/i/', '/')}"
+                self.image_urls.append(image_url)
+            
         return self
 
     async def dl_chapter(self, title, mode, file_pass=None):
@@ -517,7 +504,7 @@ class Nhentai:
             first_res = await AioHttp.request(self.image_urls[0], re_res=True)
             if "nhentai.to" not in self.url and first_res.ok:
                 graph_url = await images_to_graph(
-                    f"{self.title} | @Nhentai_Doujins",
+                    f"{self.english_title} | @Nhentai_Doujins",
                     self.image_urls,
                     author="Nhentai Hub",
                     author_url="https://telegram.dog/Nhentai_Doujins"
@@ -526,7 +513,7 @@ class Nhentai:
                 proxy_image_urls = [
                     f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
                 graph_url = await images_to_graph(
-                    f"{self.title} | @Nhentai_Doujins",
+                    f"{self.english_title} | @Nhentai_Doujins",
                     proxy_image_urls,
                     author="Nhentai Hub",
                     author_url="https://telegram.dog/Nhentai_Doujins"
