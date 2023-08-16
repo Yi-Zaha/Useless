@@ -133,7 +133,7 @@ async def nhentai_handler(client, message):
         return await status.edit("Please provide the doujin's code or URL.")
     code = message.command[1]
     try:
-        doujin = await Nhentai(code)
+        doujin = Nhentai(code)
         await doujin.get_data()
     except Exception:
         await status.edit("Doujin not found on nhentai.")
@@ -165,7 +165,7 @@ async def telegraph_nhentai(client, message):
 
     code = message.command[1]
     try:
-        doujin = await Nhentai(code)
+        doujin = Nhentai(code)
         await doujin.get_data()
     except Exception:
         await status.edit("Doujin not found on nhentai.")
