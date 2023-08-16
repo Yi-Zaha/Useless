@@ -30,7 +30,7 @@ async def generate_doujin_info(doujin, graph=False):
         )
         doujin.read_url = graph_link or doujin.url.rtrip("/") + "/1"
 
-    msg = f"[{doujin.english_title}]({doujin.read_url)\n" f"\n➤ **Code:** [{doujin.code}]({doujin.url})"
+    msg = f"[{doujin.english_title}]({doujin.read_url})\n" f"\n➤ **Code:** [{doujin.code}]({doujin.url})"
 
     if doujin.categories:
         msg += f"\n➤ **Type:** {' '.join(doujin.categories)}"
