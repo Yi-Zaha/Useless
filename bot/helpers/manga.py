@@ -485,7 +485,7 @@ class Nhentai:
                     tag_type.append(f"#{tag['name'].replace(' ', '_').replace('-', '')}")
 
             for image_url in data["images"]["pages"]:
-                image_url = f"https://i.nhentai.net/galleries{image_url['t'].split('/i/')[-1]}"
+                image_url = f"https://i.nhentai.net/galleries/{image_url['t'].split('/i/')[-1]}"
                 self.image_urls.append(image_url)
             
         return self
