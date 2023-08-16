@@ -480,8 +480,8 @@ class Nhentai:
                 "category": self.categories,
             }
             for tag in data["tags"]:
-                tag_type = tag_mapping.get(tag["type"])
-                if tag_type:
+                tag_type = tag_mapping.get(tag["type"], None)
+                if tag_type is not None:
                     tag_type.append(f"#{tag['name'].replace(' ', '_')}")
 
             for image_url in data["images"]["pages"]:
