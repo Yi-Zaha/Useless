@@ -38,6 +38,9 @@ async def generate_doujin_info(doujin, graph=False):
 
     if doujin.parodies:
         msg += f"\n➤ **Parodies:** {' '.join(doujin.parodies)}"
+    
+    if doujin.characters:
+        msg += f"\n➤ **Characters:** {' '.join(doujin.characters)}"
 
     if doujin.artists:
         msg += f"\n➤ **Artists:** {' '.join(doujin.artists)}"

@@ -440,6 +440,7 @@ class Nhentai:
         self.tags = []
         self.artists = []
         self.parodies = []
+        self.characters = []
         self.languages = []
         self.categories = []
         self.image_urls = []
@@ -476,13 +477,14 @@ class Nhentai:
                 "tag": self.tags,
                 "artist": self.artists,
                 "parody": self.parodies,
+                "character": self.characters,
                 "language": self.languages,
                 "category": self.categories,
             }
             for tag in data["tags"]:
                 tag_type = tag_mapping.get(tag["type"], None)
                 if tag_type is not None:
-                    tag_type.append(f"#{tag['name'].replace(' ', '_').replace('-', '')}")
+                    tag_type.append(f"#{tag['name'].replace('-', '').replace(' | ', '').replace(' ', '_')'}")
 
             for image_url in data["images"]["pages"]:
                 image_url = f"https://i.nhentai.net/galleries/{image_url['t'].split('/i/')[-1]}"
