@@ -244,7 +244,7 @@ async def doujins_nhentai(client, message):
             )
 
         try:
-            doujin = await Nhentai(code)
+            doujin = Nhentai(data["code"])
             await doujin.get_data()
             if en and "#english" not in doujin.languages:
                 continue
