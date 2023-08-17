@@ -506,7 +506,7 @@ class Nhentai:
             first_res = await AioHttp.request(self.image_urls[0], re_res=True)
             if "nhentai.to" not in self.url and first_res.ok:
                 graph_url = await images_to_graph(
-                    f"{self.english_title} | @Nhentai_Doujins",
+                    f"{self.pretty_title} | @Nhentai_Doujins",
                     self.image_urls,
                     author="Nhentai Hub",
                     author_url="https://telegram.dog/Nhentai_Doujins"
@@ -515,7 +515,7 @@ class Nhentai:
                 proxy_image_urls = [
                     f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
                 graph_url = await images_to_graph(
-                    f"{self.english_title} | @Nhentai_Doujins",
+                    f"{self.pretty_title} | @Nhentai_Doujins",
                     proxy_image_urls,
                     author="Nhentai Hub",
                     author_url="https://telegram.dog/Nhentai_Doujins"

@@ -24,7 +24,7 @@ async def generate_doujin_info(doujin, graph=False):
     doujin.read_url = doujin.url.rstrip("/") + "/1"
     if graph:
         graph_link = await images_to_graph(
-            f"{doujin.english_title} | @Nhentai_Doujins",
+            f"{doujin.pretty_title} | @Nhentai_Doujins",
             doujin.image_urls,
             author="Nhentai Hub",
             author_url="https://telegram.me/Nhentai_Doujins",
@@ -84,7 +84,7 @@ async def nh_handler(client, message):
     doujin_info = await generate_doujin_info(doujin, graph=False)
     
     await status.edit(
-        f"Processing... Generating details for [{doujin.english_title}]({doujin.url})"
+        f"Processing... Generating details for [{doujin.pretty_title}]({doujin.url})"
     )
     
     graph_url, pdf, cbz = await download_doujin_files(
@@ -95,7 +95,7 @@ async def nh_handler(client, message):
     )
     if graph_url:
         doujin_info = doujin_info.replace(
-            doujin_info.splitlines()[0], f"[{doujin.english_title}]({graph_url})",
+            doujin_info.splitlines()[0], f"[{doujin.pretty_title}]({graph_url})",
         )
 
     await client.send_message(
@@ -118,7 +118,7 @@ async def nh_handler(client, message):
     await client.send_cached_media(NH_CHANNEL, "CAADAQADRwIAArtf8EeIGkF9Fv05gQI")
     here = f"[{mess.chat.title}]({mess.link})"
     await status.edit(
-        f"<i>[{doujin.english_title}]({doujin.url}) has been uploaded in {here}.</i>"
+        f"<i>[{doujin.pretty_title}]({doujin.url}) has been uploaded in {here}.</i>"
     )
     os.remove(pdf)
     os.remove(cbz)
@@ -144,7 +144,7 @@ async def nhentai_handler(client, message):
         return
 
     doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
-    await status.edit(f"Processing... Downloading [{doujin.english_title}]({doujin.url})")
+    await status.edit(f"Processing... Downloading [{doujin.pretty_title}]({doujin.url})")
 
     pdf, cbz = await download_doujin_files(doujin)
 
@@ -176,7 +176,7 @@ async def telegraph_nhentai(client, message):
         return
 
     doujin_info = await generate_doujin_info(doujin, graph=True)
-    await status.edit(f"Processing... [{doujin.english_title}]({doujin.url})")
+    await status.edit(f"Processing... [{doujin.pretty_title}]({doujin.url})")
 
     await status.edit(doujin_info, parse_mode=ParseMode.MARKDOWN)
 
