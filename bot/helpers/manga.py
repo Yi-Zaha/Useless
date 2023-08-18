@@ -424,8 +424,8 @@ class PS:
 
 class Nhentai:
     def __init__(self, code):
-        self.base_url = "https://nhentai.net/"
-        self.cin_url = "https://cin.cx/"
+        self.base_url = "https://nhentai.net"
+        self.cin_url = "https://cin.cx"
         if code.isdigit():
             self.code = code
             self.url = f"{self.base_url}/g/{self.code}"
