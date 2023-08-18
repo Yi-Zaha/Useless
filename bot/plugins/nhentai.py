@@ -147,10 +147,18 @@ async def nhentai_handler(client, message):
     await status.edit(f"Processing... Downloading [{doujin.pretty_title}]({doujin.url})")
 
     pdf, cbz = await download_doujin_files(doujin)
-
-    await client.send_message(
-        message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN
-    )
+    
+    if no_graph:
+        await client.send_photo(
+            message.chat.id, 
+            doujin.cover_url,
+            caption=doujin_info, 
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    else:
+        await client.send_message(
+            message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN
+        )
     await asyncio.gather(
         client.send_document(message.chat.id, pdf),
         client.send_document(message.chat.id, cbz),
