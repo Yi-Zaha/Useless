@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
 
 
-async def download_images(image_urls: list[str], directory: str = None, headers: dict = None):
+async def download_images(image_urls: list[str], directory: str = None, headers: dict = None, sequentially: bool = False):
     dir = directory
     if not dir:
         dir = tempfile.mkdtemp()
@@ -43,13 +43,17 @@ async def download_images(image_urls: list[str], directory: str = None, headers:
         )
         tasks.append(task)
 
-    try:
-        await asyncio.gather(*tasks)
-    except BaseException:
+    if sequentially is True:
         try:
             for task in tasks:
                 await task
-        except BaseException:
+        except Exception:
+            shutil.rmtree(dir)
+            raise
+    else:
+        try:
+            await asyncio.gather(*tasks)
+        except Exception:
             shutil.rmtree(dir)
             raise
 
@@ -375,7 +379,7 @@ class PS:
                     graph_link = await images_to_graph(title, image_urls)
                     return graph_link
 
-        headers["Referer"] = str(response.url)
+        headers["Referer"] = doujin.url
 
         files = []
         images = []
@@ -524,7 +528,7 @@ class Nhentai:
 
         if "pdf" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(self.image_urls, headers=headers)
+                images, temp_dir = await download_images(self.image_urls, headers=headers, sequentially=True)
             pdf_file = get_path(title + ".pdf")
             author = "t.me/Nhentai_Doujins"
             try:
@@ -538,7 +542,7 @@ class Nhentai:
 
         if "cbz" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(self.image_urls, headers=headers)
+                images, temp_dir = await download_images(self.image_urls, headers=headers, sequentially=True)
             cbz_file = get_path(title + ".cbz")
             pyminizip.compress_multiple(
                 images, [], str(cbz_file), file_pass, 5)
