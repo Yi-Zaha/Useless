@@ -376,7 +376,7 @@ class PS:
                     graph_link = await images_to_graph(title, image_urls)
                     return graph_link
 
-        headers["Referer"] = doujin.url
+        headers["Referer"] = str(response.url)
 
         files = []
         images = []
