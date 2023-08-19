@@ -34,7 +34,7 @@ async def download_images(image_urls: list[str], directory: str = None, headers:
         ext = ext[1] if len(ext) > 1 else ".jpg"
         image = f"{dir}/{n}{ext}"
         images.append(image)
-        task = asyncio.create_task(
+        task = asyncio.get_event_loop().create_task(
             retry_func(
                 AioHttp.download(
                     url, filename=image, headers=headers
