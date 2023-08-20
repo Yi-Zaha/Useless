@@ -427,12 +427,12 @@ class Nhentai:
     def __init__(self, code):
         self.base_url = "https://nhentai.net"
         self.cin_url = "https://cin.cx"
-        if code.isdigit():
-            self.code = code
-            self.url = f"{self.base_url}/g/{self.code}"
+        if isinstance(code, int) or code.isdigit():
+            self.code = str(code)
+            
         else:
             self.code = code.rstrip("/").split("/")[-1]
-            self.url = code
+        self.url = f"{self.base_url}/g/{self.code}"
         self.english_title = ""
         self.japanese_title = ""
         self.pretty_title = ""
