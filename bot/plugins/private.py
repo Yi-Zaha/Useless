@@ -88,11 +88,8 @@ async def on_start(client, message):
             temp_msg = await client.send_message(
                 message.chat.id, "*Forward or save these messages somewhere."
             )
-            await asyncio.sleep(5 * 60)
+            await asyncio.sleep(10 * 60)
             try:
-                await client.delete_messages(message.chat.id, sent_ids)
-            except FloodWait as fw:
-                await asyncio.sleep(fw.value)
                 await client.delete_messages(message.chat.id, sent_ids)
             except Exception as e:
                 LOGGER(__name__).info(str(e))
