@@ -440,6 +440,8 @@ async def cbz_to_pdf(client, message):
     thumb, no_thumb = (flag in message.text for flag in flags)
   
     with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir += "/"
+
         if thumb:
             thumb = "thumb.jpg"
         elif reply.document.thumbs:
@@ -447,16 +449,32 @@ async def cbz_to_pdf(client, message):
         elif no_thumb:
             thumb = None
 
-        downloaded_file = await reply.download(temp_dir)
-        images = []
-        with zipfile.ZipFile(downloaded_file, "r") as file:
-            file.extractall(temp_dir)
-            images = map(lambda name: os.path.join(temp_dir, name), file.namelist())
+        downloaded_file = await reply.download(
+            file_name=temp_dir,
+            progress=progress_cb,
+            progress_args=(status, time.time(), "Downloading...", reply.document.file_name)
+        )
+        await status.edit("Converting to pdf...")
+        try:
+            images = []
+            with zipfile.ZipFile(downloaded_file, "r") as file:
+                file.extractall(temp_dir)
+                images = map(lambda name: os.path.join(temp_dir, name), file.namelist())
         
-        pdf_path = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0])
-        pdf_file = imgtopdf(pdf_path, images, author=f"telegram.me/{client.me.username}")
+            pdf_path = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0])
+            pdf_file = imgtopdf(pdf_path, images, author=f"telegram.me/{client.me.username}")
+        except Exception as e:
+            return await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+            )
 
-        await message.reply_document(pdf_file, thumb=thumb)
+        await message.reply_document(
+            pdf_file,
+            thumb=thumb,
+            progress=progress_cb,
+            progress_args=(status, time.time(), "Uploading...", os.path.basename(pdf_file)),
+        )
+
 
 @bot.on_message(filters.command("pdf2cbz") & filters.user(ALLOWED_USERS) & filters.reply)
 async def pdf_to_cbz(client, message):
@@ -464,10 +482,13 @@ async def pdf_to_cbz(client, message):
     if not reply.document or not reply.document.file_name.endswith((".pdf")):
         return
     
+    status = await message.reply("Processing ...")
     flags = ("-t", "-nt")
     thumb, no_thumb = (flag in message.text for flag in flags)
     
     with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir += "/"
+
         if thumb:
             thumb = "thumb.jpg"
         elif reply.document.thumbs:
@@ -475,9 +496,24 @@ async def pdf_to_cbz(client, message):
         elif no_thumb:
             thumb = None
         
-        downloaded_file = await reply.download(temp_dir)
-        images = await extract_pdf_images(downloaded_file, save_dir=temp_dir)
-        cbz_file = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0] + ".cbz")
-        pyminizip.compress_multiple(images, [], str(cbz_file), None, 6)
+        downloaded_file = await reply.download(
+            file_name=temp_dir,
+            progress=progress_cb,
+            progress_args=(status, time.time(), "Downloading...", reply.document.file_name)
+        )
+        await staus.edit("Converting to cbz...")
+        try:
+            images = await extract_pdf_images(downloaded_file, save_dir=temp_dir)
+            cbz_file = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0] + ".cbz")
+            pyminizip.compress_multiple(images, [], str(cbz_file), None, 6)
+        except Exception as e:
+            return await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+            )
         
-        await message.reply_document(cbz_file, thumb=thumb)
+        await message.reply_document(
+            cbz_file,
+            thumb=thumb,
+            progress=progress_cb,
+            progress_args=(status, time.time(), "Uploading...", os.path.basename(cbz_file)),
+        )
