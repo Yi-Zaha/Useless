@@ -321,7 +321,7 @@ def _wrap(client):
         if inspect.isasyncgenfunction(method) or inspect.isgeneratorfunction(method):
             continue
 
-        if name.startswith(("send_", "get_", "download_")):
+        if name.startswith(("send_", "get_")):
             flood_wrap = retry_on_flood(method)
             setattr(client, name, flood_wrap)
 
