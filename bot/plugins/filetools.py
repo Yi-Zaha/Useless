@@ -430,7 +430,7 @@ async def media_rename(client, message):
 """
 
 
-@bot.on_message(filters.command("cbz2pdf") & filter.user(ALLOWED_USERS) & filters.reply)
+@bot.on_message(filters.command("cbz2pdf") & filters.user(ALLOWED_USERS) & filters.reply)
 async def cbz_to_pdf(client, message):
     reply = message.reply_to_message
     if not reply.document or not reply.document.file_name.endswith((".cbz", ".zip")):
