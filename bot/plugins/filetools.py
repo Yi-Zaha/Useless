@@ -489,7 +489,7 @@ async def pdf_to_cbz(client, message):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir += "/"
         
-        if not no_thumb
+        if not no_thumb:
             if local_thumb:
                 thumb = "thumb.jpg"
             elif reply.document.thumbs:

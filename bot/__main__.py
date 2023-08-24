@@ -20,13 +20,15 @@ async def start_clients():
         await bot.user.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
 
 
-async def stop_clients():
+async def stop_clients(stop=True):
     LOGS.info("Stopping clients...")
     await bot.send_message(LOG_CHAT, "BOT IS GOING OFFLINE.")
-    await bot.stop()
+    if stop:
+        await bot.stop()
     if bot.user:
         await bot.user.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
-        await bot.user.stop()
+        if stop:
+            await bot.user.stop()
 
 
 async def main():
@@ -48,7 +50,8 @@ async def run_main():
         await main()
     except Exception as e:
         LOGS.error(str(e))
-    finally:
+        await stop_clients(stop=False)
+    except:
         await stop_clients()
 
 
