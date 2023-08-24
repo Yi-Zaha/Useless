@@ -438,17 +438,16 @@ async def cbz_to_pdf(client, message):
     
     status = await message.reply("Processing...")
     flags = ("-t", "-nt")
-    thumb, no_thumb = (flag in message.text for flag in flags)
-  
+    local_thumb, no_thumb = (flag in message.text for flag in flags)
+    thumb = None
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir += "/"
-
-        if thumb:
-            thumb = "thumb.jpg"
-        elif reply.document.thumbs:
-            thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
-        elif no_thumb:
-            thumb = None
+        
+        if not no_thumb:
+            if local_thumb:
+                thumb = "thumb.jpg"
+            elif reply.document.thumbs:
+                thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
 
         downloaded_file = await reply.download(
             file_name=temp_dir,
@@ -485,17 +484,16 @@ async def pdf_to_cbz(client, message):
     
     status = await message.reply("Processing...")
     flags = ("-t", "-nt")
-    thumb, no_thumb = (flag in message.text for flag in flags)
-    
+    local_thumb, no_thumb = (flag in message.text for flag in flags)
+    thumb = None
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir += "/"
-
-        if thumb:
-            thumb = "thumb.jpg"
-        elif reply.document.thumbs:
-            thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
-        elif no_thumb:
-            thumb = None
+        
+        if not no_thumb
+            if local_thumb:
+                thumb = "thumb.jpg"
+            elif reply.document.thumbs:
+                thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
         
         downloaded_file = await reply.download(
             file_name=temp_dir,
