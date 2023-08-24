@@ -436,6 +436,7 @@ async def cbz_to_pdf(client, message):
     if not reply.document or not reply.document.file_name.endswith((".cbz", ".zip")):
         return
     
+    status = await message.reply("Processing...")
     flags = ("-t", "-nt")
     thumb, no_thumb = (flag in message.text for flag in flags)
   
@@ -482,7 +483,7 @@ async def pdf_to_cbz(client, message):
     if not reply.document or not reply.document.file_name.endswith((".pdf")):
         return
     
-    status = await message.reply("Processing ...")
+    status = await message.reply("Processing...")
     flags = ("-t", "-nt")
     thumb, no_thumb = (flag in message.text for flag in flags)
     
