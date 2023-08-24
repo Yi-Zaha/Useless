@@ -474,6 +474,7 @@ async def cbz_to_pdf(client, message):
             progress=progress_cb,
             progress_args=(status, time.time(), "Uploading...", os.path.basename(pdf_file)),
         )
+        await status.delete()
 
 
 @bot.on_message(filters.command("pdf2cbz") & filters.user(ALLOWED_USERS) & filters.reply)
@@ -500,7 +501,7 @@ async def pdf_to_cbz(client, message):
             progress=progress_cb,
             progress_args=(status, time.time(), "Downloading...", reply.document.file_name)
         )
-        await staus.edit("Converting to cbz...")
+        await status.edit("Converting to cbz...")
         try:
             images = await extract_pdf_images(downloaded_file, save_dir=temp_dir)
             cbz_file = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0] + ".cbz")
@@ -516,3 +517,4 @@ async def pdf_to_cbz(client, message):
             progress=progress_cb,
             progress_args=(status, time.time(), "Uploading...", os.path.basename(cbz_file)),
         )
+        await status.delete()
