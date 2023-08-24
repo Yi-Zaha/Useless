@@ -317,8 +317,11 @@ def retry_on_flood(function):
 def _wrap(client):
     for name in dir(client):
         method = getattr(client, name)
+        
+        if inspect.isgeneratorfunction(method):
+            continue
 
-        if name.startswith(("send_", "get_")) and inspect.iscoroutinefunction(method):
+        if name.startswith(("send_", "get_")) and inspect.isfunction(method):
             flood_wrap = retry_on_flood(method)
             setattr(client, name, flood_wrap)
 
