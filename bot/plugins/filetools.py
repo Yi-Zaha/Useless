@@ -2,7 +2,9 @@ import asyncio
 import glob
 import os
 import re
+import tempfile
 import time
+import zipfile
 from datetime import datetime
 
 from pyrogram import filters
@@ -11,7 +13,7 @@ from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.progress_cb import progress_cb
 from bot.utils.aiohttp_helper import AioHttp, get_name_and_size_from_response
 from bot.utils.media import get_video_duration, get_video_ss
-from bot.utils.pdf import get_image_size
+from bot.utils.pdf import extract_pdf_images, imgtopdf, get_image_size
 
 
 def get_ss_and_duration(video_path: str):
@@ -426,3 +428,56 @@ async def media_rename(client, message):
     if thumb and thumb != "thumb.jpg":
         os.remove(thumb)
 """
+
+
+@bot.on_message(filters.command("cbz2pdf") & filter.user(ALLOWED_USERS) & filters.reply)
+async def cbz_to_pdf(client, message):
+    reply = message.reply_to_message
+    if not reply.document or not reply.document.file_name.endswith((".cbz", ".zip")):
+        return
+    
+    flags = ("-t", "-nt")
+    thumb, no_thumb = (flag in message.text for flag in flags)
+  
+    with tempfile.TemporaryDirectory() as temp_dir:
+        if thumb:
+            thumb = "thumb.jpg"
+        elif reply.document.thumbs:
+            thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
+        elif no_thumb:
+            thumb = None
+
+        downloaded_file = await reply.download(temp_dir)
+        images = []
+        with zipfile.ZipFile(downloaded_file, "r") as file:
+            file.extractall(temp_dir)
+            images = map(lambda name: os.path.join(temp_dir, name), file.namelist())
+        
+        pdf_path = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0])
+        pdf_file = imgtopdf(pdf_path, images, author=f"telegram.me/{client.me.username}")
+
+        await message.reply_document(pdf_file, thumb=thumb)
+
+@bot.on_message(filters.command("pdf2cbz") & filters.user(ALLOWED_USERS) & filters.reply)
+async def pdf_to_cbz(client, message):
+    reply = message.reply_to_message
+    if not reply.document or not reply.document.file_name.endswith((".pdf")):
+        return
+    
+    flags = ("-t", "-nt")
+    thumb, no_thumb = (flag in message.text for flag in flags)
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        if thumb:
+            thumb = "thumb.jpg"
+        elif reply.document.thumbs:
+            thumb = await client.download_media(reply.document.thumbs[-1].file_id, temp_dir)
+        elif no_thumb:
+            thumb = None
+        
+        downloaded_file = await reply.download(temp_dir)
+        images = await extract_pdf_images(downloaded_file, save_dir=temp_dir)
+        cbz_file = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0] + ".cbz")
+        pyminizip.compress_multiple(images, [], str(cbz_file), None, 6)
+        
+        await message.reply_document(cbz_file, thumb=thumb)

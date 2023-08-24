@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import inspect
 import logging
 import multiprocessing
 import os
@@ -314,10 +315,13 @@ def retry_on_flood(function):
 
 
 def _wrap(client):
-    for name in dir(client):
+    for name in dir(methods):
         method = getattr(client, name)
+        
+        if inspect.isasyncgenfunction(method) or inspect.isgeneratorfunction(method):
+            continue
 
-        if name.startswith(("send_", "get_")):
+        if name.startswith(("send_", "get_", "download_")):
             flood_wrap = retry_on_flood(method)
             setattr(client, name, flood_wrap)
 

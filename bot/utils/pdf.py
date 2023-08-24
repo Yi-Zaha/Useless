@@ -12,6 +12,8 @@ from PIL import Image
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from bot.utils.functions import async_wrap
+
 
 def get_path(path: Path) -> Path:
     if not isinstance(path, Path):
@@ -80,6 +82,19 @@ def fitz_pdf(path: Path, images: list[str], author: str = None) -> Path:
     return path
 
 
+@async_wrap
+def extract_pdf_images(path: Path, save_dir="."):
+    doc = fitz.open(path)
+    images = []
+    for page in doc:
+        pix = page.get_pixmap()
+        img_path = f"{save_dir}/page-{page.number}.png"
+        pix.save(img_path)
+        images.append(img_path)
+    
+    return images
+
+
 def canvas_pdf(path: Path, images: list[str], author: str = None) -> Path:
     pdf = canvas.Canvas(str(path), pagesize=letter)
 
@@ -146,6 +161,7 @@ def img2fpdf(path: Path, files: list[Path], author: str = None) -> Path:
 
 
 def imgtopdf(path: Path, files: list[Path], author: str = "") -> Path:
+    path = get_path(path)
     pdf_path = path.with_suffix(".pdf") if not path.suffix == ".pdf" else path
     try:
         img2fpdf(pdf_path, files, author=author)
