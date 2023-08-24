@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress 
 from pathlib import Path
 
 from pyrogram import idle
@@ -23,11 +24,11 @@ async def start_clients():
 async def stop_clients(stop=True):
     LOGS.info("Stopping clients...")
     await bot.send_message(LOG_CHAT, "BOT IS GOING OFFLINE.")
-    if stop:
+    with suppress(Exception):
         await bot.stop()
     if bot.user:
         await bot.user.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
-        if stop:
+        with suppress(Exception):
             await bot.user.stop()
 
 
@@ -50,8 +51,7 @@ async def run_main():
         await main()
     except Exception as e:
         LOGS.error(str(e))
-        await stop_clients(stop=False)
-    except:
+    finally:
         await stop_clients()
 
 
