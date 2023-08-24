@@ -7,6 +7,7 @@ import time
 import zipfile
 from datetime import datetime
 
+import pyminizip
 from pyrogram import filters
 
 from bot import ALLOWED_USERS, SUDOS, bot
