@@ -2,6 +2,7 @@ import asyncio
 from contextlib import suppress 
 from pathlib import Path
 
+import pyminizip
 from pyrogram import idle
 
 from bot import LOG_CHAT, LOGS, bot
