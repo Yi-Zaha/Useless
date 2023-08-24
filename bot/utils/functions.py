@@ -315,7 +315,7 @@ def retry_on_flood(function):
 
 
 def _wrap(client):
-    for name in dir(methods):
+    for name in dir(client):
         method = getattr(client, name)
         
         if inspect.isasyncgenfunction(method) or inspect.isgeneratorfunction(method):
