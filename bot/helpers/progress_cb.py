@@ -67,8 +67,8 @@ async def progress_cb(
         progress_bar = "█" * completed_width + "░" * remaining_width
 
         stats = (
-            f"**Current:** {humanbytes(current)} | **Total:** {humanbytes(total)}\n"
-            f"**Speed:** {humanbytes(speed)}/s | **ETA:** {readable_time(time_to_completion / 1000)}\n"
+            f"**Current:** `{humanbytes(current)}` | **Total:** `{humanbytes(total)}`\n"
+            f"**Speed:** `{humanbytes(speed)}/s` | **ETA:** `{readable_time(time_to_completion / 1000)}`\n"
         )
 
         if file_name:
