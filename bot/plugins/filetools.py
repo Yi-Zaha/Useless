@@ -460,7 +460,7 @@ async def cbz_to_pdf(client, message):
             images = []
             with zipfile.ZipFile(downloaded_file, "r") as file:
                 file.extractall(temp_dir)
-                images = map(lambda name: os.path.join(temp_dir, name), file.namelist())
+                images = map(lambda name: os.path.join(temp_dir, name), sorted(file.namelist()))
         
             pdf_path = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0])
             pdf_file = imgtopdf(pdf_path, images, author=f"telegram.me/{client.me.username}")

@@ -18,7 +18,7 @@ class DB(metaclass=Singleton):
             await self.del_key(key)
         return await self.col.insert_one({key: value})
 
-    async def update_key(self, key, value, many=True, upsert=False):
+    async def update_key(self, key, value, many=False, upsert=False):
         query = {key: {"$exists": 1}}
         new_doc = {key: value}
         update_method = self.col.update_many if many else self.col.update_one
