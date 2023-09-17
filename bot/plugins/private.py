@@ -3,7 +3,7 @@ import re
 import time
 
 from pyrogram import filters
-from pyrogram.errors import FloodWait, PeerIdInvalid, UserIsBlocked
+from pyrogram.errors import PeerIdInvalid, UserIsBlocked
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import CACHE_CHAT, LOG_CHAT, OWNER_ID, SUDOS, StartTime, bot

@@ -1,4 +1,3 @@
-import asyncio
 import string
 
 from pyrogram import filters
@@ -53,14 +52,19 @@ async def update_phub_index():
 
     for message in messages:
         if "→Status:" in str(message.caption):
-            name = message.caption.splitlines()[0].replace("─=≡", "").replace("≡=─", "").strip()
+            name = (
+                message.caption.splitlines()[0]
+                .replace("─=≡", "")
+                .replace("≡=─", "")
+                .strip()
+            )
             chat_id = str(message.chat.id).replace("-100", "")
             link = f"https://t.me/c/{chat_id}/{message.id}"
             if name[0].isalpha():
                 index_key = name[0]
             else:
                 index_key = "#"
-            
+
             if "releasing" in message.caption.lower():
                 tick = "🔷"
             elif "finished" in message.caption.lower():
@@ -85,8 +89,8 @@ async def update_phub_index():
             continue
 
         try:
-           await index_post.edit(post_text)
-           updated.append(index_post.id)
+            await index_post.edit(post_text)
+            updated.append(index_post.id)
         except Exception as e:
             print(f"Error in updating PH Index post id {index_post_id}: {e}")
 

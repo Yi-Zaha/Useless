@@ -76,6 +76,7 @@ async def manga_search(client, message):
     if not message.from_user:
         await message.delete()
 
+
 @bot.on_message(filters.command("pmanga") & channel_filter)
 async def manga_search(client, message):
     if message.from_user and message.from_user.id not in SUDOS:
@@ -149,7 +150,7 @@ async def manga_query(client, callback):
             return await callback.answer(
                 "Sorry, this button is not for you.", show_alert=True
             )
-    
+
     if splited[0].startswith("p"):
         text, image = await ani.get_pmanga(id=ani_id)
         await client.send_photo(callback.message.chat.id, image, caption=text)

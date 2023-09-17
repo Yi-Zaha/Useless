@@ -59,7 +59,7 @@ class UserDB(DB):
             "username": user.username,
         }
         return await self.insert_data(query, extra=extra)
-    
+
     async def rm_user(self, user_id: int):
         return await self.del_key("id", user_id)
 

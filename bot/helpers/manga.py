@@ -10,17 +10,23 @@ import tempfile
 from urllib.parse import urljoin, urlparse
 
 import pyminizip
+from bs4 import BeautifulSoup
+
 from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_link, get_soup, images_to_graph, retry_func
 from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
-from bs4 import BeautifulSoup
 
 proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
 
 
-async def download_images(image_urls: list[str], directory: str = None, headers: dict = None, sequentially: bool = False):
+async def download_images(
+    image_urls: list[str],
+    directory: str = None,
+    headers: dict = None,
+    sequentially: bool = False,
+):
     dir = directory
     if not dir:
         dir = tempfile.mkdtemp()
@@ -34,10 +40,7 @@ async def download_images(image_urls: list[str], directory: str = None, headers:
         ext = ext[1] if len(ext) > 1 else ".jpg"
         image = f"{dir}/{n}{ext}"
         images.append(image)
-        task = retry_func(AioHttp.download(
-            url, filename=image, headers=headers
-            )
-        )
+        task = retry_func(AioHttp.download(url, filename=image, headers=headers))
         tasks.append(task)
 
     if sequentially is True:
@@ -60,7 +63,8 @@ async def download_images(image_urls: list[str], directory: str = None, headers:
 class IManga:
     def __init__(self, manga_id, nelo=False):
         self.base_url = (
-            "https://ww5.manganelo.tv/manga/" if nelo else "https://readmanganato.com/")
+            "https://ww5.manganelo.tv/manga/" if nelo else "https://readmanganato.com/"
+        )
         self.nelo = nelo
         self.url = ""
         self.id = manga_id
@@ -88,8 +92,7 @@ class IManga:
             .find_next("td", class_="table-value")
             .text.strip()
         )
-        self.poster_url = soup.select_one(
-            ".story-info-left img.img-loading")["src"]
+        self.poster_url = soup.select_one(".story-info-left img.img-loading")["src"]
         if self.nelo and self.poster_url:
             self.poster_url = "https://ww5.manganelo.tv" + self.poster_url
         self.description = html.unescape(
@@ -101,11 +104,10 @@ class IManga:
             .findNext("td", class_="table-value")
             .find_all("a", "a-h")
         ]
-        self.views = soup.find("div",
-                               class_="story-info-right-extent").find_all("span",
-                                                                          class_="stre-value")
-        self.views = self.views[1].text.strip() if len(
-            self.views) > 1 else None
+        self.views = soup.find("div", class_="story-info-right-extent").find_all(
+            "span", class_="stre-value"
+        )
+        self.views = self.views[1].text.strip() if len(self.views) > 1 else None
         self.authors = [
             x.strip()
             for x in soup.find("i", class_="info-author")
@@ -113,7 +115,8 @@ class IManga:
             .text.split(" - ")
         ]
         self.updated = soup.select_one(
-            ".story-info-right-extent span.stre-value").text.strip()
+            ".story-info-right-extent span.stre-value"
+        ).text.strip()
         self.chapters = self._parse_chapters(soup)
         return self
 
@@ -151,27 +154,22 @@ class IManga:
         elif "hentai2read" in chapter_url:
             img_base = "https://static.hentai.direct/hentai"
             regex = r"'images' : (.*)"
-            image_urls = ast.literal_eval(re.findall(
-                regex, soup.prettify())[0].strip(","))
-            image_urls = [
-                img_base +
-                img.replace(
-                    "\\",
-                    "") for img in image_urls]
+            image_urls = ast.literal_eval(
+                re.findall(regex, soup.prettify())[0].strip(",")
+            )
+            image_urls = [img_base + img.replace("\\", "") for img in image_urls]
         elif "mangatoto" in chapter_url:
             regex = r"const imgHttpLis = (.*);"
-            image_urls = ast.literal_eval(
-                re.findall(regex, soup.prettify())[0])
+            image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
         elif "mangapark" in chapter_url:
             data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
             image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0][
                 "state"
             ]["data"]["data"]["imageSet"]
             image_urls = [
-                f"{link}?{extra}" for link,
-                extra in zip(
-                    image_set["httpLis"],
-                    image_set["wordLis"])]
+                f"{link}?{extra}"
+                for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
+            ]
 
         files = []
         images = []
@@ -182,7 +180,8 @@ class IManga:
                 graph_url = await images_to_graph(title, image_urls)
             else:
                 proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls]
+                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
+                ]
                 graph_url = await images_to_graph(title, proxy_image_urls)
             files.append(graph_url)
 
@@ -204,8 +203,7 @@ class IManga:
             if not images:
                 images, temp_dir = await download_images(image_urls, headers=headers)
             cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(
-                images, [], str(cbz_file), file_pass, 5)
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         if images:
@@ -301,8 +299,8 @@ class PS:
             for item in items.find_all("div", "data wleft"):
                 manga_url = urljoin(base, item.find("a")["href"])
                 chapter_url = urljoin(
-                    base, item.findNext(
-                        "div", "chapter-item wleft").find("a")["href"])
+                    base, item.findNext("div", "chapter-item wleft").find("a")["href"]
+                )
                 data[manga_url] = chapter_url
         elif ps == "Toonily":
             base = "https://toonily.com/"
@@ -314,8 +312,7 @@ class PS:
             data = dict()
             for item in items:
                 manga_url = item.find("a")["href"]
-                chapter_url = item.find(
-                    "div", "chapter-item").find("a")["href"]
+                chapter_url = item.find("div", "chapter-item").find("a")["href"]
                 data[manga_url] = chapter_url
         elif ps == "Manganato":
             base = "https://manganato.com/"
@@ -387,12 +384,13 @@ class PS:
                 graph_url = await images_to_graph(title, image_urls)
             else:
                 proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls]
+                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
+                ]
                 graph_url = await images_to_graph(
                     title,
                     proxy_image_urls,
                     author="Pornhwa Hub",
-                    author_url="https://telegram.dog/Pornhwa_Collection"
+                    author_url="https://telegram.dog/Pornhwa_Collection",
                 )
             files.append(graph_url)
 
@@ -414,8 +412,7 @@ class PS:
             if not images:
                 images, temp_dir = await download_images(image_urls, headers=headers)
             cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(
-                images, [], str(cbz_file), file_pass, 5)
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         if images:
@@ -429,7 +426,7 @@ class Nhentai:
         self.cin_url = "https://cin.cx"
         if isinstance(code, int) or code.isdigit():
             self.code = str(code)
-            
+
         else:
             self.code = code.rstrip("/").split("/")[-1]
         self.url = f"{self.base_url}/g/{self.code}"
@@ -462,9 +459,13 @@ class Nhentai:
 
     async def get_data(self):
         cin_url = f"{self.cin_url}/g/{self.code}"
-        content = await AioHttp.request(cin_url, headers={"User-Agent": random.choice(user_agents)})
+        content = await AioHttp.request(
+            cin_url, headers={"User-Agent": random.choice(user_agents)}
+        )
         soup = BeautifulSoup(content, "html.parser")
-        data = json.loads(soup.find("script", id="__NEXT_DATA__").text)["props"]["pageProps"]["data"]
+        data = json.loads(soup.find("script", id="__NEXT_DATA__").text)["props"][
+            "pageProps"
+        ]["data"]
 
         if data and data.get("ok"):
             title = data["title"]
@@ -485,12 +486,16 @@ class Nhentai:
             for tag in data["tags"]:
                 tag_type = tag_mapping.get(tag["type"], None)
                 if tag_type is not None:
-                    tag_type.append(f"#{tag['url'].rstrip('/').split('/')[-1].replace('-', '_')}")
+                    tag_type.append(
+                        f"#{tag['url'].rstrip('/').split('/')[-1].replace('-', '_')}"
+                    )
 
             for image_url in data["images"]["pages"]:
-                image_url = f"https://i.nhentai.net/galleries/{image_url['t'].split('/i/')[-1]}"
+                image_url = (
+                    f"https://i.nhentai.net/galleries/{image_url['t'].split('/i/')[-1]}"
+                )
                 self.image_urls.append(image_url)
-            
+
         return self
 
     async def dl_chapter(self, title, mode, file_pass=None):
@@ -510,22 +515,26 @@ class Nhentai:
                     f"{self.pretty_title} | @Nhentai_Doujins",
                     self.image_urls,
                     author="Nhentai Hub",
-                    author_url="https://telegram.dog/Nhentai_Doujins"
+                    author_url="https://telegram.dog/Nhentai_Doujins",
                 )
             else:
                 proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={self.url}" for url in self.image_urls]
+                    f"{proxy_url}?src={url}&referer={self.url}"
+                    for url in self.image_urls
+                ]
                 graph_url = await images_to_graph(
                     f"{self.pretty_title} | @Nhentai_Doujins",
                     proxy_image_urls,
                     author="Nhentai Hub",
-                    author_url="https://telegram.dog/Nhentai_Doujins"
+                    author_url="https://telegram.dog/Nhentai_Doujins",
                 )
             files.append(graph_url)
 
         if "pdf" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(self.image_urls, headers=headers, sequentially=True)
+                images, temp_dir = await download_images(
+                    self.image_urls, headers=headers, sequentially=True
+                )
             pdf_file = get_path(title + ".pdf")
             author = "t.me/Nhentai_Doujins"
             try:
@@ -539,10 +548,11 @@ class Nhentai:
 
         if "cbz" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(self.image_urls, headers=headers, sequentially=True)
+                images, temp_dir = await download_images(
+                    self.image_urls, headers=headers, sequentially=True
+                )
             cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(
-                images, [], str(cbz_file), file_pass, 5)
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
 
         if images:

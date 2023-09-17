@@ -91,7 +91,7 @@ def extract_pdf_images(path: Path, save_dir="."):
         img_path = f"{save_dir}/page-{page.number}.png"
         pix.save(img_path)
         images.append(img_path)
-    
+
     return images
 
 

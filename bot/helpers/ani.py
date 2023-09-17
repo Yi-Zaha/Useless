@@ -834,11 +834,15 @@ def get_pmanga(name=None, id=None):
         manga = anilist.get_manga_with_id(id)
     else:
         manga = anilist.get_manga(name)
-    title = f'{manga["name_english"]} | {manga["name_romaji"]}' if manga["name_english"] else manga["name_romaji"]
+    title = (
+        f'{manga["name_english"]} | {manga["name_romaji"]}'
+        if manga["name_english"]
+        else manga["name_romaji"]
+    )
     caption = textwrap.dedent(
         f"""
         <b>─=≡ {title} ≡=─</b>
-        
+
         <b>══════════════════════</b>
         <b>→Type:</b> <code>{manga["release_format"]}</code>
         <b>→Rating:</b> <code>{manga["average_score"] or "N/A"}</code>

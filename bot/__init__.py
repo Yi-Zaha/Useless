@@ -1,13 +1,13 @@
 import time
 
 import uvloop
-uvloop.install()
-
 from convopyro import Conversation
 from pyrogram import Client
 
 from .config import Config
 from .logger import LOGGER
+
+uvloop.install()
 
 
 bot = Client(

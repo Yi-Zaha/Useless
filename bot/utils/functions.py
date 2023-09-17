@@ -15,6 +15,7 @@ import pyrogram
 import requests
 from bs4 import BeautifulSoup
 from html_telegraph_poster import html_to_telegraph
+from html_telegraph_poster.html_to_telegraph import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
@@ -232,7 +233,7 @@ async def get_chat_link_from_msg(message):
 
 html_to_telegraph.api_url = "https://api.graph.org"
 html_to_telegraph.base_url = "https://graph.org"
-from html_telegraph_poster.html_to_telegraph import TelegraphPoster
+
 
 @async_wrap
 def post_to_telegraph(
@@ -241,7 +242,7 @@ def post_to_telegraph(
     if not author and not author_url:
         author = bot.me.first_name
         author_url = f"https://telegram.dog/{bot.me.username}"
-    client = TelegraphPoster(use_api=True, telegraph_api_url='https://api.graph.org')
+    client = TelegraphPoster(use_api=True, telegraph_api_url="https://api.graph.org")
     client.create_api_token(author)
     try:
         page = client.post(title, author, text=content, author_url=author_url)
@@ -249,6 +250,7 @@ def post_to_telegraph(
         print(e)
         return
     return page["url"].replace("telegra.ph", "graph.org")
+
 
 async def file_to_graph(f):
     client = Telegraph(domain="graph.org")
@@ -259,7 +261,7 @@ async def file_to_graph(f):
 
 
 async def images_to_graph(title, image_urls: list, author=None, author_url=None):
-    html_content = ''
+    html_content = ""
     for url in image_urls:
         html_content += f'<img src="{url}"/>\n'
 
@@ -317,10 +319,10 @@ def retry_on_flood(function):
 def _wrap(client):
     for name in dir(client):
         method = getattr(client, name)
-        
+
         if inspect.isasyncgenfunction(method) or inspect.isgeneratorfunction(method):
             continue
-        
+
         if name.startswith(("send_", "get_")) and callable(method):
             flood_wrap = retry_on_flood(method)
             setattr(client, name, flood_wrap)
@@ -375,7 +377,7 @@ async def ask_msg(
     if response.text and response.text.lower().split()[0] in ["/cancel"]:
         await request.edit("Cancelled!")
         raise asyncio.CancelledError
-    
+
     return request, response
 
 
