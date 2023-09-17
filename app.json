@@ -1,0 +1,28 @@
+{
+    "name": "Useless Bot",
+    "repository": "https://github.com/Yi-Zaha/Useless",
+    "stack": "container",
+    "env": {
+        "API_ID": {
+            "description": "Get this value from my.telegram.org!",
+            "value": ""
+        },
+        "API_HASH": {
+            "description": "Get this value from my.telegram.org!",
+            "value": ""
+        },
+        "BOT_TOKEN": {
+            "description": "Get this value from telegram.dog/BotFather!",
+            "value": ""
+        },
+        "MONGO_URL": {
+            "description": "Get this value from www.mongodb.com!",
+            "value": ""
+        },
+        "TZ": {
+            "description": "Get this value from www.timezoneconverter.com/cgi-bin/findzone.tzc!",
+            "value": "Asia/Kolkata",
+            "required": false
+        }
+    }
+}
