@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 
@@ -161,7 +162,7 @@ async def bulkp_handler(client, message):
                 file_path,
                 "pdf",
                 file_pass=pdf_pass if not merge_limit or ch_link == chapters[-1] else None,
-                **iargs,
+                **iargs(ps_site),
             )
             caption = f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None
             if not merge_limit:
