@@ -125,8 +125,8 @@ async def bulkp_handler(client, message):
                 return
 
         # Fetch manga information
-        ps = PS.guess_ps(link)
         ps_site = PS.iargs(ps)
+        ps = PS.guess_ps(link)
         title = name or await PS.get_title(link)
         chapters = [ch_link async for ch_link in PS.iter_chapters(link)]
         chapters.reverse()
