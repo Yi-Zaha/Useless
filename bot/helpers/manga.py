@@ -91,7 +91,7 @@ class _BASE:
             images = div.find_all("img", "wp-manga-chapter-img") if div else None
         else:
             images = soup.find_all("img", _class)
-            image_urls = [img.get(src) or item.get("data-src") for img in images]
+            image_urls = [img.get(src) or img.get("data-src") for img in images]
 
         return image_urls
     
