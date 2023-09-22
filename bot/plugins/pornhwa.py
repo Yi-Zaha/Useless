@@ -108,8 +108,10 @@ async def bulkp_handler(client, message):
         except ValueError:
             return await status.edit("Chat ID should be an integer!")
     else:
-        name = text
-        link = None
+        if text.startswith("https://"):
+            link, name = text, None
+        else:
+            name, link = text, None
 
     chat_link = None
     rid = get_random_id()
