@@ -75,7 +75,7 @@ class _BASE:
             image_urls = ast.literal_eval(
                 re.findall(regex, soup.prettify())[0].strip(",")
             )
-            image_urls = [f"{img_base}{img.replace('\\', '')}" for img in image_urls]
+            image_urls = [img_base + img.replace('\\', '') for img in image_urls]
         elif "mangatoto" in url:
             regex = r"const imgHttpLis = (.*);"
             image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
