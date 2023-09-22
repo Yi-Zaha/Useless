@@ -2,7 +2,7 @@ import os
 import re
 
 from pyrogram import filters
-from pyrgram.types import InlineKeyboardButton, InlineKeyboardMarkup 
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup 
 
 from bot import SUDOS, bot
 from bot.helpers.manga import PS
