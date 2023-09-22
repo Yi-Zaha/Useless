@@ -64,7 +64,7 @@ async def bulkp_handler(client, message):
     text = message.text.split(" ", 1)[1]
     ps_site = PS.iargs(text.split(" ")[0])  # To Check
     if ps_site:
-        text = text.replace(ps_site, "", 1).strip()
+        text = text.replace(text.split(" ")[0], "", 1).strip()
     merge_limit = re.search(r"-merge\D*(\d+)", text)
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
