@@ -119,14 +119,14 @@ async def bulkp_handler(client, message):
         # Handle the case when 'link' is not provided
         if not link:
             if ps_site:
-                link = await ps_link(ps_site, name)
+                link = await ps_link(PS.iargs(ps_site), name)
             else:
                 await status.edit("Invalid Syntax. Please provide input properly!")
                 return
 
         # Fetch manga information
-        ps_site = PS.iargs(ps)
         ps = PS.guess_ps(link)
+        ps_site = PS.iargs(ps)
         title = name or await PS.get_title(link)
         chapters = [ch_link async for ch_link in PS.iter_chapters(link)]
         chapters.reverse()
