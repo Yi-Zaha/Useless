@@ -33,7 +33,7 @@ async def readp_handler(client, message):
     if len(splited) >= 3:
         link, name, chapter = map(str.strip, splited[:3])
     else:
-        name, chapter = None, map(str.strip, splited[:2])
+        name, chapter = map(str.strip, splited[:2])
         link = None
         
 
@@ -83,7 +83,7 @@ async def bulkp_handler(client, message):
         thumb = "thumb.jpg"
     else:
         thumb = None
-    protect_content, showpass = (flag in text for flag in flags)
+    *_, protect_content, showpass = (flag in text for flag in flags)
     for flag in flags:
         text = text.replace(flag, "", 1).strip()
 
