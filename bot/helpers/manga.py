@@ -96,7 +96,7 @@ class _BASE:
         return image_urls
     
     @staticmethod
-    async def dl_chapter(chapter_url, title, mode, author=None, author_url=None, _class="wp-manga-chapter-img", src="src"):
+    async def dl_chapter(chapter_url, title, mode, file_pass=None, author=None, author_url=None, _class="wp-manga-chapter-img", src="src"):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
         image_urls = await _BASE.fetch_images(chapter_url, content=response.text, _class=_class, src=src)
