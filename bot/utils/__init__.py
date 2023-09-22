@@ -7,6 +7,7 @@ from .functions import *
 from .media import *
 from .pdf import *
 
+BULK_PROCESS = set()
 channel_filter = filters.channel | ~filters.channel
 non_command_filter = filters.create(
     lambda filter, client, update: not update.text.startswith("/")

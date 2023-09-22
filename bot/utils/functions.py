@@ -63,6 +63,11 @@ def b64_decode(base64_string):
     return string
 
 
+def get_random_id():
+    unique_id = os.urandom(24)
+    return base64.urlsafe_b64encode(unique_id).decode("ascii").rstrip("=")
+
+
 def is_url(url: str) -> bool:
     try:
         result = urlparse(url)
@@ -74,6 +79,21 @@ def is_url(url: str) -> bool:
 def split_list(lst: list, index: int) -> list[list]:
     return [lst[i : i + index] for i in range(0, len(lst), index)]
 
+
+@async_wrap
+def remove_files(files):
+    try:
+        os.remove(files)
+    except:
+        pass
+    try:
+        for file in files:
+            try:
+                os.remove(file)
+            except:
+                pass
+    except:
+        pass
 
 # Network Functions
 

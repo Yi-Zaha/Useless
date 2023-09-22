@@ -2,42 +2,49 @@ import os
 import re
 
 from pyrogram import filters
+from pyrgram.types import InlineKeyboardButton, InlineKeyboardMarkup 
 
 from bot import SUDOS, bot
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
-from bot.utils.functions import get_chat_link_from_msg, is_numeric
+from bot.utils import BULK_PROCESS
+from bot.utils.functions import get_chat_link_from_msg, get_random_id, is_numeric, remove_files, split_list
 from bot.utils.pdf import merge_pdfs
 
 
 @bot.on_message(
     filters.regex(
-        "^/read( -thumb)?( -fpdf)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)"
+        "^/read( -thumb)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)"
     )
     & filters.user(SUDOS)
 )
 async def readp_handler(client, message):
     status = await message.reply("Processing...")
     is_thumb = bool(message.matches[0].group(1))
-    site = message.matches[0].group(3).strip()
-    input_str = message.matches[0].group(4)
+    site = message.matches[0].group(2).strip()
+    input_str = message.matches[0].group(3)
     splited = input_str.split(" | ")
 
     if not input_str or len(splited) < 2:
         return await status.edit(
             "<b>Sorry, invalid syntax.</b>\n\nPlease provide the manga name and chapter number in the format: <code>/read -&lt;site&gt; &lt;manga_name&gt; | &lt;chapter_number&gt;</code>"
         )
-
-    name, chapter = map(str.strip, splited[:2])
+    
+    if len(splited) >= 3:
+        link, name, chapter = map(str.strip, splited[:3])
+    else:
+        name, chapter = None, map(str.strip, splited[:2])
+        link = None
+        
 
     try:
-        link = await ps_link(site, name, chapter)
+        link = link or await ps_link(site, name, chapter)
         args = iargs(site)
-        pdfname = f"""Ch - {chapter.replace("-", ".")} {name.title().replace("'S", "'s").replace("’S", "'s")} @Pornhwa_Collection"""
+        pdfname = f"""Ch - {chapter.replace("-", ".")} {name} @Pornhwa_Collection"""
         file = await PS.dl_chapter(link, pdfname, "pdf", **args)
         thumb = "thumb.jpg" if is_thumb else None
         await bot.send_document(message.chat.id, file, thumb=thumb)
-        os.remove(file)
+        asyncio.create_task(remove_files(file))
         await status.edit(f"<b>Successfully uploaded</b> [{name.title()}]({link})")
     except Exception as e:
         await status.edit(
@@ -45,17 +52,19 @@ async def readp_handler(client, message):
         )
 
 
-@bot.on_message(filters.command("bulkp") & filters.user(SUDOS))
+@bot.on_message(filters.command("pbulk") & filters.user(SUDOS))
 async def bulkp_handler(client, message):
-    status = await message.reply("Processing...")
+    # Check command syntax
     if len(message.command) < 2:
-        return await status.edit(
-            "Invalid syntax. Please provide the site name and manga title."
-        )
+        return await message.reply("Invalid syntax. Please provide the site name and manga title.")
 
-    reply = message.reply_to_message
+    status = await message.reply("Processing...")
+
+    # Parse command arguments
     text = message.text.split(" ", 1)[1]
-    site = text.split(" ")[0]
+    ps_site = PS.iargs(text.split(" ")[0])  # To Check
+    if ps_site:
+        text = text.replace(ps_site, "", 1).strip()
     merge_limit = re.search(r"-merge\D*(\d+)", text)
     if merge_limit:
         text = text.replace(merge_limit.group(), "").strip()
@@ -64,73 +73,104 @@ async def bulkp_handler(client, message):
     if pdf_pass:
         text = text.replace(pdf_pass.group(), "").strip()
         pdf_pass = pdf_pass.group(1)
-    flags = ("-thumb", "-protect", "-showpass", "-t", "-18")
 
+    # Process flags
+    flags = ("-thumb", "-protect", "-showpass")
+    reply = message.reply_to_message
     if reply and reply.photo:
         thumb = await reply.download()
     elif flags[0] in text:
         thumb = "thumb.jpg"
     else:
         thumb = None
-
-    protect_content = flags[1] in text
-    showpass = flags[2] in text
+    protect_content, showpass = (flag in text for flag in flags)
     for flag in flags:
         text = text.replace(flag, "", 1).strip()
 
+    # Parse additional inputs
     chat_id = message.chat.id
     if "|" in text:
+        splited = text.split("|")
+        if len(splited) >= 3:
+            link, name, chat_id = map(str.strip, splited[:3])
+        elif len(splited) == 2:
+            link_or_name, chat_id = map(str.strip, splited)
+            if link_or_name.startswith("https://"):
+                link, name = link_or_name, None
+            else:
+                name, link = link_or_name, None
+        else:
+            await status.edit("Invalid Syntax. Please provide input properly!")
+            return
         try:
-            chat_id = int(text.split("|")[-1].strip())
+            chat_id = int(chat_id)
         except ValueError:
-            return await status.edit("Invalid Chat ID provided.")
-        text = text.replace("|", "").replace(str(chat_id), "").strip()
+            return await status.edit("Chat ID should be an integer!")
 
     chat_link = None
+    rid = get_random_id()
+    bulk_id = f"cancelproc:{message.from_user.id}:{rid}"
+    button = InlineKeyboardButton("Cancel", bulk_id)
+
     try:
-        if text.startswith("https://"):
-            url = text
-            title = await PS.get_title(url)
-        else:
-            title = text
-            url = await ps_link(site, title)
+        # Handle the case when 'link' is not provided
+        if not link:
+            if ps_site:
+                link = await ps_link(ps_site, name)
+            else:
+                await status.edit("Invalid Syntax. Please provide input properly!")
+                return
 
-        title = title.replace("’", "'").replace("'S", "'s")
-        ps = PS.guess_ps(url)
-        cache_dir = f"cache/{ps}"
-        if not os.path.isdir(cache_dir):
-            os.makedirs(cache_dir)
+        # Fetch manga information
+        ps = PS.guess_ps(link)
+        ps_site = PS.iargs(ps)
+        title = name or await PS.get_title(link)
+        chapters = [ch_link async for ch_link in PS.iter_chapters(link)]
+        chapters.reverse()
+        files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
+        files_uploaded = 0
 
-        chapters = list(reversed([ch_link async for ch_link in PS.iter_chapters(url)]))
+        # Create cache directory if it doesn't exist
+        cache_dir = os.path.join("cache/", ps)
+        os.makedirs(cache_dir, exist_ok=True)
+
+        filename_format = "{chapter} {manga} @Pornhwa_Collection"
+
         pdf_batch = {}
-        upload_msg, process_started = None, False
+        upload_msg, chapter_file = None, None
+        BULK_PROCESS.add(bulk_id)
+
+        # Process chapters
         for ch_link in chapters:
+            if bulk_id not in BULK_PROCESS:
+                await status.edit("Cancelled by User.")
+                asyncio.create_task(remove_files(pdf_batch.values()))
+                asyncio.create_task(remove_files(chapter_file))
+                return
             chapter = zeroint(ch_from_url(ch_link))
-            pdfname = (
-                f"{cache_dir}/Ch - {chapter} {title} @Pornhwa_Collection"
-                if is_numeric(chapter)
-                else f"{cache_dir}/{chapter} {title} @Pornhwa_Collection"
-            )
+            if is_numeric(chapter):
+                file_name = filename_format.format(chapter=f"Ch - {chapter}", manga=title)
+            else:
+                file_name = filename_format.format(chapter=chapter, manga=manga)
+            file_path = os.path.join(cache_dir, file_name)
             chapter_file = await PS.dl_chapter(
                 ch_link,
-                pdfname,
+                file_path,
                 "pdf",
-                **iargs(site),
-                file_pass=pdf_pass
-                if not merge_limit or ch_link == chapters[-1]
-                else None,
+                file_pass=pdf_pass if not merge_limit or ch_link == chapters[-1] else None,
+                **iargs,
             )
+            caption = f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None
             if not merge_limit:
                 upload_msg = await bot.send_document(
                     chat_id,
                     chapter_file,
-                    caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
-                    if pdf_pass and showpass
-                    else None,
+                    caption=caption,
                     thumb=thumb,
                     protect_content=protect_content,
                 )
-                os.remove(chapter_file)
+                asyncio.create_task(remove_files(chapter_file))
+                files_uploaded += 1
             else:
                 pdf_batch[chapter] = chapter_file
                 if len(pdf_batch) == merge_limit or ch_link == chapters[-1]:
@@ -138,48 +178,56 @@ async def bulkp_handler(client, message):
                         upload_msg = await bot.send_document(
                             chat_id,
                             chapter_file,
-                            caption=f"<b>Password:</b> <code>{pdf_pass}</code>"
-                            if pdf_pass and showpass
-                            else None,
+                            caption=caption,
                             thumb=thumb,
                             protect_content=protect_content,
                         )
-                        os.remove(chapter_file)
-                        continue
-                    start, *_, end = pdf_batch.keys()
-                    caption = f"<i>Ch [{start} - {end}]</i>"
-                    if showpass and pdf_pass:
-                        caption += f"\n<b>Password:</b> <code>{pdf_pass}</code>"
-                    pdfname = f"Ch [{start} - {end}] {title} @Pornhwa_Collection.pdf"
-                    merged_file = merge_pdfs(pdfname, pdf_batch.values(), pdf_pass)
-                    upload_msg = await bot.send_document(
-                        chat_id,
-                        merged_file,
-                        caption=caption,
-                        thumb=thumb,
-                        protect_content=protect_content,
-                    )
-                    os.remove(merged_file)
-                    [os.remove(pdf) for pdf in pdf_batch.values()]
-                    pdf_batch.clear()
+                        asyncio.create_task(remove_files(chapter_file))
+                        files_uploaded += 1
+                    else:
+                        start, *_, end = pdf_batch.keys()
+                        caption = f"<i>Ch [{start} - {end}]</i>"
+                        if showpass and pdf_pass:
+                            caption += f"\n<b>Password:</b> <code>{pdf_pass}</code>"
+                        pdfname = f"Ch [{start} - {end}] {title} @Pornhwa_Collection.pdf"
+                        merged_file = merge_pdfs(pdfname, pdf_batch.values(), pdf_pass)
+                        upload_msg = await bot.send_document(
+                            chat_id,
+                            merged_file,
+                            caption=caption,
+                            thumb=thumb,
+                            protect_content=protect_content,
+                        )
+                        asyncio.create_task(remove_files(merged_file))
+                        asyncio.create_task(remove_files(pdf_batch.values()))
+                        pdf_batch.clear()
+                        files_uploaded += 1
 
-            if not process_started and upload_msg:
+            if not chat_link:
                 chat_link = await get_chat_link_from_msg(upload_msg)
+            if chat_link:
                 await status.edit(
-                    f"<code>Uploading all chapters...</code>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
+                    f"**Bulking from {ps}.**\n\n"
+                    f"**››Manga :** [{title}]({link})\n"
+                    f"**››Location :** [Click Here]({chat_link})\n"
+                    f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
+                    reply_markup=InlineKeyboardMarkup([[button]]),
                     disable_web_page_preview=True,
                 )
-                process_started = True
 
         await status.edit(
-            f"<code>Bulk Upload Finished!</code>\n\n<b>• Pornhwa:</b> [{title}]({url})\n<b>• Website:</b> <code>{ps}</code>\n<b>• Chat:</b> [Click Here]({chat_link})",
+            f"**Bulked from {ps}.**\n\n"
+            f"**››Manga :** [{title}]({link})\n"
+            f"**››Location :** [Click Here]({chat_link})\n"
+            f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
             disable_web_page_preview=True,
         )
 
         if thumb and thumb != "thumb.jpg":
-            os.remove(thumb)
+            asyncio.create_task(remove_files(thumb))
 
     except Exception as e:
-        await status.edit(
-            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
-        )
+        await status.edit(f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>")
+    finally:
+        if bulk_id in BULK_PROCESS:
+            BULK_PROCESS.remove(bulk_id)

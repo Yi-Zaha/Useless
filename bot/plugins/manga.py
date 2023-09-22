@@ -14,13 +14,13 @@ from pyrogram.types import (
 from bot import ALLOWED_USERS, bot
 from bot.helpers.manga import IManga
 from bot.helpers.psutils import zeroint
+from bot.utils import BULK_PROCESS
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB
-from bot.utils.functions import get_chat_link_from_msg, post_to_telegraph, split_list
+from bot.utils.functions import get_chat_link_from_msg, get_random_id, post_to_telegraph, split_list
 from bot.utils.pdf import merge_cbzs, merge_pdfs
 
 Process = {}
-Bulk = set()
 manga_cache = cachetools.TTLCache(maxsize=1024, ttl=10 * 60)
 
 
@@ -208,15 +208,16 @@ async def bulk_manga(client, message):
     _edited = False
     here = None
     batch = {}
-
-    id = f"cancelbulk:{message.from_user.id}:{chat}:{manga_id}"
-    Bulk.add(id)
+    
+    rid = get_random_id()
+    id = f"cancelproc:{message.from_user.id}:{rid}"
+    BULK_PROCESS.add(id)
 
     button = [InlineKeyboardButton("Cancel", id)]
     markup = InlineKeyboardMarkup([button])
 
     for ch in manga.chapters:
-        if id not in Bulk:
+        if id not in BULK_PROCESS:
             if batch:
                 [os.remove(f) for f in batch.values()]
             return await status.edit("Upload Cancelled!")
@@ -293,7 +294,7 @@ async def bulk_manga(client, message):
                     batch.clear()
 
         except Exception as e:
-            Bulk.remove(id)
+            BULK_PROCESS.remove(id)
             await status.edit(
                 f"**Something Went Wrong❗**\n\n`{e.__class__.__name__} : {e}`"
             )
@@ -304,23 +305,23 @@ async def bulk_manga(client, message):
     if thumb:
         os.remove(thumb)
 
-    if id in Bulk:
-        Bulk.remove(id)
+    if id in BULK_PROCESS:
+        BULK_PROCESS.remove(id)
 
     await status.edit(
         f"Successfully bulk uploaded {list(manga.chapters)[-1]} chapters of [{manga.title}]({manga.url}) in [here.]({here})"
     )
 
 
-@bot.on_callback_query(filters.regex(r"^cancelbulk:(.*)"))
+@bot.on_callback_query(filters.regex(r"^cancelproc:.*"))
 async def cancelbulk_query(client, callback):
     if str(callback.from_user.id) not in callback.data:
         return await callback.answer(
-            "Sorry, this button is not for you.", show_alert=True
+            "Sorry, this button is not meant to be clicked by someone else.", show_alert=True
         )
 
-    if callback.data in Bulk:
-        Bulk.remove(callback.data)
+    if callback.data in BULK_PROCESS:
+        BULK_PROCESS.remove(callback.data)
         await callback.answer("This process will be cancelled soon!", show_alert=True)
     else:
         await callback.answer("This process is not active anymore.", show_alert=True)

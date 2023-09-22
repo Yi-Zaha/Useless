@@ -39,10 +39,16 @@ async def add_sub(client, message):
         ps = PS.guess_ps(url)
     except ValueError:
         return await res.reply("Invalid URL.")
+    
+    req, res = await ask_msg(res, "Provide the manga's title.\n\n/skip to set to default.")
+    if res.lower().split(" ")[0] in ("/skip"):
+        title = None
+    else:
+        title = res.text.strip()
 
     status = await res.reply("Processing...")
     try:
-        title = await PS.get_title(url, ps=ps)
+        title = title or await PS.get_title(url, ps=ps)
         lc = await pdB.get_lc(url)
         if not lc:
             agen = PS.iter_chapters(url, ps=ps)

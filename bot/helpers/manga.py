@@ -7,6 +7,7 @@ import random
 import re
 import shutil
 import tempfile
+from contextlib import suppress
 from urllib.parse import urljoin, urlparse
 
 import pyminizip
@@ -21,46 +22,133 @@ from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf
 proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
 
 
-async def download_images(
-    image_urls: list[str],
-    directory: str = None,
-    headers: dict = None,
-    sequentially: bool = False,
-):
-    dir = directory
-    if not dir:
-        dir = tempfile.mkdtemp()
-    dir = dir.rstrip("/")
-    images = []
-    tasks = []
-    for n, url in enumerate(image_urls):
-        if url is None:
-            continue
-        ext = os.path.splitext(url)
-        ext = ext[1] if len(ext) > 1 else ".jpg"
-        image = f"{dir}/{n}{ext}"
-        images.append(image)
-        task = retry_func(AioHttp.download(url, filename=image, headers=headers))
-        tasks.append(task)
+class _BASE:
+    @staticmethod
+    async def download_images(image_urls, directory=None, headers=None, sequentially=False):
+        directory = directory or tempfile.mkdtemp()
+        directory = directory.rstrip("/")
+        images = []
+        tasks = []
 
-    if sequentially is True:
+        for n, url in enumerate(image_urls):
+            if url is None:
+                continue
+            ext = os.path.splitext(url)
+            ext = ext[1] if len(ext) > 1 else ".jpg"
+            image = f"{directory}/{n}{ext}"
+            images.append(image)
+            task = retry_func(AioHttp.download(url, filename=image, headers=headers))
+            tasks.append(task)
+
         try:
-            for task in tasks:
-                await task
+            if sequentially:
+                for task in tasks:
+                    await task
+            else:
+                await asyncio.gather(*tasks)
         except Exception:
-            shutil.rmtree(dir)
-            raise
-    else:
-        try:
-            await asyncio.gather(*tasks)
-        except Exception:
-            shutil.rmtree(dir)
+            shutil.rmtree(directory)
             raise
 
-    return images, dir
+        return images, directory
+    
+    @staticmethod
+    async def fetch_images(self, url, content=None, _class="wp-manga-chapter-img", src="src"):
+        if not content:
+            response = await get_link(url, cloud=True)
+            content = response.content
+
+        soup = BeautifulSoup(content, "html.parser")
+        image_urls = []
+
+        if "manganato" in url or "manganelo" in url:
+            image_urls = [
+                img.get("src") or img.get("data-src")
+                for img in soup.find("div", "container-chapter-reader").find_all("img")
+            ]
+        elif "mangabuddy" in url:
+            regex = r"var chapImages = '(.*)'"
+            image_urls = re.findall(regex, soup.prettify())[0].split(",")
+        elif "hentai2read" in url:
+            img_base = "https://static.hentai.direct/hentai"
+            regex = r"'images' : (.*)"
+            image_urls = ast.literal_eval(
+                re.findall(regex, soup.prettify())[0].strip(",")
+            )
+            image_urls = [f"{img_base}{img.replace('\\', '')}" for img in image_urls]
+        elif "mangatoto" in url:
+            regex = r"const imgHttpLis = (.*);"
+            image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
+        elif "mangapark" in url:
+            data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
+            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["data"]["imageSet"]
+            image_urls = [
+                f"{link}?{extra}"
+                for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
+            ]
+        elif "mangadistrict" in url:
+            div = soup.find("div", "reading-content")
+            images = div.find_all("img", "wp-manga-chapter-img") if div else None
+        else:
+            images = soup.find_all("img", _class)
+            image_urls = [img.get(src) or item.get("data-src") for img in images]
+
+        return image_urls
+    
+    @staticmethod
+    async def dl_chapter(chapter_url, title, mode, author=None, author_url=None, _class="wp-manga-chapter-img", src="src"):
+        headers = {"User-Agent": random.choice(user_agents)}
+        response = await get_link(chapter_url, headers=headers, cloud=True)
+        image_urls = await _BASE.fetch_images(chapter_url, content=response.text, _class=_class, src=src)
+        headers["Referer"] = str(response.url)
+
+        files = []
+        images = []
+        mode = mode.lower()
+
+        if "graph" in mode or mode == "all":
+            first_res = await AioHttp.request(image_urls[0], re_res=True)
+            if first_res.ok:
+                graph_url = await images_to_graph(title, image_urls)
+            else:
+                proxy_image_urls = [f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls]
+                graph_url = await images_to_graph(
+                    title,
+                    proxy_image_urls,
+                    author=author,
+                    author_url=author_url,
+                )
+            files.append(graph_url)
+
+        if "pdf" in mode or mode in ("both", "all"):
+            if not images:
+                images, temp_dir = await _BASE.download_images(image_urls, headers=headers)
+            pdf_file = get_path(f"{title}.pdf")
+            pdf_author = author or ""
+            if author_url:
+                pdf_author += f" | {author_url}" if author else author_url
+            try:
+                imgtopdf(pdf_file, images, author=pdf_author)
+            except Exception:
+                images_to_pdf(pdf_file, images, author=pdf_author)
+
+            if file_pass:
+                pdf_file = encrypt_pdf(pdf_file, file_pass)
+            files.append(pdf_file)
+
+        if "cbz" in mode or mode in ("both", "all"):
+            if not images:
+                images, temp_dir = await _BASE.download_images(image_urls, headers=headers)
+            cbz_file = get_path(f"{title}.cbz")
+            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
+            files.append(cbz_file)
+
+        if images:
+            shutil.rmtree(temp_dir)
+        return files[0] if len(files) == 1 else files
 
 
-class IManga:
+class IManga(_BASE):
     def __init__(self, manga_id, nelo=False):
         self.base_url = (
             "https://ww5.manganelo.tv/manga/" if nelo else "https://readmanganato.com/"
@@ -134,85 +222,21 @@ class IManga:
                 link = "https://ww5.manganelo.tv" + link
             data[chapter] = link
         return data
-
+    
     @staticmethod
     async def dl_chapter(chapter_url, title, mode, file_pass=None):
-        headers = {"User-Agent": random.choice(user_agents)}
-        content = await AioHttp.request(chapter_url, headers=headers)
-        soup = BeautifulSoup(content, "html.parser")
-        headers["Referer"] = chapter_url
-
-        image_urls = []
-        if "manganato" in chapter_url or "manganelo" in chapter_url:
-            image_urls = [
-                img.get("src") or img.get("data-src")
-                for img in soup.find("div", "container-chapter-reader").find_all("img")
-            ]
-        elif "mangabuddy" in chapter_url:
-            regex = r"var chapImages = '(.*)'"
-            image_urls = re.findall(regex, soup.prettify())[0].split(",")
-        elif "hentai2read" in chapter_url:
-            img_base = "https://static.hentai.direct/hentai"
-            regex = r"'images' : (.*)"
-            image_urls = ast.literal_eval(
-                re.findall(regex, soup.prettify())[0].strip(",")
-            )
-            image_urls = [img_base + img.replace("\\", "") for img in image_urls]
-        elif "mangatoto" in chapter_url:
-            regex = r"const imgHttpLis = (.*);"
-            image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
-        elif "mangapark" in chapter_url:
-            data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
-            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0][
-                "state"
-            ]["data"]["data"]["imageSet"]
-            image_urls = [
-                f"{link}?{extra}"
-                for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
-            ]
-
-        files = []
-        images = []
-        mode = mode.lower()
-        if "graph" in mode or mode == "all":
-            first_res = await AioHttp.request(image_urls[0], re_res=True)
-            if first_res.ok:
-                graph_url = await images_to_graph(title, image_urls)
-            else:
-                proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
-                ]
-                graph_url = await images_to_graph(title, proxy_image_urls)
-            files.append(graph_url)
-
-        if "pdf" in mode or mode in ("both", "all"):
-            if not images:
-                images, temp_dir = await download_images(image_urls, headers=headers)
-            pdf_file = get_path(title + ".pdf")
-            author = f"https://telegram.me/{bot.me.username}"
-            try:
-                imgtopdf(pdf_file, images, author=author)
-            except Exception:
-                images_to_pdf(pdf_file, images, author=author)
-
-            if file_pass:
-                pdf_file = encrypt_pdf(pdf_file, file_pass)
-            files.append(pdf_file)
-
-        if "cbz" in mode or mode in ("both", "all"):
-            if not images:
-                images, temp_dir = await download_images(image_urls, headers=headers)
-            cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
-            files.append(cbz_file)
-
-        if images:
-            shutil.rmtree(temp_dir)
-        return files[0] if len(files) == 1 else files
+        return await _BASE.dl_chapter(
+            chapter_url=chapter_url,
+            title=title,
+            mode=mode,
+            file_pass=file_pass,
+            author=bot.me.first_name,
+            author_url=f"https://telegram.me/{bot.me.username}",
+        )
 
 
-class PS:
-    __all__ = ["Toonily", "Manhwa18", "Manganato", "Mangabuddy"]
+class PS(_BASE):
+    __all__ = ["Toonily", "Manhwa18", "MangaDistrict", "Manganato", "Mangabuddy"]
 
     @staticmethod
     def guess_ps(link):
@@ -224,57 +248,80 @@ class PS:
             return "Manganato"
         elif "mangabuddy.com" in link:
             return "Mangabuddy"
+        elif "mangadistrict.com" in link:
+            return "MangaDistrict"
         else:
-            raise ValueError(f"Invalid Ps Link: {link!r}")
+            raise ValueError(f"Invalid PS Link: {link!r}")
 
     @staticmethod
-    def iargs(ps):
-        if ps == "Toonily":
-            return "-t"
-        elif ps == "Manhwa18":
-            return "-18"
+    def iargs(inp):
+        data = {
+            "-t": "Toonily",
+            "-18": "Manhwa18",
+            "-md": "MangaDistrict"
+        }
+        for tag, name in data.items():
+            if inp == tag:
+                return name
+            if inp == name:
+                return tag
 
     @staticmethod
     async def get_title(link, ps=None):
         ps = ps or PS.guess_ps(link)
         bs = await get_soup(link, cloud=True)
+
         if ps == "Manhwa18":
-            return (
+            title = (
                 bs.title.string.replace("Read", "")
                 .strip()
                 .split("Manhwa at")[0]
                 .strip()
             )
+
         elif ps == "Toonily":
-            return (
+            title = (
                 bs.title.string.replace("Read", "")
                 .replace("Manga - Toonily", "")
                 .strip()
             )
-        elif ps == "Manganato":
-            return bs.find(class_="story-info-right").find("h1").text.strip()
+
+        elif ps== "Manganato":
+            title = bs.find(class_="story-info-right").find("h1").text.strip()
+
         elif ps == "Mangabuddy":
-            return bs.find("div", "name box").find("h1").text
+            title = bs.find("div", "name box").find("h1").text
+
+        elif ps == "MangaDistrict":
+            title = bs.find("div", "post-title").find("h1").text.strip()
+
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
+        
+        return title.replace("’", "'").replace("'S", "'s")
 
     @staticmethod
     async def iter_chapters(link, ps=None):
         link = link
         ps = ps or PS.guess_ps(link)
+
         if ps == "Manhwa18":
             bs = await get_soup(link, cloud=True)
             for item in bs.find_all("a", "chapter-name text-nowrap"):
                 yield urljoin("https://manhwa18.cc/", item["href"])
+
         elif ps == "Toonily":
             bs = await get_soup(link, cloud=True)
             for item in bs.find_all("li", "wp-manga-chapter"):
                 yield item.find("a")["href"]
+
         elif ps == "Manganato":
             manga_id = link.split("/")[-1]
             manga = await IManga(manga_id)._parse_info()
             for ch_url in reversed(manga.chapters.values()):
                 yield ch_url
+
+
         elif ps == "Mangabuddy":
             base = "https://mangabuddy.com/"
             splited = link.split("/")
@@ -283,6 +330,19 @@ class PS:
             bs = await get_soup(link, cloud=True)
             for item in bs.find("ul", id="chapter-list").findAll("li"):
                 yield urljoin(base, item.find("a")["href"])
+
+        elif ps == "MangaDistrict":
+            match = re.search(r"var manga = (.*);", (await get_link(link, cloud=True)).text)
+            bs = await get_soup(url.rstrip("/") + "/ajax/chapters", cloud=True, post=True, data={"method": "get_chapters"})
+            uls = bs.find_all("ul", "sub-chap-list")
+            if not uls:
+                items = bs.find_all("li", "wp-manga-chapter")
+            else:
+                items = uls[-1].find_all("li", "wp-manga-chapter")
+            
+            for item in items:
+                yield item.find("a")["href"]
+            
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
 
@@ -290,6 +350,7 @@ class PS:
     async def updates(ps=None):
         ps = ps or PS.guess_ps(link)
         headers = {"User-Agent": random.choice(user_agents)}
+
         if ps == "Manhwa18":
             base = "https://manhwa18.cc/"
             content = await AioHttp.request(base, headers=headers)
@@ -302,6 +363,7 @@ class PS:
                     base, item.findNext("div", "chapter-item wleft").find("a")["href"]
                 )
                 data[manga_url] = chapter_url
+
         elif ps == "Toonily":
             base = "https://toonily.com/"
             content = await AioHttp.request(
@@ -314,6 +376,7 @@ class PS:
                 manga_url = item.find("a")["href"]
                 chapter_url = item.find("div", "chapter-item").find("a")["href"]
                 data[manga_url] = chapter_url
+
         elif ps == "Manganato":
             base = "https://manganato.com/"
             content = await AioHttp.request(base, headers=headers)
@@ -327,6 +390,7 @@ class PS:
                     continue
                 chapter_url = chapter_item.findNext("a")["href"]
                 data[manga_url] = chapter_url
+
         elif ps == "Mangabuddy":
             base = "https://mangabuddy.com/"
             home = "https://mangabuddy.com/home-page"
@@ -342,82 +406,32 @@ class PS:
                 chapter_url = urljoin(base, chapter_item.a["href"])
                 if manga_url not in data:
                     data[manga_url] = chapter_url
+
+        elif ps == "MangaDistrict":
+            base = "https://mangadistrict.com/"
+            soup = await get_soup(base, cloud=True)
+            items = bs.find_all("div", "page-item-detail")
+            data = dict()
+            for item in items:
+                manga_url = item.find("a").get("href")
+                if manga_url not in data:
+                    data[manga_url] = item.find("div", "chapter-item").find("a")["href"]
+ 
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
         return data
-
-    @staticmethod
-    async def dl_chapter(
-        chapter_url,
-        title,
-        mode,
-        _class="wp-manga-chapter-img",
-        src="src",
-        file_pass=None,
-    ):
-        headers = {"User-Agent": random.choice(user_agents)}
-        response = await get_link(chapter_url, headers=headers, cloud=True)
-
-        content = response.text
-        soup = BeautifulSoup(content, "html.parser")
-
-        items = soup.find_all("img", _class)
-        if not items:
-            raise ValueError
-        image_urls = [item.get(src) or item.get("data-src") for item in items]
-
-        if mode.lower() in ("graph", "tph"):
-            if image_urls:
-                first_res = await AioHttp.request(image_urls[0], re_res=True)
-                if first_res.ok:
-                    graph_link = await images_to_graph(title, image_urls)
-                    return graph_link
-
-        headers["Referer"] = str(response.url)
-
-        files = []
-        images = []
-        mode = mode.lower()
-        if "graph" in mode or mode == "all":
-            first_res = await AioHttp.request(image_urls[0], re_res=True)
-            if first_res.ok:
-                graph_url = await images_to_graph(title, image_urls)
-            else:
-                proxy_image_urls = [
-                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
-                ]
-                graph_url = await images_to_graph(
-                    title,
-                    proxy_image_urls,
-                    author="Pornhwa Hub",
-                    author_url="https://telegram.dog/Pornhwa_Collection",
-                )
-            files.append(graph_url)
-
-        if "pdf" in mode or mode in ("both", "all"):
-            if not images:
-                images, temp_dir = await download_images(image_urls, headers=headers)
-            pdf_file = get_path(title + ".pdf")
-            author = "t.me/Pornhwa_Collection"
-            try:
-                imgtopdf(pdf_file, images, author=author)
-            except Exception:
-                images_to_pdf(pdf_file, images, author=author)
-
-            if file_pass:
-                pdf_file = encrypt_pdf(pdf_file, file_pass)
-            files.append(pdf_file)
-
-        if "cbz" in mode or mode in ("both", "all"):
-            if not images:
-                images, temp_dir = await download_images(image_urls, headers=headers)
-            cbz_file = get_path(title + ".cbz")
-            pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
-            files.append(cbz_file)
-
-        if images:
-            shutil.rmtree(temp_dir)
-        return files[0] if len(files) == 1 else files
+     
+    async def dl_chapter(chapter_url, title, mode, file_pass=None, _class="wp-manga-chapter-img", src="src"):
+        return await _BASE.dl_chapter(
+            chapter_url=chapter_url,
+            title=title,
+            mode=mode,
+            file_pass=file_pass,
+            author="Pornhwa Hub",
+            author_url=f"https://telegram.me/pornhwa_collection",
+            _class=_class,
+            src=src
+        )
 
 
 class Nhentai:

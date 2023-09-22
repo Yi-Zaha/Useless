@@ -12,6 +12,7 @@ PS_SITES = {
     "-t": "https://toonily.com/webtoon/",
     "-t3z": "https://hentai3z.com/manga/",
     "-t6": "https://toon69.com/manga/",
+    "-md": "https://mangadistrict.com/read-scan"
 }
 
 
