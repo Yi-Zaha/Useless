@@ -53,7 +53,7 @@ class _BASE:
         return images, directory
     
     @staticmethod
-    async def fetch_images(self, url, content=None, _class="wp-manga-chapter-img", src="src"):
+    async def fetch_images(url, content=None, _class="wp-manga-chapter-img", src="src"):
         if not content:
             response = await get_link(url, cloud=True)
             content = response.content
