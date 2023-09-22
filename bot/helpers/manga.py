@@ -409,7 +409,7 @@ class PS(_BASE):
 
         elif ps == "MangaDistrict":
             base = "https://mangadistrict.com/"
-            soup = await get_soup(base, cloud=True)
+            bs = await get_soup(base, cloud=True)
             items = bs.find_all("div", "page-item-detail")
             data = dict()
             for item in items:
