@@ -34,9 +34,6 @@ class DB(AsyncIOMotorCollection, metaclass=Singleton):
         self.delete_many if many else self.delete_one
         return await self.delete_many(query)
 
-    def find(self, *args, **kwargs):
-        return self.find(*args, **kwargs)
-
     async def insert_data(self, query, extra={}):
         extra = extra or {}
         doc = {**query, **extra}

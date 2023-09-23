@@ -414,7 +414,7 @@ async def mangadl_handler(client, callback):
         cbz = InputMediaDocument(cbz_file, thumb=thumb, caption=caption)
         sent = await client.send_media_group(callback.message.chat.id, [pdf, cbz])
 
-        await dB().insert_one(
+        await dB.insert_one(
             {
                 db_key: True,
                 "pdf": sent[0].document.file_id,
