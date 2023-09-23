@@ -490,7 +490,9 @@ class PS(_BASE):
             for item in items:
                 manga_url = f'{base}/comic/{item["md_comics"]["hid"]}/chapters?lang=en'
                 if manga_url not in data:
-                    chapter_url = (await anext(PS.iter_chapters(manga_url)))[1]
+                    async for chapter in PS.iter_chapters(manga_url):
+                        chapter_url = chapter[1]
+                        break
                     data[manga_url] = chapter_url
  
         else:
