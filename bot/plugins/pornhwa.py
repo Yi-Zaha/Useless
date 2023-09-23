@@ -157,7 +157,7 @@ async def bulkp_handler(client, message):
             if is_numeric(chapter):
                 file_name = filename_format.format(chapter=f"Ch - {chapter}", manga=title)
             else:
-                file_name = filename_format.format(chapter=chapter, manga=manga)
+                file_name = filename_format.format(chapter=chapter, manga=title)
             file_path = os.path.join(cache_dir, file_name)
             chapter_file = await PS.dl_chapter(
                 ch_link,
@@ -195,7 +195,7 @@ async def bulkp_handler(client, message):
                         caption = f"<i>Ch [{start} - {end}]</i>"
                         if showpass and pdf_pass:
                             caption += f"\n<b>Password:</b> <code>{pdf_pass}</code>"
-                        pdfname = f"Ch [{start} - {end}] {title} @Pornhwa_Collection.pdf"
+                        pdfname = filename_format.format(chapter=f"Ch [{start} - {end}]", manga=title) + ".pdf"
                         merged_file = merge_pdfs(pdfname, pdf_batch.values(), pdf_pass)
                         upload_msg = await bot.send_document(
                             chat_id,
