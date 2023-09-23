@@ -333,15 +333,18 @@ class PS(_BASE):
 
         elif ps == "MangaDistrict":
             match = re.search(r"var manga = (.*);", (await get_link(link, cloud=True)).text)
-            bs = await get_soup(urljoin(link, "/ajax/chapters"), cloud=True, post=True, data={"method": "get_chapters"})
+            manga = {}
+            if match:
+                manga = ast.literal_eval(match.group(1))
+            bs = await get_soup(urljoin(link, "/ajax/chapters"), cloud=True, post=True, data={"action": "get_chapters", "manga_id": })
             uls = bs.find_all("ul", "sub-chap-list")
             if not uls:
-                items = bs.find_all("li", "wp-manga-chapter")
+                items = bs.find_all("a")
             else:
-                items = uls[-1].find_all("li", "wp-manga-chapter")
+                items = uls[-1].find_all("a)"
             
             for item in items:
-                yield item.find("a")["href"]
+                yield item["href"]
             
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
