@@ -95,11 +95,15 @@ async def bulkp_handler(client, message):
         if len(splited) >= 3:
             link, name, chat_id = map(str.strip, splited[:3])
         elif len(splited) == 2:
-            link_or_name, chat_id = map(str.strip, splited)
+            link_or_name, chat_or_name = map(str.strip, splited)
             if link_or_name.startswith("https://"):
                 link, name = link_or_name, None
             else:
                 name, link = link_or_name, None
+            if chat_or_name.startswith[1:].isdigit() and name:
+                chat_id = chat_or_name
+            else:
+                name = chat_or_name
         else:
             await status.edit("Invalid Syntax. Please provide input properly!")
             return
