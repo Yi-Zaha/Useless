@@ -388,6 +388,12 @@ class PS(_BASE):
             data = (await get_link(f"{link}&limit=10000", cloud=True)).json()
             yielded = []
             for chapter in data["chapters"]:
+                if comick_vol:
+                    if chapter["chap"]:
+                        continue
+                else:
+                    if chapter["vol"] and not chapter["chap"]:
+                        continue
                 if chapter["chap"]:
                     text = chapter["chap"]
                 elif chapter["vol"]:
@@ -396,12 +402,7 @@ class PS(_BASE):
                     text = chapter["title"]
                 if text in yielded:
                     continue
-                if comick_vol:
-                    if chapter["chap"]:
-                        continue
-                else:
-                    if chapter["vol"] and not chapter["chap"]:
-                        continue
+                yielded.append(text)
                 if chapter["chap"]:
                     yield text, f'{link}&chap={chapter["chap"]}'
                 else:
