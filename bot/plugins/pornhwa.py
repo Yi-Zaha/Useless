@@ -215,7 +215,7 @@ async def bulkp_handler(client, message):
                 await status.edit(
                     f"**Bulking from {ps}.**\n\n"
                     f"**››Manga :** [{title}]({link})\n"
-                    f"**››Location :** [Click Here]({chat_link})\n"
+                    f"**››Location :** [Here]({chat_link})\n"
                     f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
                     reply_markup=InlineKeyboardMarkup([[button]]),
                     disable_web_page_preview=True,
@@ -224,7 +224,7 @@ async def bulkp_handler(client, message):
         await status.edit(
             f"**Bulked from {ps}.**\n\n"
             f"**››Manga :** [{title}]({link})\n"
-            f"**››Location :** [Click Here]({chat_link})\n"
+            f"**››Location :** [Here]({chat_link})\n"
             f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
             disable_web_page_preview=True,
         )
