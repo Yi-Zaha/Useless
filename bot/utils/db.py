@@ -93,9 +93,12 @@ class PSDB(DB):
         }
         return await self.insert_data(query, extra=extra)
 
-    async def get_sub(self, ps, url, chat_id):
-        query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
-        return await self.col.find_one(query)
+    async def get_sub(self, url, chat_id, fetch_all=None):
+        query = {"__name__": "subscription", "url": url, "chat": chat_id or {"$exists": 1}}
+        if fetch_all:
+            return self.col.find(query)
+        else:
+            return await self.col.find_one(query)
 
     async def rm_sub(self, ps, url, chat_id):
         query = {"ps": ps, "url": url, "chat": chat_id}
