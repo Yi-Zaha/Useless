@@ -12,6 +12,14 @@ class DB(metaclass=Singleton):
 
     def __call__(self):
         return self.col
+    
+    def __getattr__(self, name):
+        if value := getattr(self, name, None):
+            return value
+        elif value := getattr(self.col, name, None):
+            return value
+        else:
+            raise AttributeError(f"{self.__class__.__name__} object has no attribute '{name}'")
 
     async def set_key(self, key, value, exist_ok=False):
         if not exist_ok:
