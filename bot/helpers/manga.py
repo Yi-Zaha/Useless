@@ -341,7 +341,7 @@ class PS(_BASE):
             if not uls:
                 items = bs.find_all("a")
             else:
-                items = uls[-1].find_all("a)"
+                items = uls[-1].find_all("a")
             
             for item in items:
                 yield item["href"]
