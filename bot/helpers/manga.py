@@ -131,9 +131,9 @@ class _BASE:
             if author_url:
                 pdf_author += f" | {author_url}" if author else author_url
             try:
-                imgtopdf(pdf_file, images, author=pdf_author)
+                await imgtopdf(pdf_file, images, author=pdf_author)
             except Exception:
-                images_to_pdf(pdf_file, images, author=pdf_author)
+                await images_to_pdf(pdf_file, images, author=pdf_author)
 
             if file_pass:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)
@@ -558,9 +558,9 @@ class Nhentai:
             pdf_file = get_path(title + ".pdf")
             author = "t.me/Nhentai_Doujins"
             try:
-                imgtopdf(pdf_file, images, author=author)
+                await imgtopdf(pdf_file, images, author=author)
             except Exception:
-                images_to_pdf(pdf_file, images, author=author)
+                await images_to_pdf(pdf_file, images, author=author)
 
             if file_pass:
                 pdf_file = encrypt_pdf(pdf_file, file_pass)

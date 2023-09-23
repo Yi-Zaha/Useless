@@ -79,6 +79,7 @@ class PSDB(DB):
         custom_filename=None,
         custom_caption=None,
         thumb_url=None,
+        file_pass=None,
     ):
         query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
         extra = {
@@ -88,6 +89,7 @@ class PSDB(DB):
             "custom_filename": custom_filename,
             "custom_caption": custom_caption,
             "custom_thumb": thumb_url,
+            "file_pass": file_pass,
         }
         return await self.insert_data(query, extra=extra)
 

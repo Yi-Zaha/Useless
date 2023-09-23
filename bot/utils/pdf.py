@@ -116,6 +116,7 @@ def canvas_pdf(path: Path, images: list[str], author: str = None) -> Path:
     return path
 
 
+@async_wrap
 def images_to_pdf(path: Path, images: list[str], author: str = None) -> Path:
     path = get_path(path)
     try:
@@ -161,6 +162,7 @@ def img2fpdf(path: Path, files: list[Path], author: str = None) -> Path:
     return path
 
 
+@async_wrap
 def imgtopdf(path: Path, files: list[Path], author: str = "") -> Path:
     path = get_path(path)
     pdf_path = path.with_suffix(".pdf") if not path.suffix == ".pdf" else path
@@ -172,6 +174,7 @@ def imgtopdf(path: Path, files: list[Path], author: str = "") -> Path:
     return pdf_path
 
 
+@async_wrap
 def merge_pdfs(
     out: Path, pdfs: list[str], author: str = None, password: str = None
 ) -> Path:
@@ -198,6 +201,7 @@ def merge_pdfs(
     return out
 
 
+@async_wrap
 def merge_cbzs(
     output_file: str | Path,
     cbz_files: list[str | Path],

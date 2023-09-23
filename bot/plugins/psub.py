@@ -133,6 +133,12 @@ async def add_sub(client, message):
         os.remove(tmp_file)
     else:
         thumb_url = res.text
+    
+    req, res = await ask_msg(res, "Provide any password you want to set for files.\n\n/skip to set None.")
+    if res.text.lower().split(" ")[0] in ("/skip"):
+        file_pass = None
+    else:
+        file_pass = res.text.strip()
 
     req, res = await ask_msg(
         res,
@@ -151,6 +157,7 @@ async def add_sub(client, message):
         custom_filename=custom_filename,
         custom_caption=custom_caption,
         thumb_url=thumb_url,
+        file_pass=file_pass,
     )
 
     text = "**Added New Subscription**\n\n"
@@ -160,6 +167,7 @@ async def add_sub(client, message):
     text += f"**›› Custom Filename →** `{custom_filename}`\n" if custom_filename else ""
     text += f"**›› Custom Caption →** `{custom_caption}`\n" if custom_caption else ""
     text += f"**›› Custom Thumb →** `{thumb_url}`" if thumb_url else ""
+    text += f"**›› File Password →** `{file_pass}`" if file_pass else ""
 
     await message.reply(text, parse_mode=ParseMode.MARKDOWN)
 
@@ -329,6 +337,7 @@ async def update_subs(get_updates=get_new_updates):
                 custom_filename = sub["custom_filename"] or "{ch} {manga}"
                 custom_caption = sub["custom_caption"] or ""
                 custom_thumb = sub["custom_thumb"] or False
+                file_pass = sub.get("file_pass", None)
 
                 for ch_url in new_chapters:
                     ch = zeroint(ch_from_url(ch_url))
@@ -353,18 +362,18 @@ async def update_subs(get_updates=get_new_updates):
                                 thumb = (await AioHttp.download(manga.poster_url))[0]
 
                             chapter_file = await IManga.dl_chapter(
-                                ch_url, filename, file_mode
+                                ch_url, filename, file_mode, file_pass=file_pass
                             )
 
                         elif ps == "Mangabuddy":
                             chapter_file = await IManga.dl_chapter(
-                                ch_url, filename, file_mode
+                                ch_url, filename, file_mode, file_pass=file_pass
                             )
 
                         else:
                             filename = f"{ch} {title} @Pornhwa_Collection"
                             chapter_file = await PS.dl_chapter(
-                                ch_url, filename, file_mode, **iargs(PS.iargs(ps))
+                                ch_url, filename, file_mode, file_pass=file_pass, **iargs(PS.iargs(ps))
                             )
 
                     except Exception as e:

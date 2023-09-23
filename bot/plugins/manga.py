@@ -275,7 +275,7 @@ async def bulk_manga(client, message):
                         continue
                     merge_func = merge_pdfs if mode == "pdf" else merge_cbzs
                     start, *_, end = batch.keys()
-                    file = merge_func(
+                    file = await merge_func(
                         f"Ch [{start} - {end}] {manga.title}.{mode}",
                         batch.values(),
                         password=file_pass,
