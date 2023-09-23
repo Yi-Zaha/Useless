@@ -317,7 +317,7 @@ async def bulk_manga(client, message):
 async def cancelbulk_query(client, callback):
     if str(callback.from_user.id) not in callback.data:
         return await callback.answer(
-            "Sorry, this button is not meant to be clicked by someone else.", show_alert=True
+            "Sorry, this button is not meant for you.", show_alert=True
         )
 
     if callback.data in BULK_PROCESS:
