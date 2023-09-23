@@ -336,7 +336,7 @@ class PS(_BASE):
             manga = {}
             if match:
                 manga = ast.literal_eval(match.group(1))
-            bs = await get_soup(urljoin(link, "/ajax/chapters"), cloud=True, post=True, data={"action": "get_chapters", "manga_id": manga.get("id")})
+            bs = await get_soup(link.rstrip("/") + "/ajax/chapters", cloud=True, post=True, data={"action": "get_chapters", "manga_id": manga.get("id")})
             uls = bs.find_all("ul", "sub-chap-list")
             if not uls:
                 items = bs.find_all("a")

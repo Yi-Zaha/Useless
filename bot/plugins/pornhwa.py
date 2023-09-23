@@ -6,6 +6,7 @@ from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup 
 
 from bot import SUDOS, bot
+from bot.logger import LOGGER
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
 from bot.utils import BULK_PROCESS
