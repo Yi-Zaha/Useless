@@ -21,7 +21,7 @@ from bot.utils.functions import ask_msg, file_to_graph, get_chat_invite_link, is
 
 PH_LOG_CHAT = -1001848617769
 DISABLED_PS = []
-DELAYED_PS = ["Manhwa18", "Mangabuddy"]
+DELAYED_PS = ["Manhwa18"]
 PS_SLEPT = set()
 CHAPTER_LOG_MSG = """
 <i><b>#New_Chapter</b></i>

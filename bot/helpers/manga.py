@@ -103,7 +103,7 @@ class _BASE:
                 if chapter is None:
                     chapter = data["chapters"][-1]
                 
-                content = await get_link(f'https://api.comick.fun/chapter/{chapter["hid"]}?tachiyomi=true', cloud=True)
+                content = (await get_link(f'https://api.comick.fun/chapter/{chapter["hid"]}?tachiyomi=true', cloud=True)).text
             
             data = json.loads(content)
             image_urls = [image["url"] for image in data["chapter"]["images"] if image.get("url")]
