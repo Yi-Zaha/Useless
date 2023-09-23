@@ -384,7 +384,7 @@ class PS(_BASE):
             base = "https://api.comick.fun"
             if base[:-4] not in link:
                 hid = link.split("/")[-1].split("?")[0]
-                link = f"{base}/{hid}/chapters?lang=en"
+                link = f"{base}/comic/{hid}/chapters?lang=en"
             data = (await get_link(link, cloud=True)).json()
             for chapter in data["chapters"]:
                 if not (chapter["title"] or chapter["chap"]):
