@@ -214,7 +214,7 @@ async def bulkp_handler(client, message):
                         pdf_batch.clear()
                         files_uploaded += 1
 
-            if not chat_link:
+            if not chat_link and upload_msg:
                 chat_link = await get_chat_link_from_msg(upload_msg)
             if chat_link:
                 await status.edit(
