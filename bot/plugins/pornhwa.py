@@ -234,6 +234,7 @@ async def bulkp_handler(client, message):
 
     except Exception as e:
         await status.edit(f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>")
+        LOGGER(__name__).exception(e)
     finally:
         if bulk_id in BULK_PROCESS:
             BULK_PROCESS.remove(bulk_id)
