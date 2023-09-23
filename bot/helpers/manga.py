@@ -89,6 +89,7 @@ class _BASE:
         elif "mangadistrict" in url:
             div = soup.find("div", "reading-content")
             images = div.find_all("img", "wp-manga-chapter-img") if div else None
+            image_urls = [img.get("src") for img in images]
         else:
             images = soup.find_all("img", _class)
             image_urls = [img.get(src) or img.get("data-src") for img in images]
@@ -100,6 +101,8 @@ class _BASE:
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
         image_urls = await _BASE.fetch_images(chapter_url, content=response.text, _class=_class, src=src)
+        if not image_urls:
+            raise ValueError("Couldn't fetch image urls.")
         headers["Referer"] = str(response.url)
 
         files = []
