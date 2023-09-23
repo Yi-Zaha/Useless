@@ -41,7 +41,7 @@ async def add_sub(client, message):
         return await res.reply("Invalid URL.")
     
     req, res = await ask_msg(res, "Provide the manga's title.\n\n/skip to set to default.")
-    if res.lower().split(" ")[0] in ("/skip"):
+    if res.text.lower().split(" ")[0] in ("/skip"):
         title = None
     else:
         title = res.text.strip()
