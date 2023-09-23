@@ -145,7 +145,7 @@ async def bulkp_handler(client, message):
         cache_dir = os.path.join("cache/", ps)
         os.makedirs(cache_dir, exist_ok=True)
 
-        filename_format = "{chapter} {manga} @Pornhwa_Collection"
+        filename_format = "{chapter} {manga} @manga_universe"
 
         pdf_batch = {}
         upload_msg, chapter_file = None, None
