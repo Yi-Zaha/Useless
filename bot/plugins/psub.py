@@ -166,7 +166,7 @@ async def add_sub(client, message):
     text += f"**›› File Mode →** `{file_mode.upper()}`\n" if file_mode else ""
     text += f"**›› Custom Filename →** `{custom_filename}`\n" if custom_filename else ""
     text += f"**›› Custom Caption →** `{custom_caption}`\n" if custom_caption else ""
-    text += f"**›› Custom Thumb →** `{thumb_url}`" if thumb_url else ""
+    text += f"**›› Custom Thumb →** `{thumb_url}`\n" if thumb_url else ""
     text += f"**›› File Password →** `{file_pass}`" if file_pass else ""
 
     await message.reply(text, parse_mode=ParseMode.MARKDOWN)
