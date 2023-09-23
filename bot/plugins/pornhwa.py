@@ -101,7 +101,7 @@ async def bulkp_handler(client, message):
                 link, name = link_or_name, None
             else:
                 name, link = link_or_name, None
-            if chat_or_name[1:].isdigit() and name:
+            if chat_or_name[1:].isdigit():
                 chat_id = chat_or_name
             else:
                 name = chat_or_name
