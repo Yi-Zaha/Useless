@@ -140,6 +140,9 @@ async def bulkp_handler(client, message):
         chapters.reverse()
         files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
         files_uploaded = 0
+        if files_count == 0:
+            await status.edit("No chapters found to bulk.")
+            return
 
         # Create cache directory if it doesn't exist
         cache_dir = os.path.join("cache/", ps)
