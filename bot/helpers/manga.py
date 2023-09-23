@@ -333,7 +333,7 @@ class PS(_BASE):
 
         elif ps == "MangaDistrict":
             match = re.search(r"var manga = (.*);", (await get_link(link, cloud=True)).text)
-            bs = await get_soup(link.rstrip("/") + "/ajax/chapters", cloud=True, post=True, data={"method": "get_chapters"})
+            bs = await get_soup(urljoin(link, "/ajax/chapters"), cloud=True, post=True, data={"method": "get_chapters"})
             uls = bs.find_all("ul", "sub-chap-list")
             if not uls:
                 items = bs.find_all("li", "wp-manga-chapter")
