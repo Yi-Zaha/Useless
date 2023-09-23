@@ -210,7 +210,7 @@ async def bulkp_handler(client, message):
                             protect_content=protect_content,
                         )
                         asyncio.create_task(remove_files(merged_file))
-                        asyncio.create_task(remove_files(pdf_batch.values()))
+                        asyncio.create_task(remove_files(list(pdf_batch.values())))
                         pdf_batch.clear()
                         files_uploaded += 1
 
