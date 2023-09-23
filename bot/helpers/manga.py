@@ -488,7 +488,7 @@ class PS(_BASE):
             items = (await get_link(updates_url, cloud=True)).json()
             data = dict()
             for item in items:
-                manga_url = f'{base}/comic/{item["md_comics"]["hid"]}/chapters?lang=en'
+                manga_url = f'{home}/comic/{item["md_comics"]["hid"]}?lang=en'
                 if manga_url not in data:
                     async for chapter in PS.iter_chapters(manga_url):
                         chapter_url = chapter[1]
