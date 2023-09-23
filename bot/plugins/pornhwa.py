@@ -80,7 +80,7 @@ async def bulkp_handler(client, message):
     flags = ("-thumb", "-protect", "-showpass")
     reply = message.reply_to_message
     if reply and reply.photo:
-        thumb = await reply.download()
+        thumb = await reply.download("cache/")
     elif flags[0] in text:
         thumb = "thumb.jpg"
     else:
