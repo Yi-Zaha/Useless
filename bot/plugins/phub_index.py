@@ -92,7 +92,7 @@ async def update_phub_index():
             await index_post.edit(post_text)
             updated.append(index_post.id)
         except Exception as e:
-            print(f"Error in updating PH Index post id {index_post_id}: {e}")
+            print(f"Error in updating PH Index post id {index_post.id}: {e}")
 
     UPDATING_INDEX = False
     return updated
