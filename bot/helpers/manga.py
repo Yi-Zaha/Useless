@@ -385,7 +385,7 @@ class PS(_BASE):
             if base[:-4] not in link:
                 hid = link.split("/")[-1].split("?")[0]
                 link = f"{base}/comic/{hid}/chapters?lang=en"
-            data = (await get_link(link, cloud=True)).json()
+            data = (await get_link(f"{link}&limit=10000", cloud=True)).json()
             yielded = []
             for chapter in data["chapters"]:
                 if chapter["chap"]:
