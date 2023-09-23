@@ -101,7 +101,7 @@ async def bulkp_handler(client, message):
                 link, name = link_or_name, None
             else:
                 name, link = link_or_name, None
-            if chat_or_name.startswith[1:].isdigit() and name:
+            if chat_or_name[1:].isdigit() and name:
                 chat_id = chat_or_name
             else:
                 name = chat_or_name
@@ -218,7 +218,7 @@ async def bulkp_handler(client, message):
                 chat_link = await get_chat_link_from_msg(upload_msg)
             if chat_link:
                 await status.edit(
-                    f"**Bulking from {ps}.**\n\n"
+                    f"**Bulking from {ps}**...\n\n"
                     f"**››Manga :** [{title}]({link})\n"
                     f"**››Location :** [Here]({chat_link})\n"
                     f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
