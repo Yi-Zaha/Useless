@@ -278,7 +278,7 @@ async def bulk_manga(client, message):
                     file = merge_func(
                         f"Ch [{start} - {end}] {manga.title}.{mode}",
                         batch.values(),
-                        file_pass,
+                        password=file_pass,
                     )
                     ch_msg = await client.send_document(
                         int(chat),

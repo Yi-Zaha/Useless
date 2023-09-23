@@ -184,7 +184,7 @@ def merge_pdfs(
     result.set_metadata(
         {
             "title": unicode_to_latin1(out.stem),
-            "author": author,
+            "author": author or f"{bot.me.first_name} | https://telegram.me/{bot.me.username}",
         }
     )
 
