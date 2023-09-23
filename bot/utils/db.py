@@ -1,25 +1,17 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection 
 from pyrogram import types
 
 from bot.config import Config
 from bot.utils.singleton import Singleton
 
 
-class DB(metaclass=Singleton):
+class DB(metaclass=Singleton, AsyncIOMotorCollection):
     def __init__(self, collection_name: str):
         self.col = mongo_db[collection_name]
         super().__init__()
 
     def __call__(self):
         return self.col
-    
-    def __getattr__(self, name):
-        if value := getattr(self, name, None):
-            return value
-        elif value := getattr(self.col, name, None):
-            return value
-        else:
-            raise AttributeError(f"{self.__class__.__name__} object has no attribute '{name}'")
 
     async def set_key(self, key, value, exist_ok=False):
         if not exist_ok:
