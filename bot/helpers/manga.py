@@ -389,11 +389,12 @@ class PS(_BASE):
             yielded = []
             for chapter in data["chapters"]:
                 if comick_vol:
-                    if chapter["chap"]:
+                    if chapter["chap"] or not chapter["vol"]:
                         continue
                 else:
-                    if chapter["vol"] and not chapter["chap"]:
+                    if not chapter["chap"]:
                         continue
+                    
                 if chapter["chap"]:
                     text = chapter["chap"]
                 elif chapter["vol"]:
@@ -403,6 +404,7 @@ class PS(_BASE):
                 if text in yielded:
                     continue
                 yielded.append(text)
+
                 if chapter["chap"]:
                     yield text, f'{link}&chap={chapter["chap"]}'
                 else:
