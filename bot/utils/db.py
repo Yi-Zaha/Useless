@@ -93,7 +93,7 @@ class PSDB(DB):
         }
         return await self.insert_data(query, extra=extra)
 
-    async def get_sub(self, ps={"$exists": 1}, url={"$exists": 1}, chat_id={"$exists": 1} fetch_all=None):
+    async def get_sub(self, ps={"$exists": 1}, url={"$exists": 1}, chat_id={"$exists": 1}, fetch_all=None):
         query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
         if fetch_all:
             return self.col.find(query)
