@@ -81,7 +81,12 @@ def ch_from_url(url: str) -> str:
     
     if "?tachiyomi=true" in url:
         data = cloudscraper.CloudScraper().get(url).json()["chapter"]
-        return data["chap"] or data["title"] or f'Vol - {data["vol"]}'
+        if data["chap"]:
+            return data["chap"]
+        if data["vol"]:
+            return f'Vol - {data["vol"]}'
+        if data["title"]:
+            return data["title"]
 
     return ch_part.replace("-", " ").title()
 

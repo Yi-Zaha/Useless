@@ -77,7 +77,7 @@ async def bulkp_handler(client, message):
         pdf_pass = pdf_pass.group(1)
 
     # Process flags
-    flags = ("-thumb", "-protect", "-showpass", "-cv")
+    flags = ("-thumb", "-protect", "-showpass", "-comick_vol")
     reply = message.reply_to_message
     if reply and reply.photo:
         thumb = await reply.download("cache/")
@@ -136,7 +136,7 @@ async def bulkp_handler(client, message):
         ps = PS.guess_ps(link)
         ps_site = PS.iargs(ps)
         title = name or await PS.get_title(link)
-        chapters = [ch_link async for ch_link in PS.iter_chapters(link, comick_vol=comick_vol)]
+        chapters = [ch, ch_link async for ch, ch_link in PS.iter_chapters(link, comick_vol=comick_vol)]
         chapters.reverse()
         files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
         files_uploaded = 0
@@ -152,13 +152,13 @@ async def bulkp_handler(client, message):
         BULK_PROCESS.add(bulk_id)
 
         # Process chapters
-        for ch_link in chapters:
+        for ch, ch_link in chapters:
             if bulk_id not in BULK_PROCESS:
                 await status.edit("Cancelled by User.")
                 asyncio.create_task(remove_files(pdf_batch.values()))
                 asyncio.create_task(remove_files(chapter_file))
                 return
-            chapter = zeroint(ch_from_url(ch_link))
+            chapter = ch or zeroint(ch_from_url(ch_link))
             if is_numeric(chapter):
                 file_name = filename_format.format(chapter=f"Ch - {chapter}", manga=title)
             else:

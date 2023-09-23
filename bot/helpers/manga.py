@@ -342,18 +342,18 @@ class PS(_BASE):
         if ps == "Manhwa18":
             bs = await get_soup(link, cloud=True)
             for item in bs.find_all("a", "chapter-name text-nowrap"):
-                yield urljoin("https://manhwa18.cc/", item["href"])
+                yield None, urljoin("https://manhwa18.cc/", item["href"])
 
         elif ps == "Toonily":
             bs = await get_soup(link, cloud=True)
             for item in bs.find_all("li", "wp-manga-chapter"):
-                yield item.find("a")["href"]
+                yield None, item.find("a")["href"]
 
         elif ps == "Manganato":
             manga_id = link.split("/")[-1]
             manga = await IManga(manga_id)._parse_info()
             for ch_url in reversed(manga.chapters.values()):
-                yield ch_url
+                yield None, ch_url
 
 
         elif ps == "Mangabuddy":
@@ -363,7 +363,7 @@ class PS(_BASE):
             link = f"{base}api/manga/{manga_id}/chapters?source=detail"
             bs = await get_soup(link, cloud=True)
             for item in bs.find("ul", id="chapter-list").findAll("li"):
-                yield urljoin(base, item.find("a")["href"])
+                yield None, urljoin(base, item.find("a")["href"])
 
         elif ps == "MangaDistrict":
             match = re.search(r"var manga = (.*);", (await get_link(link, cloud=True)).text)
@@ -378,7 +378,7 @@ class PS(_BASE):
                 items = uls[-1].find_all("a")
             
             for item in items:
-                yield item["href"]
+                yield None, item["href"]
         
         elif ps == "Comick":
             base = "https://api.comick.fun"
@@ -386,7 +386,16 @@ class PS(_BASE):
                 hid = link.split("/")[-1].split("?")[0]
                 link = f"{base}/comic/{hid}/chapters?lang=en"
             data = (await get_link(link, cloud=True)).json()
+            yielded = []
             for chapter in data["chapters"]:
+                if chapter["chap"]:
+                    text = chapter["chap"]
+                elif chapter["vol"]:
+                    text = f'Vol - {chapter["vol"]}'
+                else:
+                    text = chapter["title"]
+                if text in yielded:
+                    continue
                 if comick_vol:
                     if not (chapter["title"] or chapter["vol"]):
                         continue
@@ -394,9 +403,9 @@ class PS(_BASE):
                     if not (chapter["title"] or chapter["chap"]):
                         continue
                 if chapter["chap"]:
-                    yield f'{link}&chap={chapter["chap"]}'
+                    yield text, f'{link}&chap={chapter["chap"]}'
                 else:
-                    yield f'{base}/chapter/{chapter["hid"]}?tachiyomi=true'
+                    yield text, f'{base}/chapter/{chapter["hid"]}?tachiyomi=true'
 
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
@@ -481,7 +490,7 @@ class PS(_BASE):
             for item in items:
                 manga_url = f'{base}/comic/{item["md_comics"]["hid"]}?lang=en'
                 if manga_url not in data:
-                    chapter_url = await anext(PS.iter_chapters(manga_url))
+                    chapter_url = (await anext(PS.iter_chapters(manga_url)))[1]
                     data[manga_url] = chapter_url
  
         else:

@@ -52,7 +52,7 @@ async def add_sub(client, message):
         lc = await pdB.get_lc(url)
         if not lc:
             agen = PS.iter_chapters(url, ps=ps)
-            last_chapter = await anext(agen)
+            last_chapter = (await anext(agen))[1]
             await pdB.add_lc(url, last_chapter)
         else:
             last_chapter = lc["lc_url"]
@@ -289,10 +289,10 @@ async def get_new_updates():
 
             if url in updates and updates[url] != last_chapter:
                 new_chapters = []
-                async for ch_url in PS.iter_chapters(url):
-                    if ch_url == last_chapter or len(new_chapters) > 25:
+                async for chapter in PS.iter_chapters(url):
+                    if chapter[1] == last_chapter or len(new_chapters) > 25:
                         break
-                    new_chapters.append(ch_url)
+                    new_chapters.append(chapter)
 
                 if new_chapters:
                     new_chapters.reverse()
@@ -339,8 +339,8 @@ async def update_subs(get_updates=get_new_updates):
                 custom_thumb = sub["custom_thumb"] or False
                 file_pass = sub.get("file_pass", None)
 
-                for ch_url in new_chapters:
-                    ch = zeroint(ch_from_url(ch_url))
+                for ch, ch_url in new_chapters:
+                    ch = ch or zeroint(ch_from_url(ch_url))
                     _ch = ch
                     if is_numeric(ch):
                         _ch = f"Chapter {ch}"
