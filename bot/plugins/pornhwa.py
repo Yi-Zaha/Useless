@@ -217,14 +217,17 @@ async def bulkp_handler(client, message):
             if not chat_link and upload_msg:
                 chat_link = await get_chat_link_from_msg(upload_msg)
             if chat_link:
-                await status.edit(
-                    f"**Bulking from {ps}**...\n\n"
-                    f"**››Manga :** [{title}]({link})\n"
-                    f"**››Location :** [Here]({chat_link})\n"
-                    f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
-                    reply_markup=InlineKeyboardMarkup([[button]]),
-                    disable_web_page_preview=True,
-                )
+                try:
+                    await status.edit(
+                        f"**Bulking from {ps}**...\n\n"
+                        f"**››Manga :** [{title}]({link})\n"
+                        f"**››Location :** [Here]({chat_link})\n"
+                        f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
+                        reply_markup=InlineKeyboardMarkup([[button]]),
+                        disable_web_page_preview=True,
+                    )
+                except:
+                    pass
 
         await status.edit(
             f"**Bulked from {ps}.**\n\n"
