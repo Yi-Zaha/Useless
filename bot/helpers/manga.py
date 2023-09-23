@@ -552,7 +552,7 @@ class Nhentai:
 
         if "pdf" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(
+                images, temp_dir = await _BASE.download_images(
                     self.image_urls, headers=headers, sequentially=True
                 )
             pdf_file = get_path(title + ".pdf")
@@ -568,7 +568,7 @@ class Nhentai:
 
         if "cbz" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await download_images(
+                images, temp_dir = await _BASE.download_images(
                     self.image_urls, headers=headers, sequentially=True
                 )
             cbz_file = get_path(title + ".cbz")
