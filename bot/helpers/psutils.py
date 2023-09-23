@@ -1,5 +1,6 @@
 import random
 import re
+import cloudscraper
 
 from bot.utils.functions import get_link
 
@@ -62,20 +63,26 @@ def iargs(site):
 
 
 def ch_from_url(url: str) -> str:
-    splited = url.split("/")
-    last_part = splited[-1] or splited[-2]
+    last_part = url.rstrip("/").split("/")[-1]
     ch_part = last_part.replace("chapter-", "")
     ch = ch_part.replace("-", ".")
-
+        
     try:
         float(ch)
         return ch
     except ValueError:
         pass
 
-    numRegex = re.compile("(\\d+\\.\\d+|\\d+)")
-    match = numRegex.match(ch)
+    numRegex = re.compile(r"(\d+(\.\d+)?)")
+    match = numRegex.search(ch)
     if match:
-        return match.group()
+        if "chap" in ch:
+            return match.group()
+    
+    if "?tachiyomi=true" in url:
+        data = cloudscraper.CloudScraper().get(url).json()["chapter"]
+        return data["chap"] or data["title"] or f'Vol - {data["vol"]}'
 
     return ch_part.replace("-", " ").title()
+
+

@@ -335,7 +335,7 @@ class PS(_BASE):
         return title.replace("’", "'").replace("'S", "'s")
 
     @staticmethod
-    async def iter_chapters(link, ps=None):
+    async def iter_chapters(link, ps=None, comick_vol=None):
         link = link
         ps = ps or PS.guess_ps(link)
 
@@ -387,8 +387,12 @@ class PS(_BASE):
                 link = f"{base}/comic/{hid}/chapters?lang=en"
             data = (await get_link(link, cloud=True)).json()
             for chapter in data["chapters"]:
-                if not (chapter["title"] or chapter["chap"]):
-                    continue
+                if comick_vol:
+                    if not (chapter["title"] or chapter["vol"]):
+                        continue
+                else:
+                    if not (chapter["title"] or chapter["chap"]):
+                        continue
                 if chapter["chap"]:
                     yield f'{link}&chap={chapter["chap"]}'
                 else:
