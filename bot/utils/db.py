@@ -7,44 +7,40 @@ from bot.utils.singleton import Singleton
 
 class DB(AsyncIOMotorCollection, metaclass=Singleton):
     def __init__(self, collection_name: str):
-        self.col = mongo_db[collection_name]
-        super().__init__()
-
-    def __call__(self):
-        return self.col
+        super().__init__(mongo_db, collection_name)
 
     async def set_key(self, key, value, exist_ok=False):
         if not exist_ok:
             await self.del_key(key)
-        return await self.col.insert_one({key: value})
+        return await self.insert_one({key: value})
 
     async def update_key(self, key, value, many=False, upsert=False):
         query = {key: {"$exists": 1}}
         new_doc = {key: value}
-        update_method = self.col.update_many if many else self.col.update_one
+        update_method = self.update_many if many else self.update_one
         return await update_method(query, {"$set": new_doc}, upsert=upsert)
 
     async def get_key(self, key, value=None, re_doc=False):
         query = {key: {"$exists": 1}}
         if value:
             query = {key: value}
-        doc = await self.col.find_one(query)
+        doc = await self.find_one(query)
         return doc if re_doc else doc.get(key) if doc else None
 
     async def del_key(self, key, value=None, many=True):
         query = {key: {"$exists": 1}}
         if value:
             query = {key: value}
-        self.col.delete_many if many else self.col.delete_one
-        return await self.col.delete_many(query)
+        self.delete_many if many else self.delete_one
+        return await self.delete_many(query)
 
     def find(self, *args, **kwargs):
-        return self.col.find(*args, **kwargs)
+        return self.find(*args, **kwargs)
 
     async def insert_data(self, query, extra={}):
         extra = extra or {}
         doc = {**query, **extra}
-        await self.col.update_one(query, {"$set": doc}, upsert=True)
+        await self.update_one(query, {"$set": doc}, upsert=True)
         return doc
 
 
@@ -96,13 +92,13 @@ class PSDB(DB):
     async def get_sub(self, ps={"$exists": 1}, url={"$exists": 1}, chat_id={"$exists": 1}, fetch_all=None):
         query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
         if fetch_all:
-            return self.col.find(query)
+            return self.find(query)
         else:
-            return await self.col.find_one(query)
+            return await self.find_one(query)
 
     async def rm_sub(self, ps, url, chat_id):
         query = {"ps": ps, "url": url, "chat": chat_id}
-        return await self.col.delete_many(query)
+        return await self.delete_many(query)
 
     def all_subs(self):
         return self.find({"__name__": "subscription"})
@@ -117,11 +113,11 @@ class PSDB(DB):
 
     async def get_lc(self, url):
         query = {"__name__": "last_chapter", "url": url}
-        return await self.col.find_one(query)
+        return await self.find_one(query)
 
     async def rm_lc(self, url):
         query = {"__name__": "last_chapter", "url": url}
-        return await self.col.delete_many(query)
+        return await self.delete_many(query)
 
     def all_lcs(self):
         return self.find({"__name__": "last_chapter"})
