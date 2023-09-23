@@ -12,6 +12,7 @@ from PIL import Image
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from bot import bot
 from bot.utils.functions import async_wrap
 
 
