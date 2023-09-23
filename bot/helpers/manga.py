@@ -397,7 +397,7 @@ class PS(_BASE):
                 if text in yielded:
                     continue
                 if comick_vol:
-                    if not chapter["vol"] and chapter["chap"]:
+                    if chapter["chap"]:
                         continue
                 else:
                     if not (chapter["title"] or chapter["chap"]):
