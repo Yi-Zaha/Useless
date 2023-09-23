@@ -400,7 +400,7 @@ class PS(_BASE):
                     if chapter["chap"]:
                         continue
                 else:
-                    if not (chapter["title"] or chapter["chap"]):
+                    if chapter["vol"] and not chapter["chap"]:
                         continue
                 if chapter["chap"]:
                     yield text, f'{link}&chap={chapter["chap"]}'
