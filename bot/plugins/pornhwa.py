@@ -168,7 +168,7 @@ async def bulkp_handler(client, message):
                 ch_link,
                 file_path,
                 "pdf",
-                file_pass=pdf_pass if (not merge_limit) or (ch_link == chapters[-1]) else None,
+                file_pass=pdf_pass if (not merge_limit) or (ch_link == chapters[-1] and not pdf_batch) else None,
                 **iargs(ps_site),
             )
             caption = f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None
