@@ -78,7 +78,7 @@ async def update_phub_index():
     for f in sorted(index):
         texts = index[f]
         if f not in posts:
-            posts[f] = f"<b>⛩️ {f}-{f}-{f} ⛩️</b>\n\n"
+            posts[f] = f"<b>🔖{f} Section</b>\n\n"
             for name in sorted(texts):
                 text = texts[name]
                 posts[f] += text
