@@ -171,7 +171,7 @@ async def bulkp_handler(client, message):
                 ch_link,
                 file_path,
                 "pdf",
-                file_pass=pdf_pass if (not merge_limit) or (ch_link == chapters[-1] and not pdf_batch) else None,
+                file_pass=pdf_pass if (not merge_limit) or (ch_link == chapters[-1][1] and not pdf_batch) else None,
                 **iargs(ps_site),
             )
             caption = f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None
@@ -187,7 +187,7 @@ async def bulkp_handler(client, message):
                 files_uploaded += 1
             else:
                 pdf_batch[chapter] = chapter_file
-                if len(pdf_batch) == merge_limit or ch_link == chapters[-1]:
+                if len(pdf_batch) == merge_limit or ch_link == chapters[-1][1]:
                     if len(pdf_batch) == 1:
                         upload_msg = await bot.send_document(
                             chat_id,
