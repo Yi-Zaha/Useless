@@ -90,6 +90,23 @@ class _BASE:
             div = soup.find("div", "reading-content")
             images = div.find_all("img", "wp-manga-chapter-img") if div else None
             image_urls = [img.get("src") for img in images]
+        elif "api.comick." or "api.comick." in url:
+            if "tachiyomi" not in url:
+                data = json.loads(content)
+                chapter = None
+                
+                for item in data["chapters"]:
+                    for group in item["group_name"]:
+                        if "official" in group.lower():
+                            chapter = item
+                            break
+                if chapter is None:
+                    chapter = data["chapters"][-1]
+                
+                content = await get_link(f'https://api.comick.fun/chapter/{chapter["hid"]?tachiyomi=true', cloud=True)
+            
+            data = json.loads(content)
+            image_urls = [image["url"] for image in data["chapter"]["images"] if image.get("url")]
         else:
             images = soup.find_all("img", _class)
             image_urls = [img.get(src) or img.get("data-src") for img in images]
@@ -239,7 +256,7 @@ class IManga(_BASE):
 
 
 class PS(_BASE):
-    __all__ = ["Toonily", "Manhwa18", "MangaDistrict", "Manganato", "Mangabuddy"]
+    __all__ = ["Toonily", "Manhwa18", "MangaDistrict", "Manganato", "Mangabuddy", "Comick"]
 
     @staticmethod
     def guess_ps(link):
@@ -253,6 +270,8 @@ class PS(_BASE):
             return "Mangabuddy"
         elif "mangadistrict.com" in link:
             return "MangaDistrict"
+        elif "comick.fun" or "comick.app" in link:
+            return "Comick"
         else:
             raise ValueError(f"Invalid PS Link: {link!r}")
 
@@ -272,9 +291,9 @@ class PS(_BASE):
     @staticmethod
     async def get_title(link, ps=None):
         ps = ps or PS.guess_ps(link)
-        bs = await get_soup(link, cloud=True)
 
         if ps == "Manhwa18":
+            bs = await get_soup(link, cloud=True)
             title = (
                 bs.title.string.replace("Read", "")
                 .strip()
@@ -283,6 +302,7 @@ class PS(_BASE):
             )
 
         elif ps == "Toonily":
+            bs = await get_soup(link, cloud=True)
             title = (
                 bs.title.string.replace("Read", "")
                 .replace("Manga - Toonily", "")
@@ -290,13 +310,24 @@ class PS(_BASE):
             )
 
         elif ps== "Manganato":
+            bs = await get_soup(link, cloud=True)
             title = bs.find(class_="story-info-right").find("h1").text.strip()
 
         elif ps == "Mangabuddy":
+            bs = await get_soup(link, cloud=True)
             title = bs.find("div", "name box").find("h1").text
 
         elif ps == "MangaDistrict":
+            bs = await get_soup(link, cloud=True)
             title = bs.find("div", "post-title").find("h1").text.strip()
+        
+        elif ps == "Comick":
+            base = "https://api.comick.fun"
+            if base[:-4] not in link:
+                hid = link.split("/")[-1].split("?")[0]
+                link = f"{base}/comic/{hid}"
+            data = (await get_link(link, cloud=True)).json()
+            title = data["comic"]["title"]
 
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
@@ -348,7 +379,21 @@ class PS(_BASE):
             
             for item in items:
                 yield item["href"]
-            
+        
+        elif ps == "Comick":
+            base = "https://api.comick.fun"
+            if base[:-4] not in link:
+                hid = link.split("/")[-1].split("?")[0]
+                link = f"{base}/{hid}/chapters?lang=en"
+            data = (await get_link(link, cloud=True)).json()
+            for chapter in data["chapters"]:
+                if not (chapter["title"] or chapter["chap"]):
+                    continue
+                if chapter["chap"]:
+                    yield f'{link}&chap={chapter["chap"]}'
+                else:
+                    yield f'{base}/chapter/{chapter["hid"]}?tachiyomi=true'
+
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
 
@@ -422,6 +467,18 @@ class PS(_BASE):
                 manga_url = item.find("a").get("href")
                 if manga_url not in data:
                     data[manga_url] = item.find("div", "chapter-item").find("a")["href"]
+        
+        elif ps == "Comick":
+            base = "https://api.comick.fun"
+            home = "https://comick.fun"
+            updates_url = f"{base}/chapter?page=1&order=new&tachiyomi=true&accept_erotic_content=true"
+            items = (await get_link(updates_url, cloud=True)).json()
+            data = dict()
+            for item in items:
+                manga_url = f'{base}/comic/{item["md_comics"]["hid"]?lang=en'
+                if manga_url not in data:
+                    chapter_url = await agen(PS.iter_chapters(manga_url))
+                    data[manga_url] = chapter_url
  
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
