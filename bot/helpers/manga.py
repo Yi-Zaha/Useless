@@ -373,12 +373,13 @@ class PS(_BASE):
             bs = await get_soup(link.rstrip("/") + "/ajax/chapters", cloud=True, post=True, data={"action": "get_chapters", "manga_id": manga.get("id")})
             uls = bs.find_all("ul", "sub-chap-list")
             if not uls:
-                items = bs.find_all("a")
+                items = bs.find_all("li", "wp-manga-chapter")
             else:
-                items = uls[-1].find_all("a")
+                items = uls[-1].find_all("li", "wp-manga-chapter")
             
             for item in items:
-                yield None, item["href"]
+                if item.find("a"):
+                    yield None, item.find("a")["href"]
         
         elif ps == "Comick":
             base = "https://api.comick.fun"
