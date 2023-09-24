@@ -33,7 +33,7 @@ async def ps_link(site, name, chapter=None):
         raise ValueError(f"Invalid Site - {site!r}")
 
     link = base + quote_clean(name)
-    link = (await get_link(link, cloud=random.choice([True, False]))).url
+    link = (await get_link(link, cloud=True)).url
 
     if chapter:
         if site == "-ws":
@@ -76,7 +76,7 @@ def ch_from_url(url: str) -> str:
     numRegex = re.compile(r"(\d+(\.\d+)?)")
     match = numRegex.search(ch)
     if match:
-        if "chap" in ch:
+        if "chap" in ch_part:
             return match.group()
     
     if "?tachiyomi=true" in url:
