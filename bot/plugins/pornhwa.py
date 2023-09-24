@@ -16,7 +16,7 @@ from bot.utils.pdf import merge_pdfs
 
 @bot.on_message(
     filters.regex(
-        "^/read( -thumb)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z) (.*)"
+        "^/read( -thumb)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z|-md) (.*)"
     )
     & filters.user(SUDOS)
 )
@@ -34,10 +34,9 @@ async def readp_handler(client, message):
     
     if len(splited) >= 3:
         link, name, chapter = map(str.strip, splited[:3])
-    else:
+    elif len(splited) == 2:
         name, chapter = map(str.strip, splited[:2])
         link = None
-        
 
     try:
         link = link or await ps_link(site, name, chapter)
