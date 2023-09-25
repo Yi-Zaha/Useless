@@ -207,9 +207,6 @@ async def get_chat_link(message=None, chat=None):
         if chat_invite:
             return chat_invite
         
-        if chat.type == enums.ChatType.PRIVATE:
-            return f"tg://user?id={chat.id}"
-        
         if message:
             return message.link.replace("-100", "")
     
@@ -231,14 +228,19 @@ async def get_chat_pic(chat_id: int, refresh: bool = None):
 
 
 async def get_chat_invite_link(chat, refresh: bool = None):
-    chat_id = chat.id if isinstance(chat, types.Chat) else chat
+    chat_id = chat if not isinstance(chat, types.Chat) else chat.id
     
     if not refresh and chat_id in invitation_links:
         return invitation_links[chat_id]
     
     try:
         chat = await bot.get_chat(chat_id) if not isinstance(chat, types.Chat) else chat
-        link = f"https://t.me/{chat.username}" if chat.username else chat.invite_link
+        if chat.username:
+            link = f"https://t.me/{chat.username}"
+        elif chat.invite_link:
+            link = chat.invite_link
+        elif chat.type == enums.ChatType.PRIVATE:
+            link = f"tg://user?id={chat.id}"
         invitation_links[chat_id] = link
         return link
     except Exception as e:
