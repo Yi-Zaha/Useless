@@ -17,7 +17,7 @@ from bot.helpers.psutils import zeroint
 from bot.utils import BULK_PROCESS
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB
-from bot.utils.functions import get_chat_link_from_msg, get_random_id, post_to_telegraph, split_list
+from bot.utils.functions import get_chat_link, get_random_id, post_to_telegraph, split_list
 from bot.utils.pdf import merge_cbzs, merge_pdfs
 
 Process = {}
@@ -222,8 +222,8 @@ async def bulk_manga(client, message):
                 [os.remove(f) for f in batch.values()]
             return await status.edit("Upload Cancelled!")
 
-        if ch_msg and not _edited:
-            here = await get_chat_link_from_msg(ch_msg)
+        if not _edited:
+            here = await get_chat_link(int(chat))
             await status.edit(
                 f"Bulk uploading {list(manga.chapters)[-1]} chapters of [{manga.title}]({manga.url}) in [here.]({here})",
                 reply_markup=markup,

@@ -199,8 +199,25 @@ async def is_user_subscribed(user_id: int, chat_id: int):
     return False
 
 
+async def get_chat_link(message=None, chat=None):
+    chat = chat or (message and message.chat)
+    
+    if chat:
+        chat_invite = await get_chat_invite_link(chat)
+        if chat_invite:
+            return chat_invite
+        
+        if chat.type == enums.ChatType.PRIVATE:
+            return f"tg://user?id={chat.id}"
+        
+        if message:
+            return message.link.replace("-100", "")
+    
+    return None
+
+
 async def get_chat_pic(chat_id: int, refresh: bool = None):
-    if not refresh and chat_photos.get(chat_id):
+    if not refresh and chat_id in chat_photos:
         return chat_photos[chat_id]
 
     try:
@@ -209,20 +226,25 @@ async def get_chat_pic(chat_id: int, refresh: bool = None):
             photo = await bot.download_media(chat.photo.big_file_id)
             chat_photos[chat_id] = photo
             return photo
-    except BaseException:
-        pass
+    except Exception as e:
+        print(f"Error in get_chat_pic: {e}")
 
 
-async def get_chat_invite_link(chat_id: int, refresh: bool = None):
-    if not refresh and invitation_links.get(chat_id):
+async def get_chat_invite_link(chat, refresh: bool = None):
+    chat_id = chat.id if isinstance(chat, types.Chat) else chat
+    
+    if not refresh and chat_id in invitation_links:
         return invitation_links[chat_id]
+    
     try:
-        chat = await bot.get_chat(chat_id)
+        chat = await bot.get_chat(chat_id) if not isinstance(chat, types.Chat) else chat
         link = f"https://t.me/{chat.username}" if chat.username else chat.invite_link
         invitation_links[chat_id] = link
         return link
-    except BaseException:
-        return None
+    except Exception as e:
+        print(f"Error in get_chat_invite_link: {e}")
+    
+    return None
 
 
 async def get_chat_messages(chat, first_msg_id, last_msg_id, refresh=None):
@@ -236,16 +258,6 @@ async def get_chat_messages(chat, first_msg_id, last_msg_id, refresh=None):
         messages += await bot.get_messages(chat, ids)
     chat_messages[_id] = messages
     return messages
-
-
-async def get_chat_link_from_msg(message):
-    if message.chat.username:
-        return f"https://t.me/{message.chat.username}"
-    elif message.chat.type.value == "private":
-        return f"tg://user?id={message.chat.id}"
-    else:
-        chat_invite = await get_chat_invite_link(message.chat.id)
-        return chat_invite if chat_invite else message.link.replace("-100", "")
 
 
 # Telegraph Functions

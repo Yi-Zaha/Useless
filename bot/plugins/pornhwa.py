@@ -10,7 +10,7 @@ from bot.logger import LOGGER
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
 from bot.utils import BULK_PROCESS
-from bot.utils.functions import get_chat_link_from_msg, get_random_id, is_numeric, remove_files, split_list
+from bot.utils.functions import get_chat_link, get_random_id, is_numeric, remove_files, split_list
 from bot.utils.pdf import merge_pdfs
 
 
@@ -216,8 +216,8 @@ async def bulkp_handler(client, message):
                         pdf_batch.clear()
                         files_uploaded += 1
 
-            if not chat_link and upload_msg:
-                chat_link = await get_chat_link_from_msg(upload_msg)
+            if not chat_link:
+                chat_link = await get_chat_link_from_msg(chat_id)
             if chat_link:
                 try:
                     await status.edit(

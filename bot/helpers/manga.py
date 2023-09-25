@@ -352,8 +352,8 @@ class PS(_BASE):
         elif ps == "Manganato":
             manga_id = link.split("/")[-1]
             manga = await IManga(manga_id)._parse_info()
-            for ch_url in reversed(manga.chapters.values()):
-                yield None, ch_url
+            for ch, ch_url in reversed(manga.chapters.items()):
+                yield ch, ch_url
 
 
         elif ps == "Mangabuddy":
