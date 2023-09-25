@@ -122,7 +122,7 @@ async def pm_start(client, message):
         [
             [
                 InlineKeyboardButton("My Channel", url=channel_link),
-                InlineKeyboardButton("My Owner", user_id=OWNER_ID),
+                # InlineKeyboardButton("My Owner", user_id=OWNER_ID),
             ]
         ]
     )
