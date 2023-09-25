@@ -27,8 +27,11 @@ async def on_start(client, message):
     text = message.text.split(" ", 1)[1] if len(message.text.split(" ")) > 1 else ""
 
     if text.startswith(("Sharem-", "cached-")):
-        b64_code = text.split("-")[1]
-        b64_string = b64_decode(b64_code)
+        try:
+            b64_code = text.split("-")[1]
+            b64_string = b64_decode(b64_code)
+        except:
+            return await pm_start(client, message)
         if not b64_string:
             return await pm_start(client, message)
 
@@ -40,7 +43,7 @@ async def on_start(client, message):
             )
             reply_markup = InlineKeyboardMarkup([[join_button, retry_button]])
             return await message.reply(
-                f"<i>Hi {message.from_user.mention}.\nIn order to get the files you need to join my channel first.</i>",
+                f"<i>Hi {message.from_user.mention}.\nIn order to get the files, you need to join my channel first.</i>",
                 reply_markup=reply_markup,
             )
 
@@ -62,7 +65,7 @@ async def on_start(client, message):
 
         sent_ids = []
         for msg in messages:
-            if not message:
+            if not msg:
                 continue
             try:
                 sent = (
@@ -94,8 +97,10 @@ async def on_start(client, message):
             except Exception as e:
                 LOGGER(__name__).info(str(e))
             await temp_msg.delete()
-    else:
-        await pm_start(client, message)
+        
+        return
+
+    return await pm_start(client, message)
 
 
 async def pm_start(client, message):

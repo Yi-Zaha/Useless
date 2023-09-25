@@ -76,7 +76,7 @@ def ch_from_url(url: str) -> str:
     numRegex = re.compile(r"(\d+(\.\d+)?)")
     match = numRegex.search(ch)
     if match:
-        if "chap" in ch_part:
+        if "chap" in last_part:
             return match.group()
     
     if "?tachiyomi=true" in url:
