@@ -111,7 +111,7 @@ async def pm_start(client, message):
     ping = f"{t_taken:.3f}"
 
     start_text = (
-        f"Hi {message.from_user.mention}. I am working for Pornhwa Hub.\n"
+        f"Hi {message.from_user.mention}. I am working for PH.\n"
         f"You can contact my owner through me.\n\n"
         f"<b>»Uptime</b>: <code>{uptime}</code>\n"
         f"<b>»Ping</b>: <code>{ping} ms</code>"
