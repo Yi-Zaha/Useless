@@ -223,7 +223,7 @@ async def bulk_manga(client, message):
             return await status.edit("Upload Cancelled!")
 
         if not _edited:
-            here = await get_chat_link(int(chat))
+            here = await get_chat_link(chat=int(chat))
             await status.edit(
                 f"Bulk uploading {list(manga.chapters)[-1]} chapters of [{manga.title}]({manga.url}) in [here.]({here})",
                 reply_markup=markup,

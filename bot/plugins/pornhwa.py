@@ -217,7 +217,7 @@ async def bulkp_handler(client, message):
                         files_uploaded += 1
 
             if not chat_link:
-                chat_link = await get_chat_link(chat_id)
+                chat_link = await get_chat_link(chat=chat_id)
             if chat_link:
                 try:
                     await status.edit(
