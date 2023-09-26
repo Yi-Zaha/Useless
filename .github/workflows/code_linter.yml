@@ -1,0 +1,36 @@
+name: Code Linting and Formatting
+
+on: push
+
+jobs:
+  lint_and_format:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.x
+
+      - name: Install Dependencies
+        run: |
+          pip install autopep8 autoflake8 isort black
+
+      - name: Lint and Format Code
+        run: |
+          autopep8 --recursive --in-place --aggressive --aggressive .
+          autoflake8 --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports .
+          isort .
+          black --fast .
+
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'formatted code'
+          commit_options: '--no-verify --signoff'
+          commit_user_name: Yi-Zaha
+          commit_user_email: 136574884+Yi-Zaha@users.noreply.github.com
+          commit_author: Yi-Zaha <136574884+Yi-Zaha@users.noreply.github.com>
