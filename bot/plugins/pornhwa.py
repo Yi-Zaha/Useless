@@ -144,20 +144,10 @@ async def bulkp_handler(client, message):
         title = name or await PS.get_title(link)
         chapters = [chapter async for chapter in PS.iter_chapters(link, comick_vol=comick_vol)]
         chapters.reverse()
-        _start, _end = None, None
-        for chapter in chapters:
-            if start_from and not _start:
-                if start_from == chapter[1]:
-                    _start = True
-                    continue 
-                else:
-                    chapters.remove(chapter)
-            if end_to and _start:
-                if end_to == chapters[1]:
-                    _end = True
-                    continue 
-                if _end:
-                    chapters.remove(chapter)
+        start_index = 0 if not start_from else next((n for n, chapter in enumerate(chapters) if chapter[1] == start_from), 0)
+        end_index = -1 if not end_to else next((n for n, chapter in enumerate(chapters) if chapter[1] == end_to), -1)
+        chapters = chapters[start_index:end_index]
+                    
         files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
         files_uploaded = 0
         if files_count == 0:
