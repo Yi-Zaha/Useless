@@ -21,8 +21,8 @@ jobs:
 
       - name: Lint and Format Code
         run: |
-          autopep8 --recursive --in-place --aggressive --aggressive .
-          autoflake8 --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports .
+          autopep8 --verbose --in-place --recursive --aggressive --aggressive .
+          autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports .
           isort .
           black --fast .
 
