@@ -160,7 +160,7 @@ async def bulkp_handler(client, message):
             return
         
         # Get chat link
-        chat_link = await get_chat_link(chat_id)
+        chat_link = await get_chat_link(chat=chat_id)
 
         # Create cache directory if it doesn't exist
         cache_dir = os.path.join("cache/", ps)
