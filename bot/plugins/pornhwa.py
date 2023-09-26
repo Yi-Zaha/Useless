@@ -146,10 +146,10 @@ async def bulkp_handler(client, message):
         _start = None
         async for chapter in PS.iter_chapters(link, comick_vol=comick_vol):
             if start_from:
-                if not _start:
-                    continue
                 if start_from == chapter[1]:
                     _start = True
+                if not _start:
+                    continue
             if end_to and end_to == chapter[1]:
                 break
             chapters.append(chapter)
