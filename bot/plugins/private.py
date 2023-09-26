@@ -30,7 +30,7 @@ async def on_start(client, message):
         try:
             b64_code = text.split("-")[1]
             b64_string = b64_decode(b64_code)
-        except:
+        except BaseException:
             return await pm_start(client, message)
         if not b64_string:
             return await pm_start(client, message)
@@ -97,7 +97,7 @@ async def on_start(client, message):
             except Exception as e:
                 LOGGER(__name__).info(str(e))
             await temp_msg.delete()
-        
+
         return
 
     return await pm_start(client, message)
@@ -117,7 +117,7 @@ async def pm_start(client, message):
         f"<b>»Ping</b>: <code>{ping} ms</code>"
     )
 
-    channel_link = await get_chat_invite_link(SUBS_CHANNEL)
+    await get_chat_invite_link(SUBS_CHANNEL)
     reply_markup = InlineKeyboardMarkup(
         [
             [

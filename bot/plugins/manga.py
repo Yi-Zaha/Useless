@@ -17,7 +17,12 @@ from bot.helpers.psutils import zeroint
 from bot.utils import BULK_PROCESS
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB
-from bot.utils.functions import get_chat_link, get_random_id, post_to_telegraph, split_list
+from bot.utils.functions import (
+    get_chat_link,
+    get_random_id,
+    post_to_telegraph,
+    split_list,
+)
 from bot.utils.pdf import merge_cbzs, merge_pdfs
 
 Process = {}
@@ -208,7 +213,7 @@ async def bulk_manga(client, message):
     _edited = False
     here = None
     batch = {}
-    
+
     rid = get_random_id()
     id = f"cancelproc:{message.from_user.id}:{rid}"
     BULK_PROCESS.add(id)

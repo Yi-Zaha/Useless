@@ -7,7 +7,6 @@ import random
 import re
 import shutil
 import tempfile
-from contextlib import suppress
 from urllib.parse import urljoin, urlparse
 
 import pyminizip
@@ -24,7 +23,9 @@ proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
 
 class _BASE:
     @staticmethod
-    async def download_images(image_urls, directory=None, headers=None, sequentially=False):
+    async def download_images(
+        image_urls, directory=None, headers=None, sequentially=False
+    ):
         directory = directory or tempfile.mkdtemp()
         directory = directory.rstrip("/")
         images = []
@@ -51,7 +52,7 @@ class _BASE:
             raise
 
         return images, directory
-    
+
     @staticmethod
     async def fetch_images(url, content=None, _class="wp-manga-chapter-img", src="src"):
         if not content:
@@ -75,13 +76,15 @@ class _BASE:
             image_urls = ast.literal_eval(
                 re.findall(regex, soup.prettify())[0].strip(",")
             )
-            image_urls = [img_base + img.replace('\\', '') for img in image_urls]
+            image_urls = [img_base + img.replace("\\", "") for img in image_urls]
         elif "mangatoto" in url:
             regex = r"const imgHttpLis = (.*);"
             image_urls = ast.literal_eval(re.findall(regex, soup.prettify())[0])
         elif "mangapark" in url:
             data = json.loads(soup.find("script", id="__NEXT_DATA__").text)
-            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0]["state"]["data"]["data"]["imageSet"]
+            image_set = data["props"]["pageProps"]["dehydratedState"]["queries"][0][
+                "state"
+            ]["data"]["data"]["imageSet"]
             image_urls = [
                 f"{link}?{extra}"
                 for link, extra in zip(image_set["httpLis"], image_set["wordLis"])
@@ -94,7 +97,7 @@ class _BASE:
             if "tachiyomi" not in url:
                 data = json.loads(content)
                 chapter = None
-                
+
                 for item in data["chapters"]:
                     for group in item["group_name"]:
                         if "official" in group.lower():
@@ -102,22 +105,40 @@ class _BASE:
                             break
                 if chapter is None:
                     chapter = data["chapters"][-1]
-                
-                content = (await get_link(f'https://api.comick.fun/chapter/{chapter["hid"]}?tachiyomi=true', cloud=True)).text
-            
+
+                content = (
+                    await get_link(
+                        f'https://api.comick.fun/chapter/{chapter["hid"]}?tachiyomi=true',
+                        cloud=True,
+                    )
+                ).text
+
             data = json.loads(content)
-            image_urls = [image["url"] for image in data["chapter"]["images"] if image.get("url")]
+            image_urls = [
+                image["url"] for image in data["chapter"]["images"] if image.get("url")
+            ]
         else:
             images = soup.find_all("img", _class)
             image_urls = [img.get(src) or img.get("data-src") for img in images]
 
         return image_urls
-    
+
     @staticmethod
-    async def dl_chapter(chapter_url, title, mode, file_pass=None, author=None, author_url=None, _class="wp-manga-chapter-img", src="src"):
+    async def dl_chapter(
+        chapter_url,
+        title,
+        mode,
+        file_pass=None,
+        author=None,
+        author_url=None,
+        _class="wp-manga-chapter-img",
+        src="src",
+    ):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
-        image_urls = await _BASE.fetch_images(chapter_url, content=response.text, _class=_class, src=src)
+        image_urls = await _BASE.fetch_images(
+            chapter_url, content=response.text, _class=_class, src=src
+        )
         if not image_urls:
             raise ValueError("Couldn't fetch image urls.")
         headers["Referer"] = str(response.url)
@@ -131,7 +152,9 @@ class _BASE:
             if first_res.ok:
                 graph_url = await images_to_graph(title, image_urls)
             else:
-                proxy_image_urls = [f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls]
+                proxy_image_urls = [
+                    f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
+                ]
                 graph_url = await images_to_graph(
                     title,
                     proxy_image_urls,
@@ -142,7 +165,9 @@ class _BASE:
 
         if "pdf" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await _BASE.download_images(image_urls, headers=headers)
+                images, temp_dir = await _BASE.download_images(
+                    image_urls, headers=headers
+                )
             pdf_file = get_path(f"{title}.pdf")
             pdf_author = author or ""
             if author_url:
@@ -158,7 +183,9 @@ class _BASE:
 
         if "cbz" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await _BASE.download_images(image_urls, headers=headers)
+                images, temp_dir = await _BASE.download_images(
+                    image_urls, headers=headers
+                )
             cbz_file = get_path(f"{title}.cbz")
             pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 5)
             files.append(cbz_file)
@@ -242,7 +269,7 @@ class IManga(_BASE):
                 link = "https://ww5.manganelo.tv" + link
             data[chapter] = link
         return data
-    
+
     @staticmethod
     async def dl_chapter(chapter_url, title, mode, file_pass=None):
         return await _BASE.dl_chapter(
@@ -256,7 +283,14 @@ class IManga(_BASE):
 
 
 class PS(_BASE):
-    __all__ = ["Toonily", "Manhwa18", "MangaDistrict", "Manganato", "Mangabuddy", "Comick"]
+    __all__ = [
+        "Toonily",
+        "Manhwa18",
+        "MangaDistrict",
+        "Manganato",
+        "Mangabuddy",
+        "Comick",
+    ]
 
     @staticmethod
     def guess_ps(link):
@@ -277,11 +311,7 @@ class PS(_BASE):
 
     @staticmethod
     def iargs(inp):
-        data = {
-            "-t": "Toonily",
-            "-18": "Manhwa18",
-            "-md": "MangaDistrict"
-        }
+        data = {"-t": "Toonily", "-18": "Manhwa18", "-md": "MangaDistrict"}
         for tag, name in data.items():
             if inp == tag:
                 return name
@@ -309,7 +339,7 @@ class PS(_BASE):
                 .strip()
             )
 
-        elif ps== "Manganato":
+        elif ps == "Manganato":
             bs = await get_soup(link, cloud=True)
             title = bs.find(class_="story-info-right").find("h1").text.strip()
 
@@ -320,7 +350,7 @@ class PS(_BASE):
         elif ps == "MangaDistrict":
             bs = await get_soup(link, cloud=True)
             title = bs.find("div", "post-title").find("h1").text.strip()
-        
+
         elif ps == "Comick":
             base = "https://api.comick.fun"
             if base[:-4] not in link:
@@ -331,7 +361,7 @@ class PS(_BASE):
 
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
-        
+
         return title.replace("’", "'").replace("'S", "'s")
 
     @staticmethod
@@ -355,7 +385,6 @@ class PS(_BASE):
             for ch, ch_url in reversed(manga.chapters.items()):
                 yield ch, ch_url
 
-
         elif ps == "Mangabuddy":
             base = "https://mangabuddy.com/"
             splited = link.split("/")
@@ -366,21 +395,28 @@ class PS(_BASE):
                 yield None, urljoin(base, item.find("a")["href"])
 
         elif ps == "MangaDistrict":
-            match = re.search(r"var manga = (.*);", (await get_link(link, cloud=True)).text)
+            match = re.search(
+                r"var manga = (.*);", (await get_link(link, cloud=True)).text
+            )
             manga = {}
             if match:
                 manga = ast.literal_eval(match.group(1))
-            bs = await get_soup(link.rstrip("/") + "/ajax/chapters", cloud=True, post=True, data={"action": "get_chapters", "manga_id": manga.get("id")})
+            bs = await get_soup(
+                link.rstrip("/") + "/ajax/chapters",
+                cloud=True,
+                post=True,
+                data={"action": "get_chapters", "manga_id": manga.get("id")},
+            )
             uls = bs.find_all("ul", "sub-chap-list")
             if not uls:
                 items = bs.find_all("li", "wp-manga-chapter")
             else:
                 items = uls[-1].find_all("li", "wp-manga-chapter")
-            
+
             for item in items:
                 if item.find("a"):
                     yield None, item.find("a")["href"]
-        
+
         elif ps == "Comick":
             base = "https://api.comick.fun"
             if base[:-4] not in link:
@@ -395,7 +431,7 @@ class PS(_BASE):
                 else:
                     if not chapter["chap"]:
                         continue
-                    
+
                 if chapter["chap"]:
                     text = chapter["chap"]
                 elif chapter["vol"]:
@@ -484,7 +520,7 @@ class PS(_BASE):
                 manga_url = item.find("a").get("href")
                 if manga_url not in data:
                     data[manga_url] = item.find("div", "chapter-item").find("a")["href"]
-        
+
         elif ps == "Comick":
             base = "https://api.comick.fun"
             home = "https://comick.fun"
@@ -500,12 +536,19 @@ class PS(_BASE):
                         break
                     if chapter_url:
                         data[manga_url] = chapter_url
- 
+
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
         return data
-     
-    async def dl_chapter(chapter_url, title, mode, file_pass=None, _class="wp-manga-chapter-img", src="src"):
+
+    async def dl_chapter(
+        chapter_url,
+        title,
+        mode,
+        file_pass=None,
+        _class="wp-manga-chapter-img",
+        src="src",
+    ):
         return await _BASE.dl_chapter(
             chapter_url=chapter_url,
             title=title,
@@ -514,7 +557,7 @@ class PS(_BASE):
             author="Pornhwa Hub",
             author_url=f"https://telegram.me/pornhwa_collection",
             _class=_class,
-            src=src
+            src=src,
         )
 
 

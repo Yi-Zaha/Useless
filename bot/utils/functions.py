@@ -84,16 +84,17 @@ def split_list(lst: list, index: int) -> list[list]:
 def remove_files(files):
     try:
         os.remove(files)
-    except:
+    except BaseException:
         pass
     try:
         for file in files:
             try:
                 os.remove(file)
-            except:
+            except BaseException:
                 pass
-    except:
+    except BaseException:
         pass
+
 
 # Network Functions
 
@@ -201,15 +202,15 @@ async def is_user_subscribed(user_id: int, chat_id: int):
 
 async def get_chat_link(message=None, chat=None):
     chat = chat or (message and message.chat)
-    
+
     if chat:
         chat_invite = await get_chat_invite_link(chat)
         if chat_invite:
             return chat_invite
-        
+
         if message:
             return message.link.replace("-100", "")
-    
+
     return None
 
 
@@ -229,10 +230,10 @@ async def get_chat_pic(chat_id: int, refresh: bool = None):
 
 async def get_chat_invite_link(chat, refresh: bool = None):
     chat_id = chat if not isinstance(chat, types.Chat) else chat.id
-    
+
     if not refresh and chat_id in invitation_links:
         return invitation_links[chat_id]
-    
+
     try:
         chat = await bot.get_chat(chat_id) if not isinstance(chat, types.Chat) else chat
         if chat.username:
@@ -245,7 +246,7 @@ async def get_chat_invite_link(chat, refresh: bool = None):
         return link
     except Exception as e:
         print(f"Error in get_chat_invite_link: {e}")
-    
+
     return None
 
 

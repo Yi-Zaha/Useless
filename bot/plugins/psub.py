@@ -39,8 +39,10 @@ async def add_sub(client, message):
         ps = PS.guess_ps(url)
     except ValueError:
         return await res.reply("Invalid URL.")
-    
-    req, res = await ask_msg(res, "Provide the manga's title.\n\n/skip to set to default.")
+
+    req, res = await ask_msg(
+        res, "Provide the manga's title.\n\n/skip to set to default."
+    )
     if res.text.lower().split(" ")[0] in ("/skip"):
         title = None
     else:
@@ -133,8 +135,10 @@ async def add_sub(client, message):
         os.remove(tmp_file)
     else:
         thumb_url = res.text
-    
-    req, res = await ask_msg(res, "Provide any password you want to set for files.\n\n/skip to set None.")
+
+    req, res = await ask_msg(
+        res, "Provide any password you want to set for files.\n\n/skip to set None."
+    )
     if res.text.lower().split(" ")[0] in ("/skip"):
         file_pass = None
     else:
@@ -373,7 +377,11 @@ async def update_subs(get_updates=get_new_updates):
                         else:
                             filename = f"{ch} {title} @Pornhwa_Collection"
                             chapter_file = await PS.dl_chapter(
-                                ch_url, filename, file_mode, file_pass=file_pass, **iargs(PS.iargs(ps))
+                                ch_url,
+                                filename,
+                                file_mode,
+                                file_pass=file_pass,
+                                **iargs(PS.iargs(ps)),
                             )
 
                     except Exception as e:

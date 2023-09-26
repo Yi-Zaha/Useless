@@ -3,21 +3,25 @@ import os
 import re
 
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup 
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import SUDOS, bot
-from bot.logger import LOGGER
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
+from bot.logger import LOGGER
 from bot.utils import BULK_PROCESS
-from bot.utils.functions import get_chat_link, get_random_id, is_numeric, remove_files, split_list
+from bot.utils.functions import (
+    get_chat_link,
+    get_random_id,
+    is_numeric,
+    remove_files,
+    split_list,
+)
 from bot.utils.pdf import merge_pdfs
 
 
 @bot.on_message(
-    filters.regex(
-        "^/read( -thumb)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z|-md) (.*)"
-    )
+    filters.regex("^/read( -thumb)? (-h|-mc|-mh|-ws|-m|-18|-t6|-t|-20|-3z|-md) (.*)")
     & filters.user(SUDOS)
 )
 async def readp_handler(client, message):
@@ -31,7 +35,7 @@ async def readp_handler(client, message):
         return await status.edit(
             "<b>Sorry, invalid syntax.</b>\n\nPlease provide the manga name and chapter number in the format: <code>/read -&lt;site&gt; &lt;manga_name&gt; | &lt;chapter_number&gt;</code>"
         )
-    
+
     if len(splited) >= 3:
         link, name, chapter = map(str.strip, splited[:3])
     elif len(splited) == 2:
@@ -57,7 +61,9 @@ async def readp_handler(client, message):
 async def bulkp_handler(client, message):
     # Check command syntax
     if len(message.command) < 2:
-        return await message.reply("Invalid syntax. Please provide the site name and manga title.")
+        return await message.reply(
+            "Invalid syntax. Please provide the site name and manga title."
+        )
 
     status = await message.reply("Processing...")
 
@@ -142,18 +148,35 @@ async def bulkp_handler(client, message):
         ps = PS.guess_ps(link)
         ps_site = PS.iargs(ps)
         title = name or await PS.get_title(link)
-        chapters = [chapter async for chapter in PS.iter_chapters(link, comick_vol=comick_vol)]
+        chapters = [
+            chapter async for chapter in PS.iter_chapters(link, comick_vol=comick_vol)
+        ]
         chapters.reverse()
-        start_index = 0 if not start_from else next((n for n, chapter in enumerate(chapters) if chapter[1] == start_from), 0)
-        end_index = len(chapters) if not end_to else next((n for n, chapter in enumerate(chapters, 1) if chapter[1] == end_to), len(chapters))
+        start_index = (
+            0
+            if not start_from
+            else next(
+                (n for n, chapter in enumerate(chapters) if chapter[1] == start_from), 0
+            )
+        )
+        end_index = (
+            len(chapters)
+            if not end_to
+            else next(
+                (n for n, chapter in enumerate(chapters, 1) if chapter[1] == end_to),
+                len(chapters),
+            )
+        )
         chapters = chapters[start_index:end_index]
-                    
-        files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
+
+        files_count = (
+            len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
+        )
         files_uploaded = 0
         if files_count == 0:
             await status.edit("No chapters found to bulk.")
             return
-        
+
         # Get chat link
         chat_link = await get_chat_link(chat=chat_id)
 
@@ -176,7 +199,9 @@ async def bulkp_handler(client, message):
                 return
             chapter = ch or zeroint(ch_from_url(ch_link))
             if is_numeric(chapter):
-                file_name = filename_format.format(chapter=f"Ch - {chapter}", manga=title)
+                file_name = filename_format.format(
+                    chapter=f"Ch - {chapter}", manga=title
+                )
             else:
                 file_name = filename_format.format(chapter=chapter, manga=title)
             file_path = os.path.join(cache_dir, file_name)
@@ -184,10 +209,16 @@ async def bulkp_handler(client, message):
                 ch_link,
                 file_path,
                 "pdf",
-                file_pass=pdf_pass if (not merge_limit) or (ch_link == chapters[-1][1] and not pdf_batch) else None,
+                file_pass=pdf_pass
+                if (not merge_limit) or (ch_link == chapters[-1][1] and not pdf_batch)
+                else None,
                 **iargs(ps_site),
             )
-            caption = f"<b>Password:</b> <code>{pdf_pass}</code>" if pdf_pass and showpass else None
+            caption = (
+                f"<b>Password:</b> <code>{pdf_pass}</code>"
+                if pdf_pass and showpass
+                else None
+            )
             if not merge_limit:
                 upload_msg = await bot.send_document(
                     chat_id,
@@ -216,8 +247,15 @@ async def bulkp_handler(client, message):
                         caption = f"<i>Ch [{start} - {end}]</i>"
                         if showpass and pdf_pass:
                             caption += f"\n<b>Password:</b> <code>{pdf_pass}</code>"
-                        pdfname = filename_format.format(chapter=f"Ch [{start} - {end}]", manga=title) + ".pdf"
-                        merged_file = await merge_pdfs(pdfname, pdf_batch.values(), password=pdf_pass)
+                        pdfname = (
+                            filename_format.format(
+                                chapter=f"Ch [{start} - {end}]", manga=title
+                            )
+                            + ".pdf"
+                        )
+                        merged_file = await merge_pdfs(
+                            pdfname, pdf_batch.values(), password=pdf_pass
+                        )
                         upload_msg = await bot.send_document(
                             chat_id,
                             merged_file,
@@ -239,7 +277,7 @@ async def bulkp_handler(client, message):
                     reply_markup=InlineKeyboardMarkup([[button]]),
                     disable_web_page_preview=True,
                 )
-            except:
+            except BaseException:
                 pass
 
         await status.edit(
@@ -254,7 +292,9 @@ async def bulkp_handler(client, message):
             asyncio.create_task(remove_files(thumb))
 
     except Exception as e:
-        await status.edit(f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>")
+        await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
         LOGGER(__name__).exception(e)
     finally:
         if bulk_id in BULK_PROCESS:

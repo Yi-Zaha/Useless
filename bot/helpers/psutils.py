@@ -1,5 +1,5 @@
-import random
 import re
+
 import cloudscraper
 
 from bot.utils.functions import get_link
@@ -13,7 +13,7 @@ PS_SITES = {
     "-t": "https://toonily.com/webtoon/",
     "-t3z": "https://hentai3z.com/manga/",
     "-t6": "https://toon69.com/manga/",
-    "-md": "https://mangadistrict.com/read-scan/"
+    "-md": "https://mangadistrict.com/read-scan/",
 }
 
 
@@ -66,7 +66,7 @@ def ch_from_url(url: str) -> str:
     last_part = url.rstrip("/").split("/")[-1]
     ch_part = last_part.replace("chapter-", "")
     ch = ch_part.replace("-", ".")
-        
+
     try:
         float(ch)
         return ch
@@ -78,7 +78,7 @@ def ch_from_url(url: str) -> str:
     if match:
         if "chap" in last_part:
             return match.group()
-    
+
     if "?tachiyomi=true" in url:
         data = cloudscraper.CloudScraper().get(url).json()["chapter"]
         if data["chap"]:
@@ -89,5 +89,3 @@ def ch_from_url(url: str) -> str:
             return data["title"]
 
     return ch_part.replace("-", " ").title()
-
-
