@@ -146,14 +146,16 @@ async def bulkp_handler(client, message):
         chapters.reverse()
         _start, _end = None, None
         for chapter in chapters:
-            if start_from:
+            if start_from and not _start:
                 if start_from == chapter[1]:
                     _start = True
-                if not _start:
+                    continue 
+                else:
                     chapters.remove(chapter)
-            if end_to:
+            if end_to and _start:
                 if end_to == chapters[1]:
                     _end = True
+                    continue 
                 if _end:
                     chapters.remove(chapter)
         files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
