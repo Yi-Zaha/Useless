@@ -65,15 +65,23 @@ async def bulkp_handler(client, message):
     text = message.text.split(" ", 1)[1]
     ps_site = PS.iargs(text.split(" ")[0])  # To Check
     if ps_site:
-        text = text.replace(text.split(" ")[0], "", 1).strip()
-    merge_limit = re.search(r"-merge\D*(\d+)", text)
+        text = text.replace(text.split(" ")[0], "", 1)
+    merge_limit = re.search(r"-merge.(\d+)", text)
     if merge_limit:
-        text = text.replace(merge_limit.group(), "").strip()
+        text = text.replace(merge_limit.group(), "")
         merge_limit = int(merge_limit.group(1))
-    pdf_pass = re.search(r"-pass (\S+)", text)
+    pdf_pass = re.search(r"-pass.(\S+)", text)
     if pdf_pass:
-        text = text.replace(pdf_pass.group(), "").strip()
+        text = text.replace(pdf_pass.group(), "")
         pdf_pass = pdf_pass.group(1)
+    start_from = re.search(r"-start.(\S+)", text)
+    if start_from:
+        text = text.replace(start_from.group(), "")
+        start_from = start_from.group(1)
+    end_to = re.search(r"-end.(\S+)", text)
+    if end_to:
+        text = text.replace(end_to.group(), "")
+        end_to = end_to.group(1)
 
     # Process flags
     flags = ("-thumb", "-protect", "-showpass", "-comick_vol")
@@ -117,7 +125,6 @@ async def bulkp_handler(client, message):
         else:
             name, link = text, None
 
-    chat_link = None
     rid = get_random_id()
     bulk_id = f"cancelproc:{message.from_user.id}:{rid}"
     button = InlineKeyboardButton("Cancel", bulk_id)
@@ -135,13 +142,25 @@ async def bulkp_handler(client, message):
         ps = PS.guess_ps(link)
         ps_site = PS.iargs(ps)
         title = name or await PS.get_title(link)
-        chapters = [chapter async for chapter in PS.iter_chapters(link, comick_vol=comick_vol)]
-        chapters.reverse()
+        chapters = []
+        _start = None
+        async for chapter in PS.iter_chapters(link, comick_vol=comick_vol):
+            if start_from:
+                if not _start:
+                    continue
+                if start_from == chapter[1]:
+                    _start = True
+            if end_to and end_to == chapter[1]:
+                break
+            chapters.append(chapter)
         files_count = len(chapters) if not merge_limit else len(split_list(chapters, merge_limit))
         files_uploaded = 0
         if files_count == 0:
             await status.edit("No chapters found to bulk.")
             return
+        
+        # Get chat link
+        chat_link = await get_chat_link(chat_id)
 
         # Create cache directory if it doesn't exist
         cache_dir = os.path.join("cache/", ps)
@@ -216,20 +235,17 @@ async def bulkp_handler(client, message):
                         pdf_batch.clear()
                         files_uploaded += 1
 
-            if not chat_link:
-                chat_link = await get_chat_link(chat=chat_id)
-            if chat_link:
-                try:
-                    await status.edit(
-                        f"**Bulking from {ps}**...\n\n"
-                        f"**››Manga :** [{title}]({link})\n"
-                        f"**››Location :** [Here]({chat_link})\n"
-                        f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
-                        reply_markup=InlineKeyboardMarkup([[button]]),
-                        disable_web_page_preview=True,
-                    )
-                except:
-                    pass
+            try:
+                await status.edit(
+                    f"**Bulking from {ps}**...\n\n"
+                    f"**››Manga :** [{title}]({link})\n"
+                    f"**››Location :** [Here]({chat_link})\n"
+                    f"**››Progress :** `{files_uploaded}`/`{files_count}` files uploaded.",
+                    reply_markup=InlineKeyboardMarkup([[button]]),
+                    disable_web_page_preview=True,
+                )
+            except:
+                pass
 
         await status.edit(
             f"**Bulked from {ps}.**\n\n"
