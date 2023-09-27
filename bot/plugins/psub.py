@@ -452,7 +452,7 @@ async def update_subs(get_updates=get_new_updates):
                         reply_markup = None
                         if read_url:
                             reply_markup = InlineKeyboardMarkup(
-                            [[InlineKeyboardButton("Read Online", url=read_url)]]
+                                [[InlineKeyboardButton("Read Online", url=read_url)]]
                             )
                         try:
                             await bot.send_message(
@@ -473,12 +473,15 @@ async def update_subs(get_updates=get_new_updates):
                         buttons = []
                         reply_markup = None
                         if chat_link:
-                            buttons.append([InlineKeyboardButton("Read Here", url=chat_link)])
+                            buttons.append(
+                                [InlineKeyboardButton("Read Here", url=chat_link)]
+                            )
                         if read_url and files:
-                            buttons.append([InlineKeyboardButton("Read Online", url=read_url)])
+                            buttons.append(
+                                [InlineKeyboardButton("Read Online", url=read_url)]
+                            )
                         if buttons:
                             reply_markup = InlineKeyboardMarkup([buttons])
-                            
 
                         update_logs_chat = notifs_chat or (
                             -1001848617769
@@ -493,7 +496,9 @@ async def update_subs(get_updates=get_new_updates):
                                 reply_markup=reply_markup,
                             )
                         except Exception as e:
-                            LOGGER(__name__).info(f"Error while sending new notifs to {update_logs_chat}: {e}")
+                            LOGGER(__name__).info(
+                                f"Error while sending new notifs to {update_logs_chat}: {e}"
+                            )
 
                     await pdB.add_lc(url, ch_url)
                     await asyncio.sleep(3)
