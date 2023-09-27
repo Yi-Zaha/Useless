@@ -414,20 +414,13 @@ async def update_subs(get_updates=get_new_updates):
                     else:
                         files.append(InputMediaDocument(chapter_file, thumb=thumb))
 
-                    reply_markup = None
-                    if read_url:
-                        reply_markup = InlineKeyboardMarkup(
-                            [[InlineKeyboardButton("Read Online", url=read_url)]]
-                        )
-
                     if files:
                         files[-1].caption = caption
                         try:
-                            await bot.send_media_group(
+                            msg = await bot.send_media_group(
                                 chat,
                                 files,
                                 protect_content=ps in PS.__all__[:3],
-                                reply_markup=reply_markup,
                             )
                         except Exception as e:
                             LOGGER(__name__).info(
@@ -439,6 +432,11 @@ async def update_subs(get_updates=get_new_updates):
                         for file in files:
                             os.remove(file.media)
                     else:
+                        reply_markup = None
+                        if read_url:
+                            reply_markup = InlineKeyboardMarkup(
+                            [[InlineKeyboardButton("Read Online", url=read_url)]]
+                            )
                         try:
                             await bot.send_message(
                                 chat, f"{title} - {_ch}", reply_markup=reply_markup
@@ -455,10 +453,15 @@ async def update_subs(get_updates=get_new_updates):
 
                     if str(chat).startswith("-100") and send_updates:
                         chat_link = await get_chat_invite_link(chat)
+                        buttons = []
                         reply_markup = None
                         if chat_link:
-                            button = [InlineKeyboardButton("Read Here", url=chat_link)]
-                            reply_markup = InlineKeyboardMarkup([button])
+                            buttons.append([InlineKeyboardButton("Read Here", url=chat_link)])
+                        if read_url and files:
+                            buttons.append([InlineKeyboardButton("Read Online", url=read_url)])
+                        if buttons:
+                            reply_markup = InlineKeyboardMarkup([buttons])
+                            
 
                         update_logs_chat = (
                             -1001848617769
