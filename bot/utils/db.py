@@ -76,16 +76,20 @@ class PSDB(DB):
         file_pass=None,
     ):
         query = {"__name__": "subscription", "ps": ps, "url": url, "chat": chat_id}
-        extra = {
-            "title": title,
-            "send_updates": bool(send_updates),
-            "notifs_chat": int(notifs_chat),
-            "file_mode": file_mode,
-            "custom_filename": custom_filename,
-            "custom_caption": custom_caption,
-            "custom_thumb": thumb_url,
-            "file_pass": file_pass,
-        }
+        extra = {}
+        extra["title"] = title
+        if send_updates:
+            extra["send_updates"] = bool(send_updates)
+        if notifs_chat:
+            extra["notifs_chat"] = notifs_chat
+        if file_mode:
+            extra["file_mode"] = file_mode
+        if custom_filename:
+            extra["custom_filename"] = custom_filename
+        if thumb_url:
+            extra["custom_thumb"] = thumb_url
+        if file_pass:
+            extra["file_pass"] = file_pass
         return await self.insert_data(query, extra=extra)
 
     async def get_sub(
