@@ -327,7 +327,7 @@ async def update_subs(get_updates=get_new_updates):
 
         for url, new_chapters in updates.items():
             if url not in subs:
-                await pdB.add_lc(url, new_chapters[-1])
+                await pdB.add_lc(url, new_chapters[-1][1])
                 continue
 
             LOGGER(__name__).info(f"[{ps}] Updates for {url}: {new_chapters}")
