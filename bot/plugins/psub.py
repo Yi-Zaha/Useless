@@ -405,11 +405,11 @@ async def update_subs(get_updates=get_new_updates):
                     files = []
                     if isinstance(chapter_file, list):
                         for cf in chapter_file:
-                            if is_url(cf):
+                            if is_url(str(cf))
                                 read_url = cf
                                 continue
                             files.append(InputMediaDocument(cf, thumb=thumb))
-                    elif is_url(chapter_file):
+                    elif is_url(str(chapter_file)):
                         read_url = chapter_file
                     else:
                         files.append(InputMediaDocument(chapter_file, thumb=thumb))
