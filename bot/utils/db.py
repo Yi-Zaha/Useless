@@ -68,6 +68,7 @@ class PSDB(DB):
         chat_id,
         title,
         send_updates=False,
+        notifs_chat=None,
         file_mode=None,
         custom_filename=None,
         custom_caption=None,
@@ -78,6 +79,7 @@ class PSDB(DB):
         extra = {
             "title": title,
             "send_updates": bool(send_updates),
+            "notifs_chat": int(notifs_chat),
             "file_mode": file_mode,
             "custom_filename": custom_filename,
             "custom_caption": custom_caption,

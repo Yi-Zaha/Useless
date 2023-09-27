@@ -95,7 +95,7 @@ async def add_sub(client, message):
         "- <code>BOTH</code>\n\n",
     )
     file_mode = res.text.lower()
-    if file_mode not in ("pdf", "cbz", "both"):
+    if not any(fm in file_mode for fm in ("graph", "pdf", "cbz", "both")):
         return await res.reply("Invalid file mode.")
 
     req, res = await ask_msg(
@@ -152,10 +152,18 @@ async def add_sub(client, message):
 
     req, res = await ask_msg(
         res,
-        "Do you want to send updates for this subscription?\n\n"
+        "Would you like this subscription to have update notifs? Give chat_id separated by one line below if you want to make a custom notifs chat.\n\n"
         "<i>Answer in Yes or No.</i>",
     )
-    send_updates = res.text.lower() in ("yes", "true")
+    if len(res.text.splitlines()) == 1:
+        send_updates = res.text.lower() in ("yes", "true")
+        notifs_chat = None
+    else:
+        send_updates = res.text.splitlines()[0].lower() in ("yes", "true")
+        notifs_chat = res.text.splitlines()[1]
+        if not notifs_chat[1:].isdigit():
+            return await res.reply("Chat ID should be an integer!")
+        notifs_chat = int(notifs_chat)
 
     await pdB.add_sub(
         ps,
@@ -163,6 +171,7 @@ async def add_sub(client, message):
         chat,
         title,
         send_updates=send_updates,
+        notifs_chat=notifs_chat,
         file_mode=file_mode.upper(),
         custom_filename=custom_filename,
         custom_caption=custom_caption,
@@ -173,11 +182,18 @@ async def add_sub(client, message):
     text = "**Added New Subscription**\n\n"
     text += f"**›› Url →** `{url}`\n"
     text += f"**›› Chat →** `{chat}`\n"
-    text += f"**›› File Mode →** `{file_mode.upper()}`\n" if file_mode else ""
-    text += f"**›› Custom Filename →** `{custom_filename}`\n" if custom_filename else ""
-    text += f"**›› Custom Caption →** `{custom_caption}`\n" if custom_caption else ""
-    text += f"**›› Custom Thumb →** `{thumb_url}`\n" if thumb_url else ""
-    text += f"**›› File Password →** `{file_pass}`" if file_pass else ""
+    text += f"**›› File Mode →** `{file_mode.upper()}`\n"
+
+    if custom_filename:
+        text += f"**›› Custom Filename →** `{custom_filename}`\n"
+    if custom_thumb:
+        text += f"**›› Custom Caption →** `{custom_caption}`\n"
+    if thumb_url:
+        text += f"**›› Custom Thumb →** `{thumb_url}`\n"
+    if file_pass:
+        text += f"**›› File Password →** `{file_pass}`\n" if file_pass else ""
+    if notifs_chat:
+        text += f"**›› Notification Chat →** `{notifs_chat}`"
 
     await message.reply(text, parse_mode=ParseMode.MARKDOWN)
 
@@ -350,6 +366,7 @@ async def update_subs(get_updates=get_new_updates):
                 custom_caption = sub["custom_caption"] or ""
                 custom_thumb = sub["custom_thumb"] or False
                 file_pass = sub.get("file_pass", None)
+                notifs_chat = sub.get("notifs_chat", 0)
 
                 for ch, ch_url in new_chapters:
                     ch = ch or zeroint(ch_from_url(ch_url))
@@ -435,7 +452,7 @@ async def update_subs(get_updates=get_new_updates):
                         reply_markup = None
                         if read_url:
                             reply_markup = InlineKeyboardMarkup(
-                                [[InlineKeyboardButton("Read Online", url=read_url)]]
+                            [[InlineKeyboardButton("Read Online", url=read_url)]]
                             )
                         try:
                             await bot.send_message(
@@ -456,17 +473,14 @@ async def update_subs(get_updates=get_new_updates):
                         buttons = []
                         reply_markup = None
                         if chat_link:
-                            buttons.append(
-                                [InlineKeyboardButton("Read Here", url=chat_link)]
-                            )
+                            buttons.append([InlineKeyboardButton("Read Here", url=chat_link)])
                         if read_url and files:
-                            buttons.append(
-                                [InlineKeyboardButton("Read Online", url=read_url)]
-                            )
+                            buttons.append([InlineKeyboardButton("Read Online", url=read_url)])
                         if buttons:
                             reply_markup = InlineKeyboardMarkup([buttons])
+                            
 
-                        update_logs_chat = (
+                        update_logs_chat = notifs_chat or (
                             -1001848617769
                             if ps not in ["Manganato", "Mangabuddy"]
                             else -1001835330873
@@ -478,8 +492,8 @@ async def update_subs(get_updates=get_new_updates):
                                 CHAPTER_LOG_MSG.format(title=title, ch=_ch),
                                 reply_markup=reply_markup,
                             )
-                        except BaseException:
-                            pass
+                        except Exception as e:
+                            LOGGER(__name__).info(f"Error while sending new notifs to {update_logs_chat}: {e}")
 
                     await pdB.add_lc(url, ch_url)
                     await asyncio.sleep(3)
