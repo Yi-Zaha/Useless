@@ -337,7 +337,7 @@ async def update_subs(get_updates=get_new_updates):
                 continue
 
             LOGGER(__name__).info(
-                f"[{ps}] Updates for {url}: {[ch_link for _, ch_link new_chapters]}"
+                f"[{ps}] Updates for {url}: {[ch_link for _, ch_link in new_chapters]}"
             )
             await asyncio.sleep(5)
 
@@ -431,7 +431,7 @@ async def update_subs(get_updates=get_new_updates):
                             )
                         except Exception as e:
                             LOGGER(__name__).info(
-                                f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
+                                f"Was unable to send new chapters to {chat}: {e}... removing the subscription for this chat."
                             )
                             await pdB.rm_sub(ps, url, chat)
                             break
@@ -445,7 +445,7 @@ async def update_subs(get_updates=get_new_updates):
                             )
                         except Exception as e:
                             LOGGER(__name__).info(
-                                f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
+                                f"Was unable to send new chapters to {chat}: {e}... removing the subscription for this chat."
                             )
                             await pdB.rm_sub(ps, url, chat)
                             break
