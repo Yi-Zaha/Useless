@@ -435,7 +435,7 @@ async def update_subs(get_updates=get_new_updates):
                         reply_markup = None
                         if read_url:
                             reply_markup = InlineKeyboardMarkup(
-                            [[InlineKeyboardButton("Read Online", url=read_url)]]
+                                [[InlineKeyboardButton("Read Online", url=read_url)]]
                             )
                         try:
                             await bot.send_message(
@@ -456,12 +456,15 @@ async def update_subs(get_updates=get_new_updates):
                         buttons = []
                         reply_markup = None
                         if chat_link:
-                            buttons.append([InlineKeyboardButton("Read Here", url=chat_link)])
+                            buttons.append(
+                                [InlineKeyboardButton("Read Here", url=chat_link)]
+                            )
                         if read_url and files:
-                            buttons.append([InlineKeyboardButton("Read Online", url=read_url)])
+                            buttons.append(
+                                [InlineKeyboardButton("Read Online", url=read_url)]
+                            )
                         if buttons:
                             reply_markup = InlineKeyboardMarkup([buttons])
-                            
 
                         update_logs_chat = (
                             -1001848617769
