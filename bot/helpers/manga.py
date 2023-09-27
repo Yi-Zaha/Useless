@@ -15,7 +15,14 @@ from bs4 import BeautifulSoup
 from bot import bot
 from bot.utils import user_agents
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import async_wrap, get_link, get_soup, images_to_graph, retry_func, file_to_graph
+from bot.utils.functions import (
+    async_wrap,
+    file_to_graph,
+    get_link,
+    get_soup,
+    images_to_graph,
+    retry_func,
+)
 from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf, resize_img
 
 proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
@@ -154,7 +161,7 @@ class _BASE:
             else:
                 if not images:
                     images, temp_dir = await _BASE.download_images(
-                    image_urls, headers=headers
+                        image_urls, headers=headers
                     )
                 proxy_image_urls = []
                 try:
@@ -164,7 +171,8 @@ class _BASE:
                 except Exception as e:
                     print(e)
                     proxy_image_urls = [
-                        f"{proxy_url}?src={url}&referer={chapter_url}" for url in image_urls
+                        f"{proxy_url}?src={url}&referer={chapter_url}"
+                        for url in image_urls
                     ]
                 graph_url = await images_to_graph(
                     title,
