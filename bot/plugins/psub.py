@@ -330,7 +330,9 @@ async def update_subs(get_updates=get_new_updates):
                 await pdB.add_lc(url, new_chapters[-1][1])
                 continue
 
-            LOGGER(__name__).info(f"[{ps}] Updates for {url}: {[ch_link for _, ch_link new_chapters]}")
+            LOGGER(__name__).info(
+                f"[{ps}] Updates for {url}: {[ch_link for _, ch_link new_chapters]}"
+            )
             await asyncio.sleep(5)
 
             for sub in subs[url]:
