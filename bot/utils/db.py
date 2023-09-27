@@ -37,7 +37,7 @@ class DB(AsyncIOMotorCollection, metaclass=Singleton):
     async def insert_data(self, query, extra={}):
         extra = extra or {}
         doc = {**query, **extra}
-        await self.update_one(query, {"$set": doc}, upsert=True)
+        await self.update_one(query, {"$set": extra}, upsert=True)
         return doc
 
 

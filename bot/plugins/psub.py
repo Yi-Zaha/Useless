@@ -186,7 +186,7 @@ async def add_sub(client, message):
 
     if custom_filename:
         text += f"**›› Custom Filename →** `{custom_filename}`\n"
-    if custom_thumb:
+    if custom_caption:
         text += f"**›› Custom Caption →** `{custom_caption}`\n"
     if thumb_url:
         text += f"**›› Custom Thumb →** `{thumb_url}`\n"
@@ -481,7 +481,7 @@ async def update_subs(get_updates=get_new_updates):
                                 [InlineKeyboardButton("Read Online", url=read_url)]
                             )
                         if buttons:
-                            reply_markup = InlineKeyboardMarkup([buttons])
+                            reply_markup = InlineKeyboardMarkup(buttons)
 
                         update_logs_chat = notifs_chat or (
                             -1001848617769
