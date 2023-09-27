@@ -17,7 +17,13 @@ from bot.helpers.psutils import ch_from_url, iargs, zeroint
 from bot.logger import LOGGER
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import pdB
-from bot.utils.functions import ask_msg, file_to_graph, get_chat_invite_link, is_numeric, is_url
+from bot.utils.functions import (
+    ask_msg,
+    file_to_graph,
+    get_chat_invite_link,
+    is_numeric,
+    is_url,
+)
 
 PH_LOG_CHAT = -1001848617769
 DISABLED_PS = []
@@ -330,7 +336,9 @@ async def update_subs(get_updates=get_new_updates):
                 await pdB.add_lc(url, new_chapters[-1][1])
                 continue
 
-            LOGGER(__name__).info(f"[{ps}] Updates for {url}: {[ch_link for _, ch_link new_chapters]}")
+            LOGGER(__name__).info(
+                f"[{ps}] Updates for {url}: {[ch_link for _, ch_link new_chapters]}"
+            )
             await asyncio.sleep(5)
 
             for sub in subs[url]:
@@ -392,7 +400,7 @@ async def update_subs(get_updates=get_new_updates):
                             f"Couldn't make chapter file for {ch_url} → {e.__class__.__name__}: {e}"
                         )
                         break
-                    
+
                     read_url = None
                     files = []
                     if isinstance(chapter_file, list):
@@ -405,20 +413,25 @@ async def update_subs(get_updates=get_new_updates):
                         read_url = chapter_file
                     else:
                         files.append(InputMediaDocument(chapter_file, thumb=thumb))
-                    
+
                     reply_markup = None
                     if read_url:
-                        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("Read Online", url=read_url)]])
-                    
+                        reply_markup = InlineKeyboardMarkup(
+                            [[InlineKeyboardButton("Read Online", url=read_url)]]
+                        )
+
                     if files:
                         files[-1].caption = caption
                         try:
                             await bot.send_media_group(
-                            chat, files, protect_content=ps in PS.__all__[:3], reply_markup=reply_markup
+                                chat,
+                                files,
+                                protect_content=ps in PS.__all__[:3],
+                                reply_markup=reply_markup,
                             )
                         except Exception as e:
                             LOGGER(__name__).info(
-                            f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
+                                f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
                             )
                             await pdB.rm_sub(ps, url, chat)
                             break
@@ -427,14 +440,16 @@ async def update_subs(get_updates=get_new_updates):
                             os.remove(file.media)
                     else:
                         try:
-                            await bot.send_message(chat, f"{title} - {_ch}", reply_markup=reply_markup)
+                            await bot.send_message(
+                                chat, f"{title} - {_ch}", reply_markup=reply_markup
+                            )
                         except Exception as e:
                             LOGGER(__name__).info(
-                            f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
+                                f"Was unable to send new chapters to {chat}: {e}\n Removing the subscription for this chat."
                             )
                             await pdB.rm_sub(ps, url, chat)
                             break
-                            
+
                     if thumb:
                         os.remove(thumb)
 
