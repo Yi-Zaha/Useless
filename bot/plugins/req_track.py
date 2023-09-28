@@ -51,7 +51,7 @@ async def handle_requests(client, message):
             )
             await client.send_message(
                 message.chat.id,
-                f"Hey, I found some matching results for your requests.\n\n{matching_text}\n\n<b>Did you find your request in any of these matches?</b>",
+                 f"Hey there! I found some results that match your request:\n\n{matching_text}\n\n<b>Have you found your request in any of these matches?</b>",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
@@ -68,6 +68,7 @@ async def handle_requests(client, message):
                 ),
                 reply_to_message_id=reply_id,
             )
+            return
 
     chat_to_send = rchats.get(message.chat.id)
     if chat_to_send is not None:
@@ -112,16 +113,16 @@ async def handle_request_action(client, callback):
     if action in ("yes", "no"):
         if int(splited[2]) != callback.from_user.id:
             return await callback.answer(
-                f"Sorry, this button is not meant for you.", show_alert=True
+                f"Sorry, this option is not for you.", show_alert=True
             )
 
         if action == "yes":
-            await callback.answer(f"Okay! Thank you for answering.", show_alert=True)
+            await callback.answer(f"Got it! Thank you for your response.", show_alert=True)
             # Removing the last line
             await message.edit("\n\n".join(message.text.split("\n\n")[:-1]))
         elif action == "no" and message.reply_to_message and message.chat.id in rchats:
             await callback.answer(
-                "Okay! Your request shall be submitted then.", show_alert=True
+                "Understood! Your request will be submitted.", show_alert=True
             )
             request = get_request_from_text(message.reply_to_message.text)
             text_to_send = f"<b>Request By:</b> {message.reply_to_message.from_user.mention}\n\n<code>{request}</code>"
@@ -150,7 +151,7 @@ async def handle_request_action(client, callback):
             await message.delete()
         else:
             await callback.answer(
-                "Something unexpected occurred!",
+                "Oops! Something unexpected happened.",
                 show_alert=True,
             )
         return
