@@ -79,6 +79,7 @@ airing_query = """
           romaji
           english
           native
+          userPreferred
         }
         nextAiringEpisode {
            airingAt
@@ -102,6 +103,7 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String, $type: MediaType) {
                 romaji
                 english
                 native
+                userPreferred
             }
             siteUrl
         }
@@ -118,6 +120,7 @@ query ($id: Int, $idMal: Int,$search: String) {
       romaji
       english
       native
+      userPreferred
     }
     format
     status
@@ -194,6 +197,7 @@ query ($id: Int, $idMal:Int, $search: String, $asHtml: Boolean) {
       romaji
       english
       native
+      userPreferred
     }
     format
     status
@@ -305,11 +309,16 @@ async def get_anime_schedule(weekid):
     return result, dayname
 
 
-async def callAPI(search_str, manga=False):
+async def callAPI(search_str, manga=False, json=False):
     variables = {"search": search_str}
     query = manga_query if manga else anime_query
-    response = requests.post(anilisturl, json={"query": query, "variables": variables})
-    return response.text
+    async with ClientSession() as session:
+        async with session.post(
+            anilisturl, json={"query": query, "variables": variables}
+        ) as response:
+            if json:
+                return await response.json()
+            return await response.text()
 
 
 async def searchanilist(search_str, manga=False):
