@@ -3,7 +3,7 @@ import string
 
 from pyrogram import filters
 
-from bot import SUDOS, bot, PHUB_CHANNEL
+from bot import PHUB_CHANNEL, SUDOS, bot
 from bot.config import Config
 from bot.logger import LOGGER
 from bot.utils.db import dB
