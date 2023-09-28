@@ -18,7 +18,7 @@ rchats = {
 # Lists of request groups and channels
 rgroups = list(rchats.keys())
 rchannels = list(rchats.values())
-phub_group = -1001568226560
+phub_group = -1001817093909
 
 
 # Command handler for requests
