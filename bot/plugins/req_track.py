@@ -57,9 +57,7 @@ async def handle_requests(client, message):
                         [
                             InlineKeyboardButton(
                                 "Yes", f"reqs_yes_{(reply or message).from_user.id}"
-                            )
-                        ],
-                        [
+                            ),
                             InlineKeyboardButton(
                                 "No", f"reqs_no_{(reply or message).from_user.id}"
                             )
@@ -121,7 +119,7 @@ async def handle_request_action(client, callback):
                 f"Got it! Thank you for your response.", show_alert=True
             )
             # Removing the last line
-            await message.edit("\n\n".join(message.text.split("\n\n")[:-1]))
+            await message.edit("\n\n".join(message.text.html.split("\n\n")[:-1]))
         elif action == "no" and message.reply_to_message and message.chat.id in rchats:
             await callback.answer(
                 "Understood! Your request will be submitted.", show_alert=True
