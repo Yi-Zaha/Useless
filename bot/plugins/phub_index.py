@@ -2,13 +2,12 @@ import string
 
 from pyrogram import filters
 
-from bot import SUDOS, bot
+from bot import SUDOS, bot, PHUB_CHANNEL
 from bot.config import Config
 from bot.logger import LOGGER
 from bot.utils.db import dB
 from bot.utils.functions import get_chat_messages
 
-PHUB_CHANNEL = Config.get("PORNHWA_HUB", -1001705095281)
 INDEX_CHANNEL = Config.get("PORNHWA_HUB_INDEX", -1001749847496)
 UPDATING_INDEX = None
 
@@ -44,6 +43,7 @@ async def update_phub_index():
         INDEX_CHANNEL, first_msg_id=62, last_msg_id=89
     )
     index = {"#": {}, **{alpha: {} for alpha in string.ascii_uppercase}}
+    namelinks = {}
     posts = {}
 
     messages = await get_chat_messages(
@@ -74,6 +74,7 @@ async def update_phub_index():
 
             i_text = f"{tick} <a href='{link}'>{name}</a>\n"
             index[index_key][name] = i_text
+            namelinks[name] = link
 
     for f in sorted(index):
         texts = index[f]
@@ -93,6 +94,6 @@ async def update_phub_index():
             updated.append(index_post.id)
         except Exception as e:
             print(f"Error in updating PH Index post id {index_post.id}: {e}")
-
+    await dB.update_key("PHUB_NAMELINKS", namelinks, upert=True)
     UPDATING_INDEX = False
     return updated

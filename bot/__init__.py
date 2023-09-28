@@ -42,6 +42,7 @@ LOGS = LOGGER("UselessBot")
 StartTime = time.time()
 LOG_CHAT = Config.get("LOG_CHAT", -1001568226560)
 CACHE_CHAT = Config.get("CACHE_CHAT", -1001821705224)
+PHUB_CHANNEL = Config.get("PORNHWA_HUB", -1001705095281)
 OWNER_ID = Config.get("OWNER_ID", 5905126281)
 SUDOS = Config.get("SUDOS", "5370531116 5551387300  5905126281").split()
 SUDOS = list(map(int, SUDOS)) + [OWNER_ID]
