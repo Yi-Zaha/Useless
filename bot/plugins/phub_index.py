@@ -1,8 +1,9 @@
+import asyncio
 import string
 
 from pyrogram import filters
 
-from bot import PHUB_CHANNEL, SUDOS, bot
+from bot import SUDOS, bot, PHUB_CHANNEL
 from bot.config import Config
 from bot.logger import LOGGER
 from bot.utils.db import dB
@@ -94,6 +95,7 @@ async def update_phub_index():
             updated.append(index_post.id)
         except Exception as e:
             print(f"Error in updating PH Index post id {index_post.id}: {e}")
-    await dB.update_key("PHUB_NAMELINKS", namelinks, upert=True)
+        await asyncio.sleep(1)
+    await dB.update_key("PHUB_NAMELINKS", namelinks, upsert=True)
     UPDATING_INDEX = False
     return updated
