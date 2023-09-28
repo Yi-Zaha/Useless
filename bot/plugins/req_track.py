@@ -1,10 +1,11 @@
 import re
+
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, MessageEntityType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from bot import bot
 from bot.utils.db import dB
-
 
 # Mapping of request groups to channels
 rchats = {
@@ -39,16 +40,30 @@ async def handle_requests(client, message):
 
     if message.chat.id == phub_group:
         namelinks = await dB.get_key("PHUB_NAMELINKS") or {}
-        matches = [(name, link) for name, link in namelinks.items() if re.search(text, name, flags=re.I)]
+        matches = [
+            (name, link)
+            for name, link in namelinks.items()
+            if re.search(text, name, flags=re.I)
+        ]
         if matches:
-            matching_text = "\n".join(f"→[{name}]({link})" for name, link in matches[:5])
+            matching_text = "\n".join(
+                f"→[{name}]({link})" for name, link in matches[:5]
+            )
             await client.send_message(
                 message.chat.id,
                 f"Hey, I found some matching results for your requests.\n\n{matching_text}\n\n<b>Did you find your request in any of these matches?</b>",
                 reply_markup=InlineKeyboardMarkup(
                     [
-                        [InlineKeyboardButton("Yes", f"reqs_yes_{(reply or message).from_user.id}")],
-                        [InlineKeyboardButton("No", f"reqs_no_{(reply or message).from_user.id}")]
+                        [
+                            InlineKeyboardButton(
+                                "Yes", f"reqs_yes_{(reply or message).from_user.id}"
+                            )
+                        ],
+                        [
+                            InlineKeyboardButton(
+                                "No", f"reqs_no_{(reply or message).from_user.id}"
+                            )
+                        ],
                     ]
                 ),
                 reply_to_message_id=reply_id,
@@ -70,7 +85,9 @@ async def handle_requests(client, message):
         ]
 
         request_message = await client.send_message(
-            chat_to_send, text_to_send, reply_markup=InlineKeyboardMarkup(buttons_to_send)
+            chat_to_send,
+            text_to_send,
+            reply_markup=InlineKeyboardMarkup(buttons_to_send),
         )
 
         await client.send_message(
@@ -84,7 +101,9 @@ async def handle_requests(client, message):
 
 
 # Callback query handler for request actions
-@bot.on_callback_query(filters.regex("reqs_(yes|no|completed|rejected|unavailable|already_available)"))
+@bot.on_callback_query(
+    filters.regex("reqs_(yes|no|completed|rejected|unavailable|already_available)")
+)
 async def handle_request_action(client, callback):
     message = callback.message
     splited = callback.data.split("_")
@@ -93,20 +112,16 @@ async def handle_request_action(client, callback):
     if action in ("yes", "no"):
         if int(splited[2]) != callback.from_user.id:
             return await callback.answer(
-                f"Sorry, this button is not meant for you.",
-                show_alert=True
+                f"Sorry, this button is not meant for you.", show_alert=True
             )
 
         if action == "yes":
-            await callback.answer(
-                f"Okay! Thank you for answering.",
-                show_alert=True
-            )
-            await message.edit("\n\n".join(message.text.split("\n\n")[:-1])) # Removing the last line
+            await callback.answer(f"Okay! Thank you for answering.", show_alert=True)
+            # Removing the last line
+            await message.edit("\n\n".join(message.text.split("\n\n")[:-1]))
         elif action == "no" and message.reply_to_message and message.chat.id in rchats:
             await callback.answer(
-                "Okay! Your request shall be submitted then.",
-                show_alert=True
+                "Okay! Your request shall be submitted then.", show_alert=True
             )
             request = get_request_from_text(message.reply_to_message.text)
             text_to_send = f"<b>Request By:</b> {message.reply_to_message.from_user.mention}\n\n<code>{request}</code>"
