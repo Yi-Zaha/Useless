@@ -73,7 +73,7 @@ async def update_phub_index():
             elif "incomplete" in message.caption.lower():
                 tick = "♦️"
 
-            i_text = f"{tick} <a href='{link}'>{name}</a>\n"
+            i_text = f'{tick} <a href="{link}">{name}</a>\n'
             index[index_key][name] = i_text
             namelinks[name] = link
 
