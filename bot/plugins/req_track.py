@@ -51,7 +51,7 @@ async def handle_requests(client, message):
             )
             await client.send_message(
                 message.chat.id,
-                 f"Hey there! I found some results that match your request:\n\n{matching_text}\n\n<b>Have you found your request in any of these matches?</b>",
+                f"Hey there! I found some results that match your request:\n\n{matching_text}\n\n<b>Have you found your request in any of these matches?</b>",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
@@ -117,7 +117,9 @@ async def handle_request_action(client, callback):
             )
 
         if action == "yes":
-            await callback.answer(f"Got it! Thank you for your response.", show_alert=True)
+            await callback.answer(
+                f"Got it! Thank you for your response.", show_alert=True
+            )
             # Removing the last line
             await message.edit("\n\n".join(message.text.split("\n\n")[:-1]))
         elif action == "no" and message.reply_to_message and message.chat.id in rchats:
