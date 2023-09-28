@@ -60,7 +60,7 @@ async def handle_requests(client, message):
                             ),
                             InlineKeyboardButton(
                                 "No", f"reqs_no_{(reply or message).from_user.id}"
-                            )
+                            ),
                         ],
                     ]
                 ),
