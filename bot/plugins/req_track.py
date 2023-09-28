@@ -143,7 +143,7 @@ async def handle_request_action(client, callback):
                 reply_markup=InlineKeyboardMarkup(buttons_to_send),
             )
             await message.reply_to_message.reply(
-                f"Hi {user_mention}, your request for <code>{text}</code> has been submitted to the admins.\n\n<b>Please note that admins might be busy, so it may take some time.</b>",
+                f"Hi {message.reply_to_message.from_user.mention}, your request for <code>{request}</code> has been submitted to the admins.\n\n<b>Please note that admins might be busy, so it may take some time.</b>",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("View Status", url=request_message.link)]]
                 ),
