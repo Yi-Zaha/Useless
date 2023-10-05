@@ -251,12 +251,12 @@ async def doujins_nhentai(client, message):
         cancel_button = [InlineKeyboardButton("Cancel", pid)]
         doujin_list_text = "\n".join(
             [
-                f"→[{data['title']}](https://nhentai.net/g/{data['code']})"
-                for data in doujins
+                f"{index}. [{data['title']}](https://nhentai.net/g/{data['code']})"
+                for index, data in enumerate(doujins, start=1)
             ]
         )
         status = await status.edit(
-            f"<b>{page}/{pages_range}: {doujins_count} doujins found</b>:\n{doujin_list_text}",
+            f"<b>{page}/{pages_range}: {doujins_count} doujins found</b>:\n\n{doujin_list_text}",
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([cancel_button]),
         )
