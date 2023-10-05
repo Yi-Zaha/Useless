@@ -6,7 +6,7 @@ aiohttp[speedups]
 bs4
 cachetools
 cloudscraper
-fpdf2
+fpdf2==2.7.4
 git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
 httpx
