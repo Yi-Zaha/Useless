@@ -206,7 +206,7 @@ async def doujins_nhentai(client, message):
     text = message.text.split(" ", 1)[1]
     if pages_range := re.search(r"-pages.(\d+)", text):
         text = text.replace(pages_range.group(), "")
-        pages_range = int(pages_range)
+        pages_range = int(pages_range.group(1))
     else:
         pages_range = 1
 
