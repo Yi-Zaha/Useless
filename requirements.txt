@@ -1,6 +1,6 @@
 AnilistPython
 apscheduler 
-PyMuPdf 
+PyMuPdf==1.22.2 
 aiofiles
 aiohttp[speedups]
 bs4
