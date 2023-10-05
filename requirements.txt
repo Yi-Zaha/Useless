@@ -1,12 +1,12 @@
 AnilistPython
 apscheduler 
-PyMuPdf==1.22.2 
+PyMuPdf
 aiofiles
 aiohttp[speedups]
 bs4
 cachetools
 cloudscraper
-fpdf2==2.7.4
+fpdf2
 git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
 httpx
