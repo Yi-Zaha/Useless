@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.11
 
 # Set the timezone to Asia/Kolkata
 ENV TZ=Asia/Kolkata
