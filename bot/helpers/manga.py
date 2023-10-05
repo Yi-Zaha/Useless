@@ -99,7 +99,7 @@ class _BASE:
         elif "mangadistrict" in url:
             div = soup.find("div", "reading-content")
             images = div.find_all("img", "wp-manga-chapter-img") if div else None
-            image_urls = [img.get("src") for img in images]
+            image_urls = [img.get("src") if img.get("src").startswith("http") else img.get("data-wpfc-original-src") for img in images]
         elif "api.comick." in url or "api.comick." in url:
             if "tachiyomi" not in url:
                 data = json.loads(content)
