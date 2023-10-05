@@ -204,7 +204,7 @@ async def doujins_nhentai(client, message):
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
     text = message.text.split(" ", 1)[1]
-    if pages_range := re.search(r"-merge.(\d+)", text):
+    if pages_range := re.search(r"-pages.(\d+)", text):
         text = text.replace(pages_range.group(), "")
         pages_range = int(pages_range)
     else:
