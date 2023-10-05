@@ -326,13 +326,3 @@ async def doujins_nhentai(client, message):
 
     if pid in BULK_PROCESS:
         BULK_PROCESS.remove(pid)
-
-
-@bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
-async def cancel_nh_bulk(client, callback):
-    if callback.data not in BULK_PROCESS:
-        return await callback.answer(
-            "This process is not active anymore.", show_alert=True
-        )
-    BULK_PROCESS.remove(callback.data)
-    await callback.answer("This process will be cancelled soon!", show_alert=True)
