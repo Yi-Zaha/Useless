@@ -31,8 +31,8 @@ class DB(AsyncIOMotorCollection, metaclass=Singleton):
         query = {key: {"$exists": 1}}
         if value:
             query = {key: value}
-        self.delete_many if many else self.delete_one
-        return await self.delete_many(query)
+        method = self.delete_many if many else self.delete_one
+        return await method(query)
 
     async def insert_data(self, query, extra={}):
         extra = extra or {}

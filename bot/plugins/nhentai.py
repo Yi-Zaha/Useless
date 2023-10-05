@@ -11,12 +11,12 @@ from bot import ALLOWED_USERS, CACHE_CHAT, bot
 from bot.config import Config
 from bot.helpers.manga import Nhentai
 from bot.logger import LOGGER
-from bot.utils.functions import b64_encode, generate_share_url, images_to_graph
+from bot.utils import BULK_PROCESS
+from bot.utils.functions import b64_encode, generate_share_url, images_to_graph, get_random_id
 
 NH_CHANNEL = Config.get("NH_CHANNEL", -1001867670372)
 NH_CHAT = Config.get("NH_CHAT", -1001666665549)
 DL_LOCK = asyncio.Lock()
-BULK_PROCESS = []
 
 
 async def generate_doujin_info(doujin, graph=False):
@@ -203,13 +203,19 @@ async def doujins_nhentai(client, message):
     nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
     if len(message.command) == 1 or not nh_match:
         return await message.reply("Please provide the nhentai doujins Url.")
-    flags = ("-en", "-wt", "-reverse")
-    en, no_graph, to_reverse = (flag in message.text for flag in flags)
-    for flag in flags:
-        if flag in message.text:
-            message.text = message.text.replace(flag, "", 1)
-
     text = message.text.split(" ", 1)[1]
+    if pages_range := re.search(r"-merge.(\d+)", text):
+        text = text.replace(pages_range.group(), "")
+        pages_range = int(pages_range)
+    else:
+        pages_range = 1
+        
+    flags = ("-en", "-wt", "-reverse")
+    en, no_graph, to_reverse = (flag in text for flag in flags)
+    for flag in flags:
+        if flag in text:
+            text = text.replace(flag, "", 1).strip()
+
     if "|" in text:
         try:
             url, chat = map(str.strip, text.split("|"))
@@ -219,100 +225,107 @@ async def doujins_nhentai(client, message):
     else:
         url = text
         chat = message.chat.id
-
-    pid = f"nh_bulk:{b64_encode(f'{url}-{chat}')}"[:64]
+    
+    url = url.rsplit("?")[0]
+    pid = f"cancelproc:{message.from_user.id}:{get_random_id()}"
     if pid in BULK_PROCESS:
         return await message.reply(
             "This link is already in process... Please wait for it to be completed!"
         )
     if pid not in BULK_PROCESS:
-        BULK_PROCESS.append(pid)
+        BULK_PROCESS.add(pid)
+
     status = await message.reply("Processing... Please wait.")
-    doujins = await Nhentai.doujins_from_url(url)
-    doujins_count = len(doujins)
+    
+    for page in range(pages_range):
+        page += 1
+        doujins = await Nhentai.doujins_from_url(f"{url}?page={page}")
+        doujins_count = len(doujins)
 
-    if doujins_count == 0:
-        return await status.edit("No doujins found from URL.")
+        if doujins_count == 0:
+            return await status.edit("No doujins found from URL.")
 
-    if to_reverse:
-        doujins.reverse()
+        if to_reverse:
+            doujins.reverse()
 
-    cancel_button = [InlineKeyboardButton("Cancel", pid)]
-    doujin_list_text = "\n".join(
-        [
+        cancel_button = [InlineKeyboardButton("Cancel", pid)]
+        doujin_list_text = "\n".join(
+            [
             f"→[{data['title']}](https://nhentai.net/g/{data['code']})"
             for data in doujins
-        ]
-    )
-    status = await status.edit(
-        f"<b>{doujins_count} doujins found</b>:\n{doujin_list_text}",
+            ]
+        )
+        status = await status.edit(
+        f"<b>{page}/{pages_range}: {doujins_count} doujins found</b>:\n{doujin_list_text}",
         disable_web_page_preview=True,
         reply_markup=InlineKeyboardMarkup([cancel_button]),
-    )
+        )
 
-    success_count = 0
-    error_count = 0
+        success_count = 0
+        error_count = 0
 
-    for index, data in enumerate(doujins, start=1):
-        if pid not in BULK_PROCESS:
-            return await status.edit(
+        for index, data in enumerate(doujins, start=1):
+            if pid not in BULK_PROCESS:
+                return await status.edit(
                 f"{status.text.html}\n\n<b>Cancelled!</b>",
                 disable_web_page_preview=True,
-            )
-
-        try:
-            doujin = Nhentai(data["code"])
-            await doujin.get_data()
-            if en and "#english" not in doujin.languages:
-                continue
-            doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
-            pdf, cbz = await download_doujin_files(doujin)
+                )
 
             try:
-                if no_graph:
-                    await client.send_photo(
+                doujin = Nhentai(data["code"])
+                await doujin.get_data()
+                if en and "#english" not in doujin.languages:
+                    continue
+                doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
+                pdf, cbz = await download_doujin_files(doujin)
+
+                try:
+                    if no_graph:
+                        await client.send_photo(
                         chat,
                         doujin.cover_url,
                         caption=doujin_info,
                         parse_mode=ParseMode.MARKDOWN,
-                    )
-                else:
-                    await client.send_message(
+                        )
+                    else:
+                        await client.send_message(
                         chat, doujin_info, parse_mode=ParseMode.MARKDOWN
-                    )
-                await asyncio.gather(
+                        )
+                    await asyncio.gather(
                     client.send_document(chat, pdf), client.send_document(chat, cbz)
-                )
-                success_count += 1
-            finally:
-                os.remove(pdf)
-                os.remove(cbz)
-        except (ChannelInvalid, PeerIdInvalid):
-            if pid in BULK_PROCESS:
-                BULK_PROCESS.remove(pid)
-            return await status.edit(
+                    )
+                    success_count += 1
+                finally:
+                    os.remove(pdf)
+                    os.remove(cbz)
+            except (ChannelInvalid, PeerIdInvalid):
+                if pid in BULK_PROCESS:
+                    BULK_PROCESS.remove(pid)
+                return await status.edit(
                 f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>",
                 disable_web_page_preview=True,
-            )
-        except Exception as e:
-            LOGGER(__name__).info(
+                )
+            except Exception as e:
+                LOGGER(__name__).info(
                 f"Error occurred while sending doujin no. {doujin.code}: {e}"
-            )
-            error_count += 1
-        progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
-        await status.edit(
+                )
+                error_count += 1
+            progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
+            await status.edit(
             f"{status.text.html}\n\n{progress_text}",
             disable_web_page_preview=True,
             reply_markup=status.reply_markup,
-        )
-    if en and success_count == 0 and error_count == 0:
-        await status.edit(
+            )
+        if en and success_count == 0 and error_count == 0:
+            await status.edit(
             f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>",
             disable_web_page_preview=True,
-        )
-    else:
-        await status.edit_reply_markup(None)
-    BULK_PROCESS.remove(pid)
+            )
+        else:
+            await status.edit_reply_markup(None)
+            
+    if pid in BULK_PROCESS:
+        BULK_PROCESS.remove(pid)
 
 
 @bot.on_callback_query(filters.regex(r"nh_bulk:.*"))
