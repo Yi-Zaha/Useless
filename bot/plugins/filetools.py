@@ -247,7 +247,7 @@ async def media_upload(client, message):
                 message=status,
                 caption=caption,
                 protect_content=protect_content,
-                **({"thumb": thumb} if thumb else {})
+                **({"thumb": thumb} if thumb else {}),
             )
         except Exception as e:
             return await status.edit(
@@ -300,7 +300,7 @@ async def media_rename(client, message):
     if no_thumb:
         thumb = None
     if thumb:
-        extra_args["thumb"] = thumb 
+        extra_args["thumb"] = thumb
 
     for cmd in command[:-1]:
         for flag in flags:
