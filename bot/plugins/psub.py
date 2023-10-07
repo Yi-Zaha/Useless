@@ -327,7 +327,7 @@ async def get_new_updates():
     return all_updates
 
 
-async def update_subs(get_updates=get_new_updates):
+async def update_subs(get_updates=get_new_updates, to_sleep=True):
     LOGGER(__name__).info("Updating PS Subs...")
     subs = {}
     async for sub in pdB.all_subs():
@@ -339,11 +339,11 @@ async def update_subs(get_updates=get_new_updates):
     for ps, updates in (await get_updates()).items():
         LOGGER(__name__).info(f"Checking for PS: {ps}")
 
-        if updates and ps in DELAYED_PS:
+        if updates and ps in DELAYED_PS and to_sleep:
             if ps not in PS_SLEPT:
                 PS_SLEPT.add(ps)
                 await asyncio.sleep(10 * 60)
-                return await update_subs()
+                return await update_subs(get_updates)
             else:
                 PS_SLEPT.remove(ps)
 
