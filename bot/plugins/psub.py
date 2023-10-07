@@ -360,11 +360,11 @@ async def update_subs(get_updates=get_new_updates, to_sleep=True):
             for sub in subs[url]:
                 chat = sub["chat"]
                 title = sub["title"]
-                send_updates = sub["send_updates"] or False
-                file_mode = sub["file_mode"] or "pdf"
-                custom_filename = sub["custom_filename"] or "{ch} {manga}"
-                custom_caption = sub["custom_caption"] or ""
-                custom_thumb = sub["custom_thumb"] or False
+                send_updates = sub.get("send_updates") or False
+                file_mode = sub.get("file_mode") or "pdf"
+                custom_filename = sub.get("custom_filename") or "{ch} {manga}"
+                custom_caption = sub.get("custom_caption") or ""
+                custom_thumb = sub.get("custom_thumb") or False
                 file_pass = sub.get("file_pass", None)
                 notifs_chat = sub.get("notifs_chat", 0)
 
