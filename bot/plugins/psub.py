@@ -28,7 +28,6 @@ from bot.utils.functions import (
 PH_LOG_CHAT = -1001848617769
 DISABLED_PS = []
 DELAYED_PS = ["Manhwa18"]
-PS_SLEPT = set()
 CHAPTER_LOG_MSG = """
 <i><b>#New_Chapter</b></i>
 <i>→{title}
@@ -340,12 +339,8 @@ async def update_subs(get_updates=get_new_updates, to_sleep=True):
         LOGGER(__name__).info(f"Checking for PS: {ps}")
 
         if updates and ps in DELAYED_PS and to_sleep:
-            if ps not in PS_SLEPT:
-                PS_SLEPT.add(ps)
-                await asyncio.sleep(10 * 60)
-                return await update_subs(get_updates)
-            else:
-                PS_SLEPT.remove(ps)
+            await asyncio.sleep(10 * 60)
+            return await update_subs(get_updates, to_sleep=False)
 
         for url, new_chapters in updates.items():
             if url not in subs:
