@@ -389,7 +389,7 @@ async def update_subs(get_updates=get_new_updates, to_sleep=True):
                                 ch_url, filename, file_mode, file_pass=file_pass
                             )
 
-                        elif ps == "Mangabuddy":
+                        elif ps in ["Mangabuddy", "Comick"]:
                             chapter_file = await IManga.dl_chapter(
                                 ch_url, filename, file_mode, file_pass=file_pass
                             )
