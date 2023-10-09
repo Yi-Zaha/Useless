@@ -86,6 +86,8 @@ class PSDB(DB):
             extra["file_mode"] = file_mode
         if custom_filename:
             extra["custom_filename"] = custom_filename
+        if custom_caption:
+            extra["custom_caption"] = custom_caption
         if thumb_url:
             extra["custom_thumb"] = thumb_url
         if file_pass:
