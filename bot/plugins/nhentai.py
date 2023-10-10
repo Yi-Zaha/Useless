@@ -206,7 +206,7 @@ async def doujins_nhentai(client, message):
     text = message.text.split(" ", 1)[1]
     if pages_range := re.search(r"-pages.(\d+)", text):
         text = text.replace(pages_range.group(), "")
-        pages_range = int(pages_range.group(1)) + 1
+        pages_range = int(pages_range.group(1))
         pages = list(range(1, pages_range)) or [1]
     else:
         pages = [1]
@@ -246,7 +246,8 @@ async def doujins_nhentai(client, message):
         doujins_count = len(doujins)
 
         if doujins_count == 0:
-            return await status.edit("No doujins found from URL.")
+            await status.edit(f"No doujins found from URL (Page {page}).")
+            continue
 
         if to_reverse:
             doujins.reverse()
