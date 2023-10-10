@@ -207,6 +207,7 @@ async def doujins_nhentai(client, message):
     if pages_range := re.search(r"-pages.(\d+)", text):
         text = text.replace(pages_range.group(), "")
         pages_range = int(pages_range.group(1))
+        pages = list(range(pages_range, start=1))
     else:
         pages_range = 1
 
@@ -234,10 +235,12 @@ async def doujins_nhentai(client, message):
         )
     if pid not in BULK_PROCESS:
         BULK_PROCESS.add(pid)
+    if to_reverse:
+        pages.reverse()
 
     status = await message.reply("Processing... Please wait.")
 
-    for page in range(pages_range):
+    for page in pages:
         page += 1
         doujins = await Nhentai.doujins_from_url(f"{url}?page={page}")
         doujins_count = len(doujins)
