@@ -111,6 +111,8 @@ class _BASE:
                 chapter = None
 
                 for item in data["chapters"]:
+                    if not item["group_name"]:
+                        break
                     for group in item["group_name"]:
                         if "official" in group.lower():
                             chapter = item
