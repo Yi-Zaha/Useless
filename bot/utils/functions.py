@@ -365,7 +365,7 @@ def _wrap(client):
 
 _wrap(bot)
 if bot.user:
-    _wrap(bot.user)
+    _wrap(bot.ub)
 
 
 async def restart_bot():

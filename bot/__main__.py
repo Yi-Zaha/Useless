@@ -13,12 +13,15 @@ from bot.utils.db import dB
 async def start_clients():
     LOGS.info("Initializing clients...")
     await bot.start()
-    if bot.user:
-        await bot.user.start()
+    if bot.ub:
+        await bot.ub.start()
 
     await bot.send_message(LOG_CHAT, "BOT IS ONLINE!")
-    if bot.user:
-        await bot.user.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
+    if bot.ub:
+        try:
+            await bot.ub.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
+        except:
+            await bot.send_message(LOG_CHAT, "USERBOT IS ONLINE!")
 
 
 async def stop_clients(stop=True):
@@ -26,10 +29,13 @@ async def stop_clients(stop=True):
     await bot.send_message(LOG_CHAT, "BOT IS GOING OFFLINE.")
     with suppress(Exception):
         await bot.stop()
-    if bot.user:
-        await bot.user.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
+    if bot.ub:
+        try:
+            await bot.ub.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
+        except:
+            await bot.send_message(LOG_CHAT, "USERBOT IS GOING OFFLINE.")
         with suppress(Exception):
-            await bot.user.stop()
+            await bot.ub.stop()
 
 
 async def main():

@@ -37,7 +37,7 @@ if Config.UB and Config.UB_SESSION:
     Conversation(uB)
 
 
-bot.user = uB
+bot.ub = uB
 LOGS = LOGGER("UselessBot")
 StartTime = time.time()
 LOG_CHAT = Config.get("LOG_CHAT", -1001568226560)
