@@ -364,7 +364,7 @@ def _wrap(client):
 
 
 _wrap(bot)
-if bot.user:
+if bot.ub:
     _wrap(bot.ub)
 
 
