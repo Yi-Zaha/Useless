@@ -210,7 +210,7 @@ async def doujins_nhentai(client, message):
         pages = list(range(1, pages_range)) or [1]
     else:
         pages = [1]
-    
+
     flags = ("-en", "-wt", "-reverse")
     en, no_graph, to_reverse = (flag in text for flag in flags)
     for flag in flags:
