@@ -16,7 +16,7 @@ bot = Client(
     api_hash=Config.API_HASH,
     bot_token=Config.BOT_TOKEN,
     plugins=dict(root="bot.plugins"),
-    ipv6=Config.USE_IPV6,
+    ipv6=bool(Config.USE_IPV6),
     max_concurrent_transmissions=3,
     workers=32,
 )
@@ -29,7 +29,8 @@ if Config.UB and Config.UB_SESSION:
         api_id=Config.API_ID,
         api_hash=Config.API_HASH,
         session_string=Config.UB_SESSION,
-        ipv6=Config.USE_IPV6,
+        no_updates=bool(Config.NO_UB_UPDATES),
+        ipv6=bool(Config.USE_IPV6),
         max_concurrent_transmissions=3,
         workers=32,
     )
