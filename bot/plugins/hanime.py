@@ -79,7 +79,7 @@ async def hanime_info(client, callback):
         f"<b>Studio→</b> {brand}\n"
         f"<b>Genres→</b> {tags}"
     )
-
+    
     if description and len(description) < 600:
         caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     elif description:
@@ -92,7 +92,7 @@ async def hanime_info(client, callback):
         resolution = f"{item['height']}p"
         url = item["url"]
         if url:
-            buttons.append(InlineKeyboardButton(resolution, url=url))
+            buttons.append(InlineKeyboardButton(resolution, url=f"{API_URL}/play?link={url}"))
     buttons = split_list(buttons, 2)
 
     try:
