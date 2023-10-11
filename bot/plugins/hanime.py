@@ -71,7 +71,6 @@ async def hanime_info(client, callback):
     brand = result["brand"]
     tags = ", ".join(sorted(result["tags"]))
     description = result["description"]
-    description = f"<a href='{description_id}'><b>Synopsis</b></a>"
     poster_url = result["poster"]
 
     caption = (
@@ -80,12 +79,13 @@ async def hanime_info(client, callback):
         f"<b>Studio→</b> {brand}\n"
         f"<b>Genres→</b> {tags}"
     )
-
+    
     if description and len(description) < 600:
         caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     elif description:
         synopsis_url = await post_to_telegraph(name, description)
-        caption += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'>Click Here</a>"
+        if synopsis_url:
+            caption += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'>Click Here</a>"
 
     buttons = []
     for item in reversed(result["streams"]):
