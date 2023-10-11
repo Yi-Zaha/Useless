@@ -7,7 +7,7 @@ from bot import bot
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import post_to_telegraph, split_list
 
-API_URL = "https://hanime-tv-api-tau.vercel.app"
+API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
 
 
 @bot.on_message(filters.command("hentai"))
@@ -70,33 +70,37 @@ async def hanime_info(client, callback):
     censor = "Censored" if result["is_censored"] else "Uncensored"
     brand = result["brand"]
     tags = ", ".join(sorted(result["tags"]))
-    description_id = await post_to_telegraph(name, result["description"] or "N/A")
+    description = result["description"]
     description = f"<a href='{description_id}'><b>Synopsis</b></a>"
     poster_url = result["poster"]
 
     caption = (
-        f"<b>{name}</b> [{censor}]\n\n"
-        f"<b>››Release Date</b>: <i>{release_date}</i>\n"
-        f"<b>››Studio</b>: <i>{brand}</i>\n"
-        f"<b>››Genres</b>: <i>{tags}</i>\n\n"
-        f"{description}"
+        f"<b>{name}</b> ({censor})\n\n"
+        f"<b>Release Date→</b> {release_date}\n"
+        f"<b>Studio→</b> {brand}\n"
+        f"<b>Genres→</b> {tags}"
     )
+    
+    if description and len(description) < 600:
+        caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
+    elif description:
+        synopsis_url = await post_to_telegraph(name, description)
+        caption += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'>Click Here</a>"
 
-    button = [
-        InlineKeyboardButton(
-            "Watch",
-            f"hanimelinks_{hanime_id}"
-            if not btn_user
-            else f"hanimelinks_{btn_user}_{hanime_id}",
-        )
-    ]
+    buttons = []
+    for item in reversed(result["streams"]):
+        resolution = f"{item['height']}p"
+        url = item["url"]
+        if url:
+            buttons.append(InlineKeyboardButton(resolution, url=url))
+    buttons = split_list(buttons, 2)
 
     try:
         await client.send_photo(
             callback.message.chat.id,
             poster_url,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup([button]),
+            reply_markup=InlineKeyboardMarkup([buttons]),
         )
     except BaseException:
         file = (await AioHttp.download(poster_url))[0]
@@ -104,7 +108,7 @@ async def hanime_info(client, callback):
             callback.message.chat.id,
             file,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup([button]),
+            reply_markup=InlineKeyboardMarkup([buttons]),
         )
         os.remove(file)
 
