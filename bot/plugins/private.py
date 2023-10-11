@@ -146,8 +146,9 @@ async def pm_handler(client, message):
             f"<b>›› Profile Link →</b> {profile_link}"
         )
         await client.send_message(LOG_CHAT, message)
-    
+
     return message.continue_propagation()
+
 
 no_forward_cmds = ["start"]
 
