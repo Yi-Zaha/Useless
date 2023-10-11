@@ -13,7 +13,7 @@ from bot.utils.aiohttp_helper import AioHttp
 async def anime_search(client, message):
     if message.from_user and message.from_user.id not in SUDOS:
         return
-    
+
     if len(message.command) == 1:
         return await message.reply("What should I do? Give me a query to search for.")
 
