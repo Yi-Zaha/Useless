@@ -33,6 +33,3 @@ jobs:
         with:
           commit_message: 'Auto-Formatted Code'
           commit_options: '--no-verify --signoff'
-          commit_user_name: Yi-Zaha
-          commit_user_email: 136574884+Yi-Zaha@users.noreply.github.com
-          commit_author: Yi-Zaha <136574884+Yi-Zaha@users.noreply.github.com>
