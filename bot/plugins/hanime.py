@@ -79,7 +79,7 @@ async def hanime_info(client, callback):
         f"<b>Studio→</b> {brand}\n"
         f"<b>Genres→</b> {tags}"
     )
-    
+
     if description and len(description) < 600:
         caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     elif description:
