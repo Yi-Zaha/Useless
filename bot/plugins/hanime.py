@@ -93,14 +93,13 @@ async def hanime_info(client, callback):
         url = item["url"]
         if url:
             buttons.append(InlineKeyboardButton(resolution, url=url))
-    buttons = split_list(buttons, 2)
 
     try:
         await client.send_photo(
             callback.message.chat.id,
             poster_url,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup(buttons),
+            reply_markup=InlineKeyboardMarkup([buttons]),
         )
     except BaseException:
         file = (await AioHttp.download(poster_url))[0]
@@ -108,7 +107,7 @@ async def hanime_info(client, callback):
             callback.message.chat.id,
             file,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup(buttons),
+            reply_markup=InlineKeyboardMarkup([buttons]),
         )
         os.remove(file)
 
