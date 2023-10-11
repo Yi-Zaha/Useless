@@ -79,7 +79,7 @@ async def hanime_info(client, callback):
         f"<b>Studio→</b> {brand}\n"
         f"<b>Genres→</b> {tags}"
     )
-
+    
     if description and len(description) < 600:
         caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     elif description:
@@ -100,7 +100,7 @@ async def hanime_info(client, callback):
             callback.message.chat.id,
             poster_url,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup([buttons]),
+            reply_markup=InlineKeyboardMarkup(buttons),
         )
     except BaseException:
         file = (await AioHttp.download(poster_url))[0]
@@ -108,7 +108,7 @@ async def hanime_info(client, callback):
             callback.message.chat.id,
             file,
             caption=caption,
-            reply_markup=InlineKeyboardMarkup([buttons]),
+            reply_markup=InlineKeyboardMarkup(buttons),
         )
         os.remove(file)
 
