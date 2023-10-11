@@ -6,7 +6,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Update the package list and install required packages
 RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends mediainfo ffmpeg aria2 && \
+    apt-get install -y --no-install-recommends mediainfo ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the master branch from our repository

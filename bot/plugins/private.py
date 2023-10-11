@@ -130,7 +130,7 @@ async def pm_start(client, message):
     await status.edit_text(start_text, reply_markup=reply_markup)
 
 
-@bot.on_message(filters.private & filters.incoming, group=-1)
+@bot.on_message(filters.private & filters.incoming)
 async def pm_handler(client, message):
     user = message.from_user
 
@@ -146,16 +146,18 @@ async def pm_handler(client, message):
             f"<b>›› Profile Link →</b> {profile_link}"
         )
         await client.send_message(LOG_CHAT, message)
-
+    
+    return message.continue_propagation()
 
 no_forward_cmds = ["start"]
 
 
-@bot.on_message(filters.private & filters.incoming & ~filters.user(SUDOS), group=1)
+@bot.on_message(filters.private & filters.incoming & ~filters.user(SUDOS))
 async def forwardpms_handler(_, message):
     if message.command and message.command[0] in no_forward_cmds:
         return None
     await message.forward(OWNER_ID)
+    return message.continue_propagation()
 
 
 @bot.on_message(filters.reply & filters.private & filters.user(OWNER_ID))
