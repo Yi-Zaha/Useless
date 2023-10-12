@@ -164,7 +164,7 @@ async def hanime_query(client, callback):
         poster_url = poster_url.replace(last_part, quote(last_part))
         text += f"<a href='{poster_url}'>\xad</a>"
 
-    description = result.get("description")
+    description = result.get("description", "").strip()
     if len(description) < 3500:
         text += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     else:
