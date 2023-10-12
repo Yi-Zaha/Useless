@@ -52,7 +52,7 @@ async def search_query(
         query_id, page = update.data.split(":")[1:3]
         page, button_user = int(page), update.from_user.id
         if str(button_user) not in update.data:
-            return await callback.answer(
+            return await update.answer(
                 "This button can only be used by the one who issued the command.",
                 show_alert=True,
             )
@@ -180,10 +180,10 @@ async def hanime_query(client, callback):
 
     for button in callback.message.reply_markup.inline_keyboard[-1]:
         if "Next Page" in button.text or "Previous Page" in button.text:
-            page = button.callback_data.split(":")[2]
-            back_data = button.callback_data.replace(
-                page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1)
-            )
+            splited = button.callback_data.split(":")
+            page = int(splited[2]) + 1 if "Previous" in button.text else int(splited[2]) - 1
+            splited[2] = str(page)
+            back_data = ":".join(splited)
             break
     else:
         back_data = f"hanime_s:{query_id}:0:{callback.from_user.id}"
