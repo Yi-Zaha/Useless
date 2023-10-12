@@ -62,7 +62,7 @@ async def search_query(
 
     try:
         result = await AioHttp.request(
-            f"{API_URL}/search?query={cache[query_hash]}&page=0", re_json=True
+            f"{API_URL}/search?query={cache[query_hash]}&page={page}", re_json=True
         )
         response = result["response"]
     except Exception:
@@ -100,7 +100,8 @@ async def search_query(
     next_button = InlineKeyboardButton(
         "Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}"
     )
-
+    
+    result["total_pages"] -= 1
     if page < result["total_pages"]:
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
@@ -176,8 +177,8 @@ async def hanime_query(client, callback):
     ]
     buttons = [buttons]
 
-    for button in callback.message.reply_markup.inline_keyboard[:-1]:
-        if "Next Page" in button.text or "Previous Page":
+    for button in callback.message.reply_markup.inline_keyboard[-1]:
+        if "Next Page" in button.text or "Previous Page" or button.text:
             back_data = button.callback_data.replace(
                 page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1)
             )
