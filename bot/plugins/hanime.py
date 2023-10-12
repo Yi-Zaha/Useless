@@ -181,7 +181,11 @@ async def hanime_query(client, callback):
     for button in callback.message.reply_markup.inline_keyboard[-1]:
         if "Next Page" in button.text or "Previous Page" in button.text:
             splited = button.callback_data.split(":")
-            page = int(splited[2]) + 1 if "Previous" in button.text else int(splited[2]) - 1
+            page = (
+                int(splited[2]) + 1
+                if "Previous" in button.text
+                else int(splited[2]) - 1
+            )
             splited[2] = str(page)
             back_data = ":".join(splited)
             break
