@@ -6,6 +6,7 @@ from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import bot
+from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import post_to_telegraph
 
