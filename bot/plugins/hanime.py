@@ -165,15 +165,15 @@ async def hanime_query(client, callback):
         poster_url = poster_url.replace(last_part, quote(last_part))
         text += f"<a href='{poster_url}'>\xad</a>"
 
-    description = BeautifulSoup(result.get("description", ""), "html.parser").text.strip()
+    description = BeautifulSoup(
+        result.get("description", ""), "html.parser"
+    ).text.strip()
     if len(description) < 3500:
         text += f"\n<b>Synopsis→</b> <i>{description}</i>"
     else:
         synopsis_url = await post_to_telegraph(name, description)
         if synopsis_url:
-            text += (
-                f"\n<b>Synopsis→</b> <a href='{synopsis_url}'><i>Read Here</i></a>"
-            )
+            text += f"\n<b>Synopsis→</b> <a href='{synopsis_url}'><i>Read Here</i></a>"
 
     buttons = [
         InlineKeyboardButton(f'{stream["height"]}p', url=stream["url"])
