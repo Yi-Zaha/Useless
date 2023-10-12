@@ -1,4 +1,3 @@
-
 import asyncio
 import textwrap
 from urllib.parse import quote
@@ -8,10 +7,11 @@ from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarku
 
 from bot import bot
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import post_to_telegraph, split_list
+from bot.utils.functions import post_to_telegraph
 
 API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
 cache = {}
+
 
 @bot.on_message(filters.command("hentai"))
 async def search_handler(client, message):
@@ -33,10 +33,13 @@ async def search_handler(client, message):
     else:
         query = " ".join(message.command[1:])
         status = await message.reply("Searching...")
-    
+
     query_hash = str(hash(query))
     cache[query_hash] = query
-    await search_query(client, message, query_hash=query_hash, page=0, button_user=message.from_user.id)
+    await search_query(
+        client, message, query_hash=query_hash, page=0, button_user=message.from_user.id
+    )
+
 
 @bot.on_callback_query(filters.regex(r"^hanime_s:.*"))
 async def search_query(client, update, query_hash=None, page=0, button_user=None):
@@ -55,29 +58,40 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         return
 
     if not response:
-        text = "No results found for the given query." if page < 1 else "No further results are available!"
+        text = (
+            "No results found for the given query."
+            if page < 1
+            else "No further results are available!"
+        )
         await update.answer(text, show_alert=True)
         return
 
     buttons = [
         [
             InlineKeyboardButton(
-                data["name"],
-                f'hanime_i:{data["id"]}:{query_hash}:{button_user}'
+                data["name"], f'hanime_i:{data["id"]}:{query_hash}:{button_user}'
             )
         ]
         for data in response
     ]
 
-    prev_button = InlineKeyboardButton("⟨ Previous Page", f"hanime_s:{query_hash}:{page - 1}:{button_user}")
-    next_button = InlineKeyboardButton("Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}")
-    
+    prev_button = InlineKeyboardButton(
+        "⟨ Previous Page", f"hanime_s:{query_hash}:{page - 1}:{button_user}"
+    )
+    next_button = InlineKeyboardButton(
+        "Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}"
+    )
+
     if page < result["total_pages"]:
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
 
-    await update.edit_message_text(f"Search results for <code>{cache[query_hash]}</code>.", reply_markup=InlineKeyboardMarkup(buttons))
+    await update.edit_message_text(
+        f"Search results for <code>{cache[query_hash]}</code>.",
+        reply_markup=InlineKeyboardMarkup(buttons),
+    )
+
 
 @bot.on_callback_query(filters.regex(r"^hanime_i:.*"))
 async def hanime_query(client, callback):
@@ -94,13 +108,15 @@ async def hanime_query(client, callback):
         )
         name = result.get("name")
     except Exception:
-        await callback.answer("Sorry, there was an error parsing response from the API. Please try again later!")
+        await callback.answer(
+            "Sorry, there was an error parsing response from the API. Please try again later!"
+        )
         return
 
     text = textwrap.dedent(
         f"""
         <b>{name}</b>
-        
+
         <b>Type→</b> {"Censored" if result["is_censored"] else "Uncensored"}
         <b>Released→</b> {result["released_date"].replace(" ", "-")}
         <b>Brand→</b> {result["brand"]}
@@ -120,7 +136,9 @@ async def hanime_query(client, callback):
     else:
         synopsis_url = await post_to_telegraph(name, description)
         if synopsis_url:
-            text += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'><i>Read Here</i></a>"
+            text += (
+                f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'><i>Read Here</i></a>"
+            )
 
     buttons = [
         InlineKeyboardButton(f'{stream["height"]}p', stream["url"])
@@ -131,13 +149,16 @@ async def hanime_query(client, callback):
 
     for button in callback.message.reply_markup.inline_keyboard[:-1]:
         if "Next Page" in button.text or "Previous Page":
-            back_data = button.callback_data.replace(page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1))
+            back_data = button.callback_data.replace(
+                page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1)
+            )
             break
     else:
         back_data = f"hanime_s:{query_hash}:0:{callback.from_user.id}"
 
     buttons.append([InlineKeyboardButton("⟨ Back", back_data)])
     await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+
 
 @bot.on_callback_query(filters.regex(r"^close$"))
 async def close_query(client, callback):
