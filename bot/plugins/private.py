@@ -139,15 +139,15 @@ async def pm_handler(client, message):
         name = user.first_name + " " + (user.last_name or "").strip()
         username = "@" + user.username if user.username else "N/A"
         profile_link = f"[Click Here](tg://user?id={user.id})"
-        message = (
+        text = (
             "<b>Someone Started Me❗</b>\n\n"
             f"<b>›› Name →</b> <code>{name}</code>\n"
             f"<b>›› Username →</b> <code>{username}</code>\n"
             f"<b>›› Profile Link →</b> {profile_link}"
         )
-        await client.send_message(LOG_CHAT, message)
+        await client.send_message(LOG_CHAT, text)
 
-    return message.continue_propagation()
+    message.continue_propagation()
 
 
 no_forward_cmds = ["start"]
@@ -158,7 +158,7 @@ async def forwardpms_handler(_, message):
     if message.command and message.command[0] in no_forward_cmds:
         return None
     await message.forward(OWNER_ID)
-    return message.continue_propagation()
+    message.continue_propagation()
 
 
 @bot.on_message(filters.reply & filters.private & filters.user(OWNER_ID))
@@ -198,7 +198,7 @@ async def reply_to_pms(client, message):
     except Exception as e:
         LOGGER(__name__).error(f"Got Error while replying to a pm: {e}", exc_info=True)
 
-    return message.continue_propagation()
+    message.continue_propagation()
 
 
 @bot.on_message(filters.command("storefiles") & filters.user(SUDOS))
