@@ -1,149 +1,143 @@
-import os
+
+import asyncio
+import textwrap
+from urllib.parse import quote
 
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import bot
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import post_to_telegraph, split_list
 
 API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
-
+cache = {}
 
 @bot.on_message(filters.command("hentai"))
-async def search_hentai(client, message):
+async def search_handler(client, message):
     if len(message.command) == 1:
-        return await message.reply("What should I do? Give me a query to search for.")
+        status = await message.reply(
+            "Tell me the query you want to search for.", reply_markup=ForceReply()
+        )
+        try:
+            query_message = await client.listen.Message(
+                filters.user(message.from_user.id) & filters.text & non_command_filter,
+                timeout=60,
+            )
+        except asyncio.TimeoutError:
+            return await status.edit(
+                "The command has been cancelled since you were late in responding."
+            )
+        query = query_message.text.strip()
+        status = await query_message.reply("Searching...")
+    else:
+        query = " ".join(message.command[1:])
+        status = await message.reply("Searching...")
+    
+    query_hash = str(hash(query))
+    cache[query_hash] = query
+    await search_query(client, message, query_hash=query_hash, page=0, button_user=message.from_user.id)
 
-    query = " ".join(message.command[1:])
+@bot.on_callback_query(filters.regex(r"^hanime_s:.*"))
+async def search_query(client, update, query_hash=None, page=0, button_user=None):
+    if query_hash not in cache:
+        await update.answer("Sorry, the bot restarted! Please redo the command.")
+        return
 
     try:
         result = await AioHttp.request(
-            f"{API_URL}/search?query={query}&page=0", re_json=True
+            f"{API_URL}/search?query={cache[query_hash]}&page=0", re_json=True
         )
-        assert result["response"]
+        response = result["response"]
     except Exception:
-        return await message.reply("No result found for the given query.")
+        text = "Sorry, there was an error parsing response from the API. Please try again later!"
+        await update.answer(text, show_alert=True)
+        return
+
+    if not response:
+        text = "No results found for the given query." if page < 1 else "No further results are available!"
+        await update.answer(text, show_alert=True)
+        return
 
     buttons = [
         [
             InlineKeyboardButton(
-                res["name"],
-                f"hanime_{res['id']}"
-                if not message.from_user
-                else f"hanime_{message.from_user.id}_{res['id']}",
+                data["name"],
+                f'hanime_i:{data["id"]}:{query_hash}:{button_user}'
             )
         ]
-        for res in result["response"]
+        for data in response
     ]
 
-    await message.reply(
-        f"Search results for `{query}`.", reply_markup=InlineKeyboardMarkup(buttons)
-    )
+    prev_button = InlineKeyboardButton("⟨ Previous Page", f"hanime_s:{query_hash}:{page - 1}:{button_user}")
+    next_button = InlineKeyboardButton("Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}")
+    
+    if page < result["total_pages"]:
+        buttons.append([prev_button, next_button] if page > 0 else [next_button])
+    elif page == result["total_pages"] and page > 0:
+        buttons.append([prev_button])
 
+    await update.edit_message_text(f"Search results for <code>{cache[query_hash]}</code>.", reply_markup=InlineKeyboardMarkup(buttons)
 
-@bot.on_callback_query(filters.regex(r"^hanime_(.*)"))
-async def hanime_info(client, callback):
-    splited = callback.data.split("_")
-    hanime_id = splited[-1]
-    btn_user = None
-
-    if len(splited) == 3:
-        btn_user = int(splited[1])
-        if btn_user != callback.from_user.id:
-            return await callback.answer(
-                "Sorry, this button is not for you.", show_alert=True
-            )
+@bot.on_callback_query(filters.regex(r"^hanime_i:.*"))
+async def hanime_query(client, callback):
+    hanime_id, query_hash = callback.data.split(":")[1:3]
+    if str(callback.from_user.id) not in callback.data:
+        return await callback.answer(
+            "This button can only be used by the one who issued the command.",
+            show_alert=True,
+        )
 
     try:
         result = await AioHttp.request(
             f"{API_URL}/details?id={hanime_id}", re_json=True
         )
-        assert result["name"]
+        name = result.get("name")
     except Exception:
-        return await callback.answer(
-            "An error occurred. Please try again later!", show_alert=True
-        )
+        await callback.answer("Sorry, there was an error parsing response from the API. Please try again later!")
+        return
 
-    name = result["name"]
-    release_date = result["released_date"].replace(" ", "-")
-    censor = "Censored" if result["is_censored"] else "Uncensored"
-    brand = result["brand"]
-    tags = ", ".join(sorted(result["tags"]))
-    description = result["description"]
-    poster_url = result["poster"]
-
-    caption = (
-        f"<b>{name}</b> ({censor})\n\n"
-        f"<b>Release Date→</b> {release_date}\n"
-        f"<b>Studio→</b> {brand}\n"
-        f"<b>Genres→</b> {tags}"
+    text = textwrap.dedent(
+        f"""
+        <b>{name}</b>
+        
+        <b>Type→</b> {"Censored" if result["is_censored"] else "Uncensored"}
+        <b>Released→</b> {result["released_date"].replace(" ", "-")}
+        <b>Brand→</b> {result["brand"]}
+        <b>Tags→</b> {", ".join(sorted(result["tags"]))}
+        """
     )
 
-    if description and len(description) < 600:
-        caption += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
-    elif description:
+    poster_url = result.get("poster")
+    if poster_url:
+        last_part = poster_url.split("/")[-1]
+        poster_url = poster_url.replace(last_part, quote(last_part))
+        text += f"<a href='{poster_url}'>\xad</a>"
+
+    description = result.get("description")
+    if len(description) < 3500:
+        text += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
+    else:
         synopsis_url = await post_to_telegraph(name, description)
         if synopsis_url:
-            caption += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'>Click Here</a>"
+            text += f"\n\n<b>Synopsis→</b> <a href='{synopsis_url}'><i>Read Here</i></a>"
 
-    buttons = []
-    for item in reversed(result["streams"]):
-        resolution = f"{item['height']}p"
-        url = item["url"]
-        if url:
-            buttons.append(InlineKeyboardButton(resolution, url=url))
+    buttons = [
+        InlineKeyboardButton(f'{stream["height"]}p', stream["url"])
+        for stream in result["streams"]
+        if stream["url"]
+    ]
+    buttons = [buttons]
 
-    try:
-        await client.send_photo(
-            callback.message.chat.id,
-            poster_url,
-            caption=caption,
-            reply_markup=InlineKeyboardMarkup([buttons]),
-        )
-    except BaseException:
-        file = (await AioHttp.download(poster_url))[0]
-        await client.send_photo(
-            callback.message.chat.id,
-            file,
-            caption=caption,
-            reply_markup=InlineKeyboardMarkup([buttons]),
-        )
-        os.remove(file)
+    for button in callback.message.reply_markup.inline_keyboard[:-1]:
+        if "Next Page" in button.text or "Previous Page":
+            back_data = button.callback_data.replace(page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1))
+            break
+    else:
+        back_data = f"hanime_s:{query_hash}:0:{callback.from_user.id}"
 
-    await callback.answer()
-
-
-@bot.on_callback_query(filters.regex(r"^hanimelinks_(.*)"))
-async def hanime_links(client, callback):
-    splited = callback.data.split("_")
-    hanime_id = splited[-1]
-
-    if len(splited) == 3:
-        btn_user = int(splited[1])
-        if btn_user != callback.from_user.id:
-            return await callback.answer(
-                "Sorry, this button is not for you.", show_alert=True
-            )
-
-    try:
-        result = await AioHttp.request(f"{API_URL}/link?id={hanime_id}", re_json=True)
-        assert result["data"]
-    except Exception:
-        return await callback.answer(
-            "An error occurred. Please try again later!", show_alert=True
-        )
-
-    buttons = []
-    for item in reversed(result["data"]):
-        resolution = f"{item['height']}p"
-        url = item["url"]
-        if url:
-            buttons.append(InlineKeyboardButton(resolution, url=url))
-    buttons = split_list(buttons, 2)
-    await callback.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
-    await callback.answer()
-
+    buttons.append([InlineKeyboardButton("⟨ Back", back_data)])
+    await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
 @bot.on_callback_query(filters.regex(r"^close$"))
 async def close_query(client, callback):
