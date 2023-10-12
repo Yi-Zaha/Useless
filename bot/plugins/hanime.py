@@ -77,7 +77,7 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
 
-    await update.edit_message_text(f"Search results for <code>{cache[query_hash]}</code>.", reply_markup=InlineKeyboardMarkup(buttons)
+    await update.edit_message_text(f"Search results for <code>{cache[query_hash]}</code>.", reply_markup=InlineKeyboardMarkup(buttons))
 
 @bot.on_callback_query(filters.regex(r"^hanime_i:.*"))
 async def hanime_query(client, callback):
