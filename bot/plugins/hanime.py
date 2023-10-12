@@ -2,7 +2,7 @@ import asyncio
 import textwrap
 from urllib.parse import quote
 
-from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -165,7 +165,9 @@ async def hanime_query(client, callback):
         poster_url = poster_url.replace(last_part, quote(last_part))
         text += f"<a href='{poster_url}'>\xad</a>"
 
-    description = BeautifulSoup(result.get("description", ""), "html.parser").text.strip()
+    description = BeautifulSoup(
+        result.get("description", ""), "html.parser"
+    ).text.strip()
     if len(description) < 3500:
         text += f"\n\n<b>Synopsis→</b> <i>{description}</i>"
     else:
