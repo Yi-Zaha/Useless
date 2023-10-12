@@ -38,7 +38,7 @@ async def search_handler(client, message):
     query_hash = str(hash(query))
     cache[query_hash] = query
     await search_query(
-        client, message, query_hash=query_hash, page=0, button_user=message.from_user.id
+        client, status, query_hash=query_hash, page=0, button_user=message.from_user.id
     )
 
 
