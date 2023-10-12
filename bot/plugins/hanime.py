@@ -100,7 +100,7 @@ async def search_query(
     next_button = InlineKeyboardButton(
         "Next Page ⟩", f"hanime_s:{query_id}:{page + 1}:{button_user}"
     )
-    
+
     result["total_pages"] -= 1
     if page < result["total_pages"]:
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
