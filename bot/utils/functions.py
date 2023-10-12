@@ -5,6 +5,8 @@ import logging
 import multiprocessing
 import os
 import sys
+import random
+import string
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
 from urllib.parse import urljoin, urlparse
@@ -64,8 +66,8 @@ def b64_decode(base64_string):
 
 
 def get_random_id():
-    unique_id = os.urandom(24)
-    return base64.urlsafe_b64encode(unique_id).decode("ascii").rstrip("=")
+    alphabet = string.ascii_lowercase + string.digits
+    return ''.join(random.choices(alphabet, k=9))
 
 
 def is_url(url: str) -> bool:

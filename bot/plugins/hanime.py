@@ -8,7 +8,7 @@ from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarku
 from bot import bot
 from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import post_to_telegraph
+from bot.utils.functions import get_random_id, post_to_telegraph
 
 API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
 cache = {}
@@ -35,20 +35,20 @@ async def search_handler(client, message):
         query = " ".join(message.command[1:])
         status = await message.reply("Searching...")
 
-    query_hash = str(hash(query))
-    cache[query_hash] = query
+    query_id = get_random_id()
+    cache[query_id] = query
     await search_query(
-        client, status, query_hash=query_hash, page=0, button_user=message.from_user.id
+        client, status, query_id=query_id, page=0, button_user=message.from_user.id
     )
 
 
 @bot.on_callback_query(filters.regex(r"^hanime_s:.*"))
 async def search_query(
-    client, update, query_hash=None, page=0, button_user=None, cb=False
+    client, update, query_id=None, page=0, button_user=None, cb=False
 ):
-    if not query_hash:
+    if not query_id:
         cb = True
-        query_hash, page = update.data.split(":")[1:3]
+        query_id, page = update.data.split(":")[1:3]
         page, button_user = int(page), update.from_user.id
         if str(button_user) not in update.data:
             return await callback.answer(
@@ -56,13 +56,13 @@ async def search_query(
                 show_alert=True,
             )
 
-    if query_hash not in cache:
+    if query_id not in cache:
         await update.answer("Sorry, the bot restarted! Please redo the command.")
         return
 
     try:
         result = await AioHttp.request(
-            f"{API_URL}/search?query={cache[query_hash]}&page={page}", re_json=True
+            f"{API_URL}/search?query={cache[query_id]}&page={page}", re_json=True
         )
         response = result["response"]
     except Exception:
@@ -88,19 +88,19 @@ async def search_query(
     buttons = [
         [
             InlineKeyboardButton(
-                data["name"], f'hanime_i:{data["id"]}:{query_hash}:{button_user}'
+                data["name"], f'hanime_i:{data["id"]}:{query_id}:{button_user}'
             )
         ]
         for data in response
     ]
 
     prev_button = InlineKeyboardButton(
-        "⟨ Previous Page", f"hanime_s:{query_hash}:{page - 1}:{button_user}"
+        "⟨ Previous Page", f"hanime_s:{query_id}:{page - 1}:{button_user}"
     )
     next_button = InlineKeyboardButton(
-        "Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}"
+        "Next Page ⟩", f"hanime_s:{query_id}:{page + 1}:{button_user}"
     )
-
+    
     result["total_pages"] -= 1
     if page < result["total_pages"]:
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
@@ -109,19 +109,19 @@ async def search_query(
 
     if cb:
         await update.edit_message_text(
-            f"Search results for <code>{cache[query_hash]}</code>.",
+            f"Search results for <code>{cache[query_id]}</code>.",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
     else:
         await update.edit_text(
-            f"Search results for <code>{cache[query_hash]}</code>.",
+            f"Search results for <code>{cache[query_id]}</code>.",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
 
 
 @bot.on_callback_query(filters.regex(r"^hanime_i:.*"))
 async def hanime_query(client, callback):
-    hanime_id, query_hash = callback.data.split(":")[1:3]
+    hanime_id, query_id = callback.data.split(":")[1:3]
     if str(callback.from_user.id) not in callback.data:
         return await callback.answer(
             "This button can only be used by the one who issued the command.",
@@ -185,7 +185,7 @@ async def hanime_query(client, callback):
             )
             break
     else:
-        back_data = f"hanime_s:{query_hash}:0:{callback.from_user.id}"
+        back_data = f"hanime_s:{query_id}:0:{callback.from_user.id}"
 
     buttons.append([InlineKeyboardButton("⟨ Back", back_data)])
     await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
