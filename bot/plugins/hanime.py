@@ -134,7 +134,7 @@ async def hanime_query(client, callback):
 
     try:
         result = await AioHttp.request(
-                f"{API_URL}/details?id={hanime_id}", re_json=True
+            f"{API_URL}/details?id={hanime_id}", re_json=True
         )
         name = result["name"]
     except Exception:
