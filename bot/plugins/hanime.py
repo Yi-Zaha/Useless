@@ -57,7 +57,7 @@ async def search_query(
             )
 
     if query_id not in cache:
-        await update.answer("Sorry, the bot restarted! Please redo the command.")
+        await update.answer("Sorry, the bot restarted! Please redo the command.", show_alert=True)
         return
 
     try:
@@ -139,7 +139,8 @@ async def hanime_query(client, callback):
         name = result["name"]
     except Exception:
         await callback.answer(
-            "Sorry, there was an error parsing response from the API. Please try again later!"
+            "Sorry, there was an error parsing response from the API. Please try again later!",
+            show_alert=True,
         )
         return
 
