@@ -1,7 +1,5 @@
 import asyncio
 import textwrap
-from contextlib import suppress 
-from urllib.parse import qote
 
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
