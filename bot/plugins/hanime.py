@@ -100,7 +100,7 @@ async def search_query(
     next_button = InlineKeyboardButton(
         "Next Page ⟩", f"hanime_s:{query_hash}:{page + 1}:{button_user}"
     )
-
+    
     result["total_pages"] -= 1
     if page < result["total_pages"]:
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
@@ -178,7 +178,8 @@ async def hanime_query(client, callback):
     buttons = [buttons]
 
     for button in callback.message.reply_markup.inline_keyboard[-1]:
-        if "Next Page" in button.text or "Previous Page" or button.text:
+        if "Next Page" in button.text or "Previous Page" in button.text:
+            page = button.callback_data.split(":")[2]
             back_data = button.callback_data.replace(
                 page, str(int(page) + 1 if "Previous" in button.text else int(page) - 1)
             )
