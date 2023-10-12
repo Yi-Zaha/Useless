@@ -87,11 +87,17 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
-
-    await update.edit_message_text(
-        f"Search results for <code>{cache[query_hash]}</code>.",
-        reply_markup=InlineKeyboardMarkup(buttons),
-    )
+    
+    if cb:
+        await update.edit_message_text(
+            f"Search results for <code>{cache[query_hash]}</code>.",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+    else:
+        await update.edit_text(
+            f"Search results for <code>{cache[query_hash]}</code>.",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
 
 
 @bot.on_callback_query(filters.regex(r"^hanime_i:.*"))
@@ -104,10 +110,14 @@ async def hanime_query(client, callback):
         )
 
     try:
-        result = await AioHttp.request(
-            f"{API_URL}/details?id={hanime_id}", re_json=True
-        )
-        name = result.get("name")
+        if hanime_id in cache:
+            result = cache[hanime_id]
+        else:
+            result = await AioHttp.request(
+                f"{API_URL}/details?id={hanime_id}", re_json=True
+            )
+            cache[hanime_id] = result
+        name = result["name"]
     except Exception:
         await callback.answer(
             "Sorry, there was an error parsing response from the API. Please try again later!"
