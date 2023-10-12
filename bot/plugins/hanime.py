@@ -133,13 +133,9 @@ async def hanime_query(client, callback):
         )
 
     try:
-        if hanime_id in cache:
-            result = cache[hanime_id]
-        else:
-            result = await AioHttp.request(
+        result = await AioHttp.request(
                 f"{API_URL}/details?id={hanime_id}", re_json=True
-            )
-            cache[hanime_id] = result
+        )
         name = result["name"]
     except Exception:
         await callback.answer(
