@@ -43,7 +43,17 @@ async def search_handler(client, message):
 
 
 @bot.on_callback_query(filters.regex(r"^hanime_s:.*"))
-async def search_query(client, update, query_hash=None, page=0, button_user=None):
+async def search_query(client, update, query_hash=None, page=0, button_user=None, cb=False):
+    if not query_hash:
+        cb = True
+        query_hash, page = update.data.split(":")[1:3]
+        page, button_user = int(page), update.from_user.id
+        if str(button_user) not in update.data:
+            return await callback.answer(
+                "This button can only be used by the one who issued the command.",
+                show_alert=True,
+            )
+
     if query_hash not in cache:
         await update.answer("Sorry, the bot restarted! Please redo the command.")
         return
@@ -55,7 +65,10 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         response = result["response"]
     except Exception:
         text = "Sorry, there was an error parsing response from the API. Please try again later!"
-        await update.answer(text, show_alert=True)
+        if cb:
+            await update.answer(text, show_alert=True)
+        else:
+            await update.edit(text)
         return
 
     if not response:
@@ -64,7 +77,10 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
             if page < 1
             else "No further results are available!"
         )
-        await update.answer(text, show_alert=True)
+        if cb:
+            await update.answer(text, show_alert=True)
+        else:
+            await update.edit(text)
         return
 
     buttons = [
@@ -87,7 +103,7 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
-
+    
     if cb:
         await update.edit_message_text(
             f"Search results for <code>{cache[query_hash]}</code>.",
