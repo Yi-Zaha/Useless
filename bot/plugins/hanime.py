@@ -43,7 +43,9 @@ async def search_handler(client, message):
 
 
 @bot.on_callback_query(filters.regex(r"^hanime_s:.*"))
-async def search_query(client, update, query_hash=None, page=0, button_user=None, cb=False):
+async def search_query(
+    client, update, query_hash=None, page=0, button_user=None, cb=False
+):
     if not query_hash:
         cb = True
         query_hash, page = update.data.split(":")[1:3]
@@ -103,7 +105,7 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
-    
+
     if cb:
         await update.edit_message_text(
             f"Search results for <code>{cache[query_hash]}</code>.",
