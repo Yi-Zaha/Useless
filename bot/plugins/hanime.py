@@ -57,7 +57,9 @@ async def search_query(
             )
 
     if query_id not in cache:
-        await update.answer("Sorry, the bot restarted! Please redo the command.", show_alert=True)
+        await update.answer(
+            "Sorry, the bot restarted! Please redo the command.", show_alert=True
+        )
         return
 
     try:
