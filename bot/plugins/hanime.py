@@ -176,7 +176,7 @@ async def hanime_query(client, callback):
 
     buttons = [
         InlineKeyboardButton(f'{stream["height"]}p', url=stream["url"])
-        for stream in result["streams"]
+        for stream in reversed(result["streams"])
         if stream["url"]
     ]
     buttons = [buttons]
