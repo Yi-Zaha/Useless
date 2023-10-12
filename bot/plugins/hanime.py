@@ -1,6 +1,7 @@
 import asyncio
 import textwrap
-from urllib.parse import quote
+from contextlib import suppress 
+from urllib.parse import qote
 
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
@@ -110,6 +111,7 @@ async def search_query(
         buttons.append([prev_button])
 
     if cb:
+        await update.answer()
         await update.edit_message_text(
             f"Search results for <code>{cache[query_id]}</code>.",
             reply_markup=InlineKeyboardMarkup(buttons),
@@ -191,6 +193,7 @@ async def hanime_query(client, callback):
         back_data = f"hanime_s:{query_id}:0:{callback.from_user.id}"
 
     buttons.append([InlineKeyboardButton("⟨ Back ⟩", back_data)])
+    await callback.answer()
     await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
 
