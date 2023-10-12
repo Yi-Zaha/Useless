@@ -87,7 +87,7 @@ async def search_query(client, update, query_hash=None, page=0, button_user=None
         buttons.append([prev_button, next_button] if page > 0 else [next_button])
     elif page == result["total_pages"] and page > 0:
         buttons.append([prev_button])
-    
+
     if cb:
         await update.edit_message_text(
             f"Search results for <code>{cache[query_hash]}</code>.",
