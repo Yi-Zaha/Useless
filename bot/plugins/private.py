@@ -48,9 +48,9 @@ async def on_start(client, message):
             )
 
         status = await message.reply("Please wait a moment...")
-        state, ids = b64_string.split("_")
+        state, ids = b64_string.split("_") if "_" in b64_string else b64_string.split("-", 1)
         first_msg_id, last_msg_id = map(int, ids.split("-"))
-        protect_content = "ProtectedBatchMsgs" == state.strip()
+        protect_content = state == "201" or "protect" in state.lower()
 
         try:
             messages = await get_chat_messages(
@@ -87,7 +87,7 @@ async def on_start(client, message):
 
         await status.delete()
 
-        if "TimedBatchMsgs" == state.strip():
+        if state == "202" or state.lower() in "timed":
             temp_msg = await client.send_message(
                 message.chat.id, "*Forward or save these messages somewhere."
             )

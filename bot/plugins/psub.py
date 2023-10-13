@@ -480,7 +480,7 @@ async def update_subs(get_updates=get_new_updates, to_sleep=True):
 
                         update_logs_chat = notifs_chat or (
                             -1001848617769
-                            if ps not in ["Manganato", "Mangabuddy"]
+                            if ps not in ["Manganato", "Mangabuddy", "Comick"]
                             else -1001835330873
                         )
 

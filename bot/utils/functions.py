@@ -316,13 +316,13 @@ async def images_to_graph(title, image_urls: list, author=None, author_url=None)
 
 def generate_share_url(mode, first_msg_id, last_msg_id):
     share_type = (
-        "TimedBatchMsgs"
+        "202"
         if mode.lower() == "expiry"
-        else "ProtectedBatchMsgs"
+        else "201"
         if mode.lower() == "protect"
-        else "BatchMsgs"
+        else "200"
     )
-    b64_code = b64_encode(f"{share_type}_{first_msg_id}-{last_msg_id}")
+    b64_code = b64_encode(f"{share_type}-{first_msg_id}-{last_msg_id}")
     return f"https://telegram.me/{bot.me.username}?start=cached-{b64_code}"
 
 
