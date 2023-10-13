@@ -1,6 +1,5 @@
 import asyncio
 import textwrap
-from urllib.parse import quote
 
 from bs4 import BeautifulSoup
 from pyrogram import filters
