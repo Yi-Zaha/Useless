@@ -48,9 +48,7 @@ async def on_start(client, message):
             )
 
         status = await message.reply("Please wait a moment...")
-        state, ids = (
-            b64_string.split("_") if "_" in b64_string else b64_string.split("-", 1)
-        )
+        state, ids = b64_string.split("_") if "_" in b64_string else b64_string.split("-", 1)
         first_msg_id, last_msg_id = map(int, ids.split("-"))
         protect_content = state == "201" or "protect" in state.lower()
 
@@ -67,7 +65,7 @@ async def on_start(client, message):
 
         sent_ids = []
         for msg in messages:
-            if not msg:
+            if msg.empty:
                 continue
             try:
                 sent = (
@@ -86,6 +84,8 @@ async def on_start(client, message):
                 sent_ids.append(sent.id)
             except Exception:
                 pass
+            
+            await asyncio.sleep(0.5)
 
         await status.delete()
 

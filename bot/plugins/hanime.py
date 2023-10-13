@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot import bot
+from bot import ALLOWED_USERS, bot
 from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_random_id, post_to_telegraph
@@ -14,7 +14,7 @@ API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
 cache = {}
 
 
-@bot.on_message(filters.command("hentai"))
+@bot.on_message(filters.command("hentai") & filters.user(ALLOWED_USERS))
 async def search_handler(client, message):
     if len(message.command) == 1:
         status = await message.reply(
