@@ -48,7 +48,9 @@ async def on_start(client, message):
             )
 
         status = await message.reply("Please wait a moment...")
-        state, ids = b64_string.split("_") if "_" in b64_string else b64_string.split("-", 1)
+        state, ids = (
+            b64_string.split("_") if "_" in b64_string else b64_string.split("-", 1)
+        )
         first_msg_id, last_msg_id = map(int, ids.split("-"))
         protect_content = state == "201" or "protect" in state.lower()
 
