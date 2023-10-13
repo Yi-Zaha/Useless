@@ -156,12 +156,6 @@ async def hanime_query(client, callback):
 
     poster_url = result["poster"]
     if poster_url:
-        try:
-            response = await AioHttp.request(poster_url, re_res=True)
-            if response.ok and int(response.headers.get("content-length", "0")) > 10000:
-                poster_url = result["thumbnail"]
-        except Exception:
-            pass
         text += f"<a href='{poster_url}'>\xad</a>"
 
     description = BeautifulSoup(
