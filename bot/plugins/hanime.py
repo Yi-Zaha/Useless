@@ -194,9 +194,9 @@ async def hanime_query(client, callback):
     await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
 
-@bot.on_callback_query(filters.regex(r"^close$"))
+@bot.on_callback_query(filters.regex(r"^close.*"))
 async def close_query(client, callback):
-    splited = callback.data.split("_")
+    splited = callback.data.split(":")
     if len(splited) > 1:
         btn_user = int(splited[1])
         if btn_user != callback.from_user.id:
