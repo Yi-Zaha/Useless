@@ -314,7 +314,7 @@ async def images_to_graph(title, image_urls: list, author=None, author_url=None)
 # Other Utility Functions
 
 
-def generate_share_url(mode, first_msg_id, last_msg_id):
+def generate_share_url(mode, first_msg_id, last_msg_id, bot_username=None):
     share_type = (
         "202"
         if mode.lower() == "expiry"
@@ -323,7 +323,9 @@ def generate_share_url(mode, first_msg_id, last_msg_id):
         else "200"
     )
     b64_code = b64_encode(f"{share_type}-{first_msg_id}-{last_msg_id}")
-    return f"https://telegram.me/{bot.me.username}?start=cached-{b64_code}"
+    return (
+        f"https://telegram.me/{bot_username or bot.me.username}?start=cached-{b64_code}"
+    )
 
 
 def retry_on_flood(function):
