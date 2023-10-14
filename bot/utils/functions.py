@@ -472,7 +472,7 @@ async def ask_callback_options(
     while True:
         try:
             callback = await bot.listen.CallbackQuery(
-                filters.regex(query), timeout=timeout
+                pyrogram.filters.regex(query), timeout=timeout
             )
         except asyncio.TimeoutError:
             await request.edit("Process Timed Out. You were late in responding.")
