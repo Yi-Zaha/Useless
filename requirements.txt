@@ -6,7 +6,7 @@ aiohttp[speedups]
 bs4
 cachetools
 cloudscraper
-dateutil
+
 fpdf2
 git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
@@ -22,6 +22,7 @@ pillow
 motor
 pyminizip
 pyrogram~=2.0.104
+python-dateutil
 python-dotenv
 reportlab
 requests
