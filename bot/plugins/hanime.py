@@ -38,7 +38,7 @@ class HanimeTV:
             "page": page,
         }
 
-        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json())
+        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True)
     
         return {
             "response": json.loads(response_data['hits']),
@@ -60,7 +60,7 @@ class HanimeTV:
             "page": page,
         }
 
-        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json())
+        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True)
 
         return {
             "response": json.loads(response_data['hits']),
