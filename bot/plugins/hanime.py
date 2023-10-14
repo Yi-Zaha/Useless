@@ -8,11 +8,13 @@ from bs4 import BeautifulSoup
 from dateutil import parser
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
+from yt_dlp import YoutubeDL
 
 from bot import ALLOWED_USERS, bot
 from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import get_random_id, post_to_telegraph
+from bot.utils.functions import ask_msg, async_wrap, get_random_id, post_to_telegraph, run_cmd
+from bot.plugins.filetools import send_media
 
 cache = {}
 
@@ -300,6 +302,9 @@ async def hanime_query(client, callback):
         if stream["url"]
     ]
     buttons = [buttons]
+    
+    if callback.from_user.id in ALLOWED_USERS:
+        buttons.append([InlineKeyboardButton("Send Bulk", f"hanime_bulk:{hanime_id}:{callback.from_user.id}")])
 
     for button in callback.message.reply_markup.inline_keyboard[-1]:
         if "Next Page" in button.text or "Previous Page" in button.text:
@@ -318,6 +323,112 @@ async def hanime_query(client, callback):
     buttons.append([InlineKeyboardButton("⟨ Back ⟩", back_data)])
     await callback.answer()
     await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+
+
+@bot.on_callback_query(filters.regex(r"^hanime_bulk:.*"))
+async def bulk_hanime(client, callback):
+    user_id = str(callback.from_user.id)
+    if user_id not in callback.data:
+        return await callback.answer(
+            "Sorry, this button is not for you.",
+            show_alert=True,
+        )
+
+    hanime_id = callback.data.split(":")[1]
+    user_filter = filters.user(callback.from_user.id)
+    filters_ = user_filter & filters.text
+
+    try:
+        request, response = await ask_msg(
+            callback.message,
+            "Give me the ID of the chat where you want to send this hentai.",
+            quote=False,
+            filters=filters_ & non_command_filter,
+        )
+        chat_to_send = int(response.text)
+        temp_msg = await client.send_message(chat_to_send, "Test Message")
+        await temp_msg.delete()
+    except ValueError:
+        await request.edit("Chat ID should be a valid integer.")
+        return
+    except Exception:
+        await request.edit("Double-check if the ID you provided is correct or if I'm added to the chat with the right permissions.")
+        return
+
+    try:
+        request, response = await ask_msg(
+            response,
+            "If you want to have a custom filename, then write me the filename format. Send /skip to set the default.\n\n"
+            "Available Tags:\n"
+            "→<code>{name}</code>\n"
+            "→<code>{quality}</code>\n\n"
+            "Example: <code>{name} {quality}</code>",
+            quote=True,
+            filters=filters_,
+        )
+        if response.text.split()[0].lower() == "/skip":
+            filename = "{name} {quality}"
+        else:
+            filename = response.text.strip()
+
+        request, response = await ask_msg(
+            response,
+            "Do you want to send the files as <code>Video</code> or <code>Document</code>?",
+            quote=True,
+            filters=filters_ & non_command_filter,
+        )
+        upload_mode = response.text.lower()
+        if upload_mode not in ("video", "document"):
+            upload_mode = "document"
+
+        request, response = await ask_msg(
+            response,
+            "If you want to set your thumbnail on files, send me a photo Or write 'Yes' to use the default bot thumb Or use /skip to skip this step.",
+            quote=True,
+            filters=user_filter & (filters.text | filters.photo),
+        )
+        if response.photo:
+            thumb = await response.download("cache/")
+        elif response.text.lower() == "yes":
+            thumb = "thumb.jpg"
+        else:
+            thumb = None
+
+        status_msg = await response.reply("Please wait, processing...", quote=True)
+        details = await HanimeTV.details(hanime_id)
+        if thumb is None and upload_mode == "document":
+            thumb, *_ = await AioHttp.download(details["thumbnail"])
+        ytdl_opts = {
+            "format": "best",
+            "concurrent_fragment_downloads": 16,
+            "noplaylist": True
+        }
+        if (await run_cmd("dpkg -s aria2"))[0]:
+            ytdl_opts.update({
+                "external_downloader": "aria2",
+                "external_downloader_args": ["--min-split-size=1M", "--max-connection-per-server=16", "--max-concurrent-downloads=16", "--split=16"]
+            })
+        for stream in details["streams"]:
+            quality, url = f'{stream["height"]}p', stream["url"]
+            if url == "":
+                continue
+            file = os.path.join("cache/", filename.format(name=details["name"], quality=quality)) + ".mp4"
+            await status_msg.edit(f'Downloading {details["name"]} - {quality}...')
+            ytdl_opts["outtmpl"] = file
+            with YoutubeDL(ytdl_opts) as ytdl:
+                await async_wrap(ytdl.download)([url])
+            if os.path.exists(file):
+                await send_media(
+                    upload_mode,
+                    chat_to_send,
+                    file,
+                    message=status_msg,
+                    thumb=thumb,
+                )
+                os.remove(file)
+        await status_msg.edit("Hentai files sent successfully.")
+    except Exception as e:
+        await status_msg.edit(f"An error occurred: {str(e)}")
 
 
 @bot.on_callback_query(filters.regex(r"^close.*"))

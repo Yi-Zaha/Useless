@@ -58,7 +58,7 @@ async def send_media(
             progress_args=(
                 message,
                 c_time,
-                "Uploading...",
+                "Uploading Video...",
                 file_name,
             ),
             **kwargs,
@@ -74,7 +74,7 @@ async def send_media(
             progress_args=(
                 message,
                 c_time,
-                "Uploading...",
+                "Uploading Picture...",
                 file_name,
             ),
             **kwargs,
@@ -88,7 +88,7 @@ async def send_media(
             progress_args=(
                 message,
                 c_time,
-                "Uploading...",
+                "Uploading Audio...",
                 file_name,
             ),
             **kwargs,
@@ -102,7 +102,7 @@ async def send_media(
             progress_args=(
                 message,
                 c_time,
-                "Uploading...",
+                "Uploading Gif...",
                 file_name,
             ),
             **kwargs,
@@ -115,7 +115,7 @@ async def send_media(
             progress_args=(
                 message,
                 c_time,
-                "Uploading...",
+                "Uploading Document...",
                 file_name,
             ),
             **kwargs,
