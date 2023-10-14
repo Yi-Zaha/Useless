@@ -309,16 +309,14 @@ async def get_anime_schedule(weekid):
     return result, dayname
 
 
-async def callAPI(search_str, manga=False, json=False):
+async def callAPI(search_str, manga=False):
     variables = {"search": search_str}
     query = manga_query if manga else anime_query
     async with ClientSession() as session:
         async with session.post(
             anilisturl, json={"query": query, "variables": variables}
         ) as response:
-            if json:
-                return await response.json()
-            return await response.text()
+            return await response.json()
 
 
 async def searchanilist(search_str, manga=False):
