@@ -6,19 +6,19 @@ import time
 from urllib.parse import unquote
 
 import aiofiles
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientResponse, ClientSession, TCPConnector
 
 from bot.utils.singleton import Singleton
 
 
 class AioHttpManager(metaclass=Singleton):
-    def __init__(self, max_sessions):
+    def __init__(self, max_sessions, connector=TCPConnector(limit=25)):
         self.max_sessions = max_sessions
         self.sessions = [self._create_session() for _ in range(max_sessions)]
         self.lock = threading.Lock()
 
     def _create_session(self):
-        return {"session": ClientSession(), "usage_count": 0}
+        return {"session": ClientSession(connector=self.connector), "usage_count": 0}
 
     def get_session(self):
         with self.lock:
@@ -141,4 +141,4 @@ class AioHttpManager(metaclass=Singleton):
         return filename, total_size
 
 
-AioHttp = AioHttpManager(1)
+AioHttp = AioHttpManager(4)
