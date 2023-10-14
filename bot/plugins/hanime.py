@@ -454,6 +454,8 @@ async def bulk_hanime(client, callback):
                 )
                 os.remove(file)
         await status_msg.edit("Hentai files sent successfully.")
+        if thumb and thumb != "thumb.jpg":
+            os.remove(thumb)
     except Exception as e:
         await status_msg.edit(f"An error occurred: {str(e)}")
 
