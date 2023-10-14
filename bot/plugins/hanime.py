@@ -430,7 +430,7 @@ async def bulk_hanime(client, callback):
                     ],
                 }
             )
-        for stream in details["streams"]:
+        for stream in reversed(details["streams"]):
             quality, url = f'{stream["height"]}p', stream["url"]
             if url == "":
                 continue
