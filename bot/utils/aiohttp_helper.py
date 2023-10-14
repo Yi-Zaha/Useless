@@ -18,8 +18,12 @@ class AioHttpManager(metaclass=Singleton):
         self.lock = threading.Lock()
 
     def _create_session(self, connector=None):
-        
-        return {"session": ClientSession(connector=connector) if connector else ClientSession(), "usage_count": 0}
+        return {
+            "session": ClientSession(connector=connector)
+            if connector
+            else ClientSession(),
+            "usage_count": 0,
+        }
 
     def get_session(self):
         with self.lock:
