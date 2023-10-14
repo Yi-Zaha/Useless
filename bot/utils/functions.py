@@ -457,7 +457,7 @@ async def ask_callback_options(
 
     if isinstance(message_or_chat, types.Message):
         if edit:
-            await message_or_chat.edit_text(
+            request = await message_or_chat.edit_text(
                 text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs
             )
         else:
