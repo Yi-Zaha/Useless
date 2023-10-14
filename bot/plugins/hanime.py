@@ -115,7 +115,7 @@ class HanimeTV:
         return video_details
 
     @staticmethod
-    async def link(id: Union[int, str])
+    async def link(id: Union[int, str]):
         headers = {"X-Session-Token": HanimeTV.HANIME_API_TOKEN}
         response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True)
 
