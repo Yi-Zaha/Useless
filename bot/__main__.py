@@ -61,6 +61,7 @@ async def run_main():
         LOGS.error(str(e))
     finally:
         mongo_client.close()
+        await AioHttp.close()
         await stop_clients()
 
 
