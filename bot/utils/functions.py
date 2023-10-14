@@ -405,7 +405,7 @@ async def ask_message(
     filters: pyrogram.filters = pyrogram.filters.text,
     edit: bool = False,
     timeout: int = 90,
-    **kwargs
+    **kwargs,
 ):
     if isinstance(message_or_chat, types.Message):
         if edit:
@@ -430,15 +430,16 @@ async def ask_message(
 
     return request, response
 
+
 async def ask_callback_options(
-    message_or_chat: Union[int, types.Message], 
-    text: str, 
+    message_or_chat: Union[int, types.Message],
+    text: str,
     options: list,
     user_id: int = None,
     edit: bool = False,
-    split: int = 3, 
+    split: int = 3,
     timeout: int = 90,
-    **kwargs
+    **kwargs,
 ):
     rand_id = get_random_id()
     query = rf"ask_cb{rand_id}{user_id or ''}"
@@ -448,18 +449,24 @@ async def ask_callback_options(
         buttons = split_list(buttons, split)
     else:
         buttons = split_list(buttons, 1)
-    
+
     if "reply_markup" in kwargs:
         del kwargs["reply_markup"]
 
     if isinstance(message_or_chat, types.Message):
         if edit:
-            await message_or_chat.edit_text(text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
+            await message_or_chat.edit_text(
+                text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs
+            )
         else:
-            request = await message_or_chat.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
+            request = await message_or_chat.reply_text(
+                text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs
+            )
     elif isinstance(message_or_chat, int):
-        request = await bot.send_message(message_or_chat, text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
-    
+        request = await bot.send_message(
+            message_or_chat, text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs
+        )
+
     while True:
         try:
             callback = await bot.listen.CallbackQuery(
@@ -468,7 +475,7 @@ async def ask_callback_options(
         except asyncio.TimeoutError:
             await request.edit("Process Timed Out. You were late in responding.")
             raise
-    
+
         if user_id and user_id != callback.from_user.id:
             with suppress(Exception):
                 await callback.answer(
@@ -477,7 +484,7 @@ async def ask_callback_options(
                 )
         else:
             break
-    
+
     selection = callback.data.split(":", 1)[1]
     with suppress(Exception):
         await callback.answer(f"Okay! Selected option - {selection}", show_alert=True)

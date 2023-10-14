@@ -3,7 +3,6 @@ import os
 import random
 
 import cv2
-import m3u8
 
 
 def get_video_ss(video, ss_path: str = None) -> str:

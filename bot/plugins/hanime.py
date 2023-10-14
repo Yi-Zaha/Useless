@@ -350,7 +350,7 @@ async def bulk_hanime(client, callback):
     hanime_id = callback.data.split(":")[1]
     user_filter = filters.user(callback.from_user.id)
     filters_ = user_filter & filters.text
-    
+
     request, response = await ask_message(
         callback.message,
         "Give me the ID of the chat where you want to send this hentai.",
@@ -384,7 +384,7 @@ async def bulk_hanime(client, callback):
         filename = "{name} {quality}"
     else:
         filename = response.text.strip()
-    
+
     request, response = await ask_message(
         response,
         "Do you want to send the files as <code>Video</code> or <code>Document</code>?",
