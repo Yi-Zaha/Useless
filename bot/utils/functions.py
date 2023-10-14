@@ -468,6 +468,8 @@ async def ask_callback_options(
         request = await bot.send_message(
             message_or_chat, text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs
         )
+    else:
+        raise ValueError
 
     while True:
         try:
