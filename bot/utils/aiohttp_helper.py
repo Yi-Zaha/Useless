@@ -14,11 +14,12 @@ from bot.utils.singleton import Singleton
 class AioHttpManager(metaclass=Singleton):
     def __init__(self, max_sessions, connector=TCPConnector(limit=25)):
         self.max_sessions = max_sessions
-        self.sessions = [self._create_session() for _ in range(max_sessions)]
+        self.sessions = [self._create_session(connector) for _ in range(max_sessions)]
         self.lock = threading.Lock()
 
-    def _create_session(self):
-        return {"session": ClientSession(connector=self.connector), "usage_count": 0}
+    def _create_session(self, connector=None):
+        
+        return {"session": ClientSession(connector=connector) if connector else ClientSession(), "usage_count": 0}
 
     def get_session(self):
         with self.lock:
