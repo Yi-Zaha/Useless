@@ -7,6 +7,7 @@ from urllib.parse import unquote
 
 import aiofiles
 from aiohttp import ClientResponse, ClientSession
+
 from bot.utils.singleton import Singleton
 
 
@@ -21,8 +22,7 @@ class AioHttpManager(metaclass=Singleton):
 
     def get_session(self):
         with self.lock:
-            lowest_usage_session = min(
-                self.sessions, key=lambda s: s["usage_count"])
+            lowest_usage_session = min(self.sessions, key=lambda s: s["usage_count"])
             lowest_usage_session["usage_count"] += 1
             return lowest_usage_session["session"]
 
@@ -93,9 +93,7 @@ class AioHttpManager(metaclass=Singleton):
                     start = i * chunk_size
                     end = start + chunk_size if i < max_threads - 1 else None
                     task = asyncio.create_task(
-                        self.download_achunk(
-                            session, url, headers, start, end, file
-                        )
+                        self.download_achunk(session, url, headers, start, end, file)
                     )
                     tasks.append(task)
 
@@ -141,5 +139,6 @@ class AioHttpManager(metaclass=Singleton):
         )
 
         return filename, total_size
+
 
 AioHttp = AioHttpManager(1)

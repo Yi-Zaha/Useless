@@ -2,10 +2,10 @@ import asyncio
 import json
 import secrets
 import textwrap
-from dateutil import parser
 from typing import Union
 
 from bs4 import BeautifulSoup
+from dateutil import parser
 from pyrogram import filters
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -14,7 +14,6 @@ from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_random_id, post_to_telegraph
 
-
 cache = {}
 
 
@@ -22,10 +21,17 @@ class HanimeTV:
     SEARCH_URL = "https://search.htv-services.com"
     HANIME_API_URL = "https://hanime.tv/api/v8"
     HANIME_API_TOKEN = "PhzIzReFsg7g2GZi-tz9KVpR2LskgMP8-l_xJ0kmbwhSuBOcD3yZJeOoQKS-ND1w3qFCGj0Y2HzfJ4renU82W25BNSVI6KnmwfiN5e9lueyQOYbZ0RVKmS2Ek1fLKvMnS_3ktEUiFOTjSCezPusemw==(-(0)-)hDLS0eC_45mNW15pn3ZJYQ=="
-    
+
     @staticmethod
-    async def search(query: str, page: int = 0, tags: str = None, brands: str = None, blacklist: str = None,
-                 order_by: str = None, ordering: str = None):
+    async def search(
+        query: str,
+        page: int = 0,
+        tags: str = None,
+        brands: str = None,
+        blacklist: str = None,
+        order_by: str = None,
+        ordering: str = None,
+    ):
         headers = {"Content-Type": "application/json; charset=utf-8"}
 
         search_data = {
@@ -38,12 +44,14 @@ class HanimeTV:
             "page": page,
         }
 
-        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True)
-    
+        response_data = await AioHttp.request(
+            HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True
+        )
+
         return {
-            "response": json.loads(response_data['hits']),
-            "page": response_data['page'],
-            "total_pages": response_data['nbPages']
+            "response": json.loads(response_data["hits"]),
+            "page": response_data["page"],
+            "total_pages": response_data["nbPages"],
         }
 
     @staticmethod
@@ -60,35 +68,45 @@ class HanimeTV:
             "page": page,
         }
 
-        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True)
+        response_data = await AioHttp.request(
+            HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json=True
+        )
 
         return {
-            "response": json.loads(response_data['hits']),
-            "page": response_data['page'],
-            "total_pages": response_data['nbPages']
+            "response": json.loads(response_data["hits"]),
+            "page": response_data["page"],
+            "total_pages": response_data["nbPages"],
         }
 
     @staticmethod
     async def trending(time: str = "month", page: int = 0):
-        headers = {"X-Signature-Version": "web2",
-               "X-Signature": secrets.token_hex(32)}
+        headers = {"X-Signature-Version": "web2", "X-Signature": secrets.token_hex(32)}
 
-        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/browse-trending?time={time}&page={page}", headers=headers, re_json=True)
+        response_data = await AioHttp.request(
+            f"{HanimeTV.HANIME_API_URL}/browse-trending?time={time}&page={page}",
+            headers=headers,
+            re_json=True,
+        )
 
         return response_data
 
     @staticmethod
     async def details(id: Union[int, str]):
         headers = {"X-Session-Token": HanimeTV.HANIME_API_TOKEN}
-        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True)
+        response_data = await AioHttp.request(
+            f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True
+        )
 
-        created_at = parser.parse(
-            response_data["hentai_video"]["created_at"]).strftime("%Y %m %d")
+        created_at = parser.parse(response_data["hentai_video"]["created_at"]).strftime(
+            "%Y %m %d"
+        )
         released_date = parser.parse(
-            response_data["hentai_video"]["released_at"]).strftime("%Y %m %d")
+            response_data["hentai_video"]["released_at"]
+        ).strftime("%Y %m %d")
         views = "{:,}".format(response_data["hentai_video"]["views"])
-        tags = [tag["text"].title()
-                for tag in response_data["hentai_video"]["hentai_tags"]]
+        tags = [
+            tag["text"].title() for tag in response_data["hentai_video"]["hentai_tags"]
+        ]
         streams = response_data["videos_manifest"]["servers"][0]["streams"]
 
         video_details = {
@@ -109,7 +127,7 @@ class HanimeTV:
             "is_censored": response_data["hentai_video"]["is_censored"],
             "tags": tags,
             "next": response_data["next_hentai_video"],
-            "next_random": response_data["next_random_hentai_video"]
+            "next_random": response_data["next_random_hentai_video"],
         }
 
         return video_details
@@ -117,7 +135,9 @@ class HanimeTV:
     @staticmethod
     async def link(id: Union[int, str]):
         headers = {"X-Session-Token": HanimeTV.HANIME_API_TOKEN}
-        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True)
+        response_data = await AioHttp.request(
+            f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True
+        )
 
         streams = response_data["videos_manifest"]["servers"][0]["streams"]
 
