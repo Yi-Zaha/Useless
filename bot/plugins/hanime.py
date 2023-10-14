@@ -11,10 +11,16 @@ from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarku
 from yt_dlp import YoutubeDL
 
 from bot import ALLOWED_USERS, bot
+from bot.plugins.filetools import send_media
 from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.functions import ask_msg, async_wrap, get_random_id, post_to_telegraph, run_cmd
-from bot.plugins.filetools import send_media
+from bot.utils.functions import (
+    ask_msg,
+    async_wrap,
+    get_random_id,
+    post_to_telegraph,
+    run_cmd,
+)
 
 cache = {}
 
@@ -302,9 +308,15 @@ async def hanime_query(client, callback):
         if stream["url"]
     ]
     buttons = [buttons]
-    
+
     if callback.from_user.id in ALLOWED_USERS:
-        buttons.append([InlineKeyboardButton("Send Bulk", f"hanime_bulk:{hanime_id}:{callback.from_user.id}")])
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    "Send Bulk", f"hanime_bulk:{hanime_id}:{callback.from_user.id}"
+                )
+            ]
+        )
 
     for button in callback.message.reply_markup.inline_keyboard[-1]:
         if "Next Page" in button.text or "Previous Page" in button.text:
@@ -352,7 +364,9 @@ async def bulk_hanime(client, callback):
         await request.edit("Chat ID should be a valid integer.")
         return
     except Exception:
-        await request.edit("Double-check if the ID you provided is correct or if I'm added to the chat with the right permissions.")
+        await request.edit(
+            "Double-check if the ID you provided is correct or if I'm added to the chat with the right permissions."
+        )
         return
 
     try:
@@ -401,18 +415,30 @@ async def bulk_hanime(client, callback):
         ytdl_opts = {
             "format": "best",
             "concurrent_fragment_downloads": 16,
-            "noplaylist": True
+            "noplaylist": True,
         }
         if (await run_cmd("dpkg -s aria2"))[0]:
-            ytdl_opts.update({
-                "external_downloader": "aria2",
-                "external_downloader_args": ["--min-split-size=1M", "--max-connection-per-server=16", "--max-concurrent-downloads=16", "--split=16"]
-            })
+            ytdl_opts.update(
+                {
+                    "external_downloader": "aria2",
+                    "external_downloader_args": [
+                        "--min-split-size=1M",
+                        "--max-connection-per-server=16",
+                        "--max-concurrent-downloads=16",
+                        "--split=16",
+                    ],
+                }
+            )
         for stream in details["streams"]:
             quality, url = f'{stream["height"]}p', stream["url"]
             if url == "":
                 continue
-            file = os.path.join("cache/", filename.format(name=details["name"], quality=quality)) + ".mp4"
+            file = (
+                os.path.join(
+                    "cache/", filename.format(name=details["name"], quality=quality)
+                )
+                + ".mp4"
+            )
             await status_msg.edit(f'Downloading {details["name"]} - {quality}...')
             ytdl_opts["outtmpl"] = file
             with YoutubeDL(ytdl_opts) as ytdl:
