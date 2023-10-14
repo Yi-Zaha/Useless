@@ -412,13 +412,15 @@ async def ask_message(
             request = await message_or_chat.edit(text, **kwargs)
         else:
             request = await message_or_chat.reply(text, **kwargs)
+        chat_id = message_or_chat.chat.id
 
     elif isinstance(message_or_chat, int):
         request = await bot.send_message(message_or_chat, text, **kwargs)
+        chat_id = message_or_chat
 
     try:
         response = await bot.listen.Message(
-            filters, id=pyrogram.filters.chat(msg.chat.id), timeout=timeout
+            filters, id=pyrogram.filters.chat(chat_id), timeout=timeout
         )
     except asyncio.TimeoutError:
         await request.edit("Process Timed Out. You were late in responding.")
