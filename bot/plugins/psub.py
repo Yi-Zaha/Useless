@@ -18,7 +18,7 @@ from bot.logger import LOGGER
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import pdB
 from bot.utils.functions import (
-    ask_msg,
+    ask_message,
     file_to_graph,
     get_chat_invite_link,
     is_numeric,
@@ -37,7 +37,7 @@ CHAPTER_LOG_MSG = """
 
 @bot.on_message(filters.command("msub") & filters.user(ALLOWED_USERS) & filters.private)
 async def add_sub(client, message):
-    req, res = await ask_msg(message, "Provide the manga URL")
+    req, res = await ask_message(message, "Provide the manga URL")
     url = res.text.strip()
 
     try:
@@ -45,7 +45,7 @@ async def add_sub(client, message):
     except ValueError:
         return await res.reply("Invalid URL.")
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res, "Provide the manga's title.\n\n/skip to set to default."
     )
     if res.text.lower().split(" ")[0] in ("/skip"):
@@ -69,7 +69,7 @@ async def add_sub(client, message):
         )
     await status.delete()
 
-    req, res = await ask_msg(res, "Provide the chat ID.")
+    req, res = await ask_message(res, "Provide the chat ID.")
     chat = res.text.strip()
 
     try:
@@ -85,7 +85,7 @@ async def add_sub(client, message):
             "I am unable to send a message to the given chat. Please check my permissions!"
         )
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res,
         "Tell me the mode of the file in which you want to receive updates.\n\n"
         "Choose between:\n"
@@ -97,7 +97,7 @@ async def add_sub(client, message):
     if not any(fm in file_mode for fm in ("graph", "pdf", "cbz", "both")):
         return await res.reply("Invalid file mode.")
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res,
         "Provide the custom filename.\n\n"
         "You must include these tags:\n"
@@ -114,7 +114,7 @@ async def add_sub(client, message):
             "Invalid format. You should include the <code>{ch}</code> tag."
         )
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res,
         "Provide the custom caption.\n\n"
         "You can include these tags (if you want to):\n"
@@ -126,7 +126,7 @@ async def add_sub(client, message):
     if custom_caption.lower().split(" ")[0] in ["/skip"]:
         custom_caption = None
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res,
         "Provide the thumbnail for chapter files.\n\n"
         "<i>/skip to skip this part.</i>",
@@ -141,7 +141,7 @@ async def add_sub(client, message):
     else:
         thumb_url = res.text
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res, "Provide any password you want to set for files.\n\n/skip to set None."
     )
     if res.text.lower().split(" ")[0] in ("/skip"):
@@ -149,7 +149,7 @@ async def add_sub(client, message):
     else:
         file_pass = res.text.strip()
 
-    req, res = await ask_msg(
+    req, res = await ask_message(
         res,
         "Would you like this subscription to have update notifs? Give chat_id separated by one line below if you want to make a custom notifs chat.\n\n"
         "<i>Answer in Yes or No.</i>",

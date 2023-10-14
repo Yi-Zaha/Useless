@@ -1,4 +1,5 @@
 import io
+import os
 import random
 
 import cv2
@@ -21,7 +22,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
     video.set(cv2.CAP_PROP_POS_FRAMES, random_frame)
     ret, frame = video.read()
 
-    ss_path = ss_path or f"frame_{random_frame}.jpg"
+    ss_path = ss_path or f"{os.path.splitext(ss_path)[0][:51]}_{random_frame}.jpg"
     cv2.imwrite(ss_path, frame)
 
     video.release()
@@ -42,14 +43,3 @@ def get_video_frames(path: str) -> int:
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     video.release()
     return total_frames
-
-
-def resolutions_from_m3u8(m3u8_url: str) -> dict:
-    playlist = m3u8.load(m3u8_url)
-    video_urls = {
-        str(playlist.stream_info.resolution[1]) + "p": playlist.uri
-        if playlist.uri.startswith("http")
-        else playlist.base_uri + playlist.uri
-        for playlist in playlist.playlists
-    }
-    return video_urls

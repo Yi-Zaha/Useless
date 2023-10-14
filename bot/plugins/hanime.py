@@ -16,7 +16,7 @@ from bot.plugins.filetools import send_media
 from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import (
-    ask_msg,
+    ask_message,
     async_wrap,
     get_random_id,
     post_to_telegraph,
@@ -350,14 +350,14 @@ async def bulk_hanime(client, callback):
     hanime_id = callback.data.split(":")[1]
     user_filter = filters.user(callback.from_user.id)
     filters_ = user_filter & filters.text
-
+    
+    request, response = await ask_message(
+        callback.message,
+        "Give me the ID of the chat where you want to send this hentai.",
+        quote=False,
+        filters=filters_ & non_command_filter,
+    )
     try:
-        request, response = await ask_msg(
-            callback.message,
-            "Give me the ID of the chat where you want to send this hentai.",
-            quote=False,
-            filters=filters_ & non_command_filter,
-        )
         chat_to_send = int(response.text)
         temp_msg = await client.send_message(chat_to_send, "Test Message")
         await temp_msg.delete()
@@ -370,46 +370,46 @@ async def bulk_hanime(client, callback):
         )
         return
 
+    request, response = await ask_message(
+        response,
+        "If you want to have a custom filename, then write me the filename format. Send /skip to set the default.\n\n"
+        "Variables you can use for bot to fill in the value:\n"
+        "→<code>{name}</code>\n"
+        "→<code>{quality}</code>\n\n"
+        "Example: <code>{name} {quality}</code>",
+        quote=True,
+        filters=filters_,
+    )
+    if response.text.split()[0].lower() == "/skip":
+        filename = "{name} {quality}"
+    else:
+        filename = response.text.strip()
+    
+    request, response = await ask_message(
+        response,
+        "Do you want to send the files as <code>Video</code> or <code>Document</code>?",
+        quote=True,
+        filters=filters_ & non_command_filter,
+    )
+    upload_mode = response.text.lower()
+    if upload_mode not in ("video", "document"):
+        upload_mode = "document"
+
+    request, response = await ask_message(
+        response,
+        "If you want to set your thumbnail on files, send me a photo Or write 'Yes' to use the default bot thumb Or use /skip to skip this step.",
+        quote=True,
+        filters=user_filter & (filters.text | filters.photo),
+    )
+    if response.photo:
+        thumb = await response.download("cache/")
+    elif response.text.lower() == "yes":
+        thumb = "thumb.jpg"
+    else:
+        thumb = None
+
+    status_msg = await response.reply("Please wait, processing...", quote=True)
     try:
-        request, response = await ask_msg(
-            response,
-            "If you want to have a custom filename, then write me the filename format. Send /skip to set the default.\n\n"
-            "Available Tags:\n"
-            "→<code>{name}</code>\n"
-            "→<code>{quality}</code>\n\n"
-            "Example: <code>{name} {quality}</code>",
-            quote=True,
-            filters=filters_,
-        )
-        if response.text.split()[0].lower() == "/skip":
-            filename = "{name} {quality}"
-        else:
-            filename = response.text.strip()
-
-        request, response = await ask_msg(
-            response,
-            "Do you want to send the files as <code>Video</code> or <code>Document</code>?",
-            quote=True,
-            filters=filters_ & non_command_filter,
-        )
-        upload_mode = response.text.lower()
-        if upload_mode not in ("video", "document"):
-            upload_mode = "document"
-
-        request, response = await ask_msg(
-            response,
-            "If you want to set your thumbnail on files, send me a photo Or write 'Yes' to use the default bot thumb Or use /skip to skip this step.",
-            quote=True,
-            filters=user_filter & (filters.text | filters.photo),
-        )
-        if response.photo:
-            thumb = await response.download("cache/")
-        elif response.text.lower() == "yes":
-            thumb = "thumb.jpg"
-        else:
-            thumb = None
-
-        status_msg = await response.reply("Please wait, processing...", quote=True)
         details = await HanimeTV.details(hanime_id)
         if thumb is None and upload_mode == "document":
             thumb, *_ = await AioHttp.download(details["thumbnail"])

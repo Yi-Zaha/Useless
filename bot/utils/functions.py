@@ -8,7 +8,9 @@ import random
 import string
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import suppress
 from functools import partial, wraps
+from typing import Union
 from urllib.parse import urljoin, urlparse
 
 import cachetools
@@ -21,6 +23,7 @@ from html_telegraph_poster.html_to_telegraph import TelegraphPoster
 from pyrogram import types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telegraph.aio import Telegraph
 
 from bot import LOGS, bot
@@ -396,17 +399,25 @@ async def edit_and_delete(message, text=None, **kwargs):
     await message.delete()
 
 
-async def ask_msg(
-    msg: types.Message,
+async def ask_message(
+    message_or_chat: Union[int, types.Message],
     text: str,
-    quote: bool = False,
     filters: pyrogram.filters = pyrogram.filters.text,
+    edit: bool = False,
     timeout: int = 90,
+    **kwargs
 ):
-    request = await msg.reply(text, quote=quote)
+    if isinstance(message_or_chat, types.Message):
+        if edit:
+            request = await message_or_chat.edit(text, **kwargs)
+        else:
+            request = await message_or_chat.reply(text, **kwargs)
+
+    elif isinstance(message_or_chat, int):
+        request = await bot.send_message(message_or_chat, text, **kwargs)
 
     try:
-        response = await msg._client.listen.Message(
+        response = await bot.listen.Message(
             filters, id=pyrogram.filters.chat(msg.chat.id), timeout=timeout
         )
     except asyncio.TimeoutError:
@@ -418,6 +429,60 @@ async def ask_msg(
         raise asyncio.CancelledError
 
     return request, response
+
+async def ask_callback_options(
+    message_or_chat: Union[int, types.Message], 
+    text: str, 
+    options: list,
+    user_id: int = None,
+    edit: bool = False,
+    split: int = 3, 
+    timeout: int = 90,
+    **kwargs
+):
+    rand_id = get_random_id()
+    query = rf"ask_cb{rand_id}{user_id or ''}"
+    buttons = [InlineKeyboardButton(option, f"{query}:{option}") for option in options]
+
+    if split:
+        buttons = split_list(buttons, split)
+    else:
+        buttons = split_list(buttons, 1)
+    
+    if "reply_markup" in kwargs:
+        del kwargs["reply_markup"]
+
+    if isinstance(message_or_chat, types.Message):
+        if edit:
+            await message_or_chat.edit_text(text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
+        else:
+            request = await message_or_chat.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
+    elif isinstance(message_or_chat, int):
+        request = await bot.send_message(message_or_chat, text, reply_markup=InlineKeyboardMarkup(buttons), **kwargs)
+    
+    while True:
+        try:
+            callback = await bot.listen.CallbackQuery(
+                filters.regex(query), timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            await request.edit("Process Timed Out. You were late in responding.")
+            raise
+    
+        if user_id and user_id != callback.from_user.id:
+            with suppress(Exception):
+                await callback.answer(
+                    "This button can only be used by the one who issued the command.",
+                    show_alert=True,
+                )
+        else:
+            break
+    
+    selection = callback.data.split(":", 1)[1]
+    with suppress(Exception):
+        await callback.answer(f"Okay! Selected option - {selection}", show_alert=True)
+
+    return request, selection
 
 
 async def run_cmd(cmd: str) -> tuple[str, str]:
