@@ -10,7 +10,7 @@ from aiohttp import ClientResponse, ClientSession
 from bot.utils.singleton import Singleton
 
 
-class AioHttpManager(Singleton):
+class AioHttpManager(metaclass=Singleton):
     def __init__(self, max_sessions):
         self.max_sessions = max_sessions
         self.sessions = [self._create_session() for _ in range(max_sessions)]
@@ -142,4 +142,4 @@ class AioHttpManager(Singleton):
 
         return filename, total_size
 
-AioHttp = AioHttpManager(max_sessions=1)
+AioHttp = AioHttpManager(1)
