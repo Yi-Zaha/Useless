@@ -12,7 +12,7 @@ from pyrogram import filters
 
 from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.progress_cb import progress_cb
-from bot.utils.aiohttp_helper import AioHttp, get_name_and_size_from_response
+from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.media import get_video_duration, get_video_ss
 from bot.utils.pdf import extract_pdf_images, get_image_size, imgtopdf
 
