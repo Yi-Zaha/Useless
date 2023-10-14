@@ -163,7 +163,7 @@ async def media_download(client, message):
                 os.makedirs("downloads", exist_ok=True)
                 dl_url = input_text.strip()
                 response = await AioHttp.request(dl_url, re_res=True)
-                file_name, _ = get_name_and_size_from_response(response)
+                file_name, _ = AioHttp.get_name_and_size_from_response(response)
                 file_path = os.path.join("downloads", file_name)
 
             c_time = time.time()

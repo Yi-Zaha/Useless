@@ -1,5 +1,9 @@
 import asyncio
+import json
+import secrets
 import textwrap
+from dateutil import parser
+from typing import Union
 
 from bs4 import BeautifulSoup
 from pyrogram import filters
@@ -10,8 +14,114 @@ from bot.utils import non_command_filter
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_random_id, post_to_telegraph
 
-API_URL = "https://hanime-tv-api-e0e67be02b15.herokuapp.com"
+
 cache = {}
+
+
+class HanimeTV:
+    SEARCH_URL = "https://search.htv-services.com"
+    HANIME_API_URL = "https://hanime.tv/api/v8"
+    HANIME_API_TOKEN = "PhzIzReFsg7g2GZi-tz9KVpR2LskgMP8-l_xJ0kmbwhSuBOcD3yZJeOoQKS-ND1w3qFCGj0Y2HzfJ4renU82W25BNSVI6KnmwfiN5e9lueyQOYbZ0RVKmS2Ek1fLKvMnS_3ktEUiFOTjSCezPusemw==(-(0)-)hDLS0eC_45mNW15pn3ZJYQ=="
+    
+    @staticmethod
+    async def search(query: str, page: int = 0, tags: str = None, brands: str = None, blacklist: str = None,
+                 order_by: str = None, ordering: str = None):
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+
+        search_data = {
+            "search_text": query,
+            "tags": tags.split(",") if tags else [],
+            "brands": brands.split(",") if brands else [],
+            "blacklist": blacklist.split(",") if blacklist else [],
+            "order_by": order_by.split(",") if order_by else [],
+            "ordering": ordering.split(",") if ordering else [],
+            "page": page,
+        }
+
+        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json())
+    
+        return {
+            "response": json.loads(response_data['hits']),
+            "page": response_data['page'],
+            "total_pages": response_data['nbPages']
+        }
+
+    @staticmethod
+    async def recent(page: int = 0):
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+
+        search_data = {
+            "search_text": "",
+            "tags": [],
+            "brands": [],
+            "blacklist": [],
+            "order_by": "created_at_unix",
+            "ordering": "desc",
+            "page": page,
+        }
+
+        response_data = await AioHttp.request(HanimeTV.SEARCH_URL, "POST", headers=headers, json=search_data, re_json())
+
+        return {
+            "response": json.loads(response_data['hits']),
+            "page": response_data['page'],
+            "total_pages": response_data['nbPages']
+        }
+
+    @staticmethod
+    async def trending(time: str = "month", page: int = 0):
+        headers = {"X-Signature-Version": "web2",
+               "X-Signature": secrets.token_hex(32)}
+
+        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/browse-trending?time={time}&page={page}", headers=headers, re_json=True)
+
+        return response_data
+
+    @staticmethod
+    async def details(id: Union[int, str]):
+        headers = {"X-Session-Token": HanimeTV.HANIME_API_TOKEN}
+        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True)
+
+        created_at = parser.parse(
+            response_data["hentai_video"]["created_at"]).strftime("%Y %m %d")
+        released_date = parser.parse(
+            response_data["hentai_video"]["released_at"]).strftime("%Y %m %d")
+        views = "{:,}".format(response_data["hentai_video"]["views"])
+        tags = [tag["text"].title()
+                for tag in response_data["hentai_video"]["hentai_tags"]]
+        streams = response_data["videos_manifest"]["servers"][0]["streams"]
+
+        video_details = {
+            "id": response_data["hentai_video"]["id"],
+            "query": response_data["hentai_video"]["slug"],
+            "name": response_data["hentai_video"]["name"],
+            "description": response_data["hentai_video"]["description"],
+            "brand": response_data["hentai_video"]["brand"],
+            "franchise": response_data["hentai_franchise"],
+            "franchise_videos": response_data["hentai_franchise_hentai_videos"],
+            "poster": response_data["hentai_video"]["cover_url"],
+            "thumbnail": response_data["hentai_video"]["poster_url"],
+            "screenshots": response_data["hentai_video_storyboards"][0]["url"],
+            "views": views,
+            "streams": streams,
+            "created_at": created_at,
+            "released_date": released_date,
+            "is_censored": response_data["hentai_video"]["is_censored"],
+            "tags": tags,
+            "next": response_data["next_hentai_video"],
+            "next_random": response_data["next_random_hentai_video"]
+        }
+
+        return video_details
+
+    @staticmethod
+    async def link(id: Union[int, str])
+        headers = {"X-Session-Token": HanimeTV.HANIME_API_TOKEN}
+        response_data = await AioHttp.request(f"{HanimeTV.HANIME_API_URL}/video?id={id}", headers=headers, re_json=True)
+
+        streams = response_data["videos_manifest"]["servers"][0]["streams"]
+
+        return streams
 
 
 @bot.on_message(filters.command("hentai") & filters.user(ALLOWED_USERS))
@@ -63,9 +173,7 @@ async def search_query(
         return
 
     try:
-        result = await AioHttp.request(
-            f"{API_URL}/search?query={cache[query_id]}&page={page}", re_json=True
-        )
+        result = await HanimeTV.search(cache[query_id])
         response = result["response"]
     except Exception:
         text = "Sorry, there was an error parsing response from the API. Please try again later!"
@@ -132,9 +240,7 @@ async def hanime_query(client, callback):
         )
 
     try:
-        result = await AioHttp.request(
-            f"{API_URL}/details?id={hanime_id}", re_json=True
-        )
+        result = await HanimeTV.details(hanime_id)
         name = result["name"]
     except Exception:
         await callback.answer(

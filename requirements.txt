@@ -6,6 +6,7 @@ aiohttp[speedups]
 bs4
 cachetools
 cloudscraper
+dateutil
 fpdf2
 git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
