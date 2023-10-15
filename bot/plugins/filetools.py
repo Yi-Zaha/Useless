@@ -41,7 +41,7 @@ async def send_media(
             chat,
             file,
             thumb=thumb,
-            width=kwargs.pop("width", metadata.get("width"),
+            width=kwargs.pop("width", metadata.get("width")),
             height=kwargs.get("height", metadata.get("height")),
             duration=kwargs.pop("duration", metadata.get("duration")),
             progress=progress,
@@ -90,7 +90,7 @@ async def send_media(
         await bot.send_animation(
             chat,
             file,
-            width=kwargs.pop("width", metadata.get("width"),
+            width=kwargs.pop("width", metadata.get("width")),
             height=kwargs.get("height", metadata.get("height")),
             duration=kwargs.pop("duration", metadata.get("duration")),
             progress=progress,
