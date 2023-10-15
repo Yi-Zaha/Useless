@@ -510,6 +510,7 @@ async def retry_func(func, tries=5):
         try:
             result = await func
         except BaseException:
-            continue
+            if tries > 1:
+                continue
         if result[-1]:
             break

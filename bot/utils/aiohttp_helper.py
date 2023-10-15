@@ -112,7 +112,7 @@ class AioHttpManager:
                 ) as part_response:
                     if part_response.status != 206:
                         raise ValueError(
-                            "URL does not support multi-threaded download."
+                            "URL does not support multi-threaded download." if part_n < 1 else f"Url does not support {max_threads} multi-threaded download."
                         )
                     async with aiofiles.open(
                         f"{filename}.part-{part_n}", "wb"
@@ -130,8 +130,13 @@ class AioHttpManager:
                     else total_size
                 )
                 tasks.append(asyncio.create_task(download_part(start, end, part_n)))
-
-            await asyncio.gather(*tasks)
+            try:
+                await asyncio.gather(*tasks)
+            except:
+                for part_n in range(max_threads):
+                    if os.path.exists(f"{filename}.part-{part_n}"):
+                        os.remove(f"{filename}.part-{part_n}")
+                raise
 
             # Merge downloaded parts into the final file
             async with aiofiles.open(filename, "wb") as final_file:
