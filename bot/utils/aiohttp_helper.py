@@ -14,7 +14,7 @@ MAX_THREADS = 4
 
 
 class AioHttpManager:
-    def __init__(self, max_sessions, connector=TCPConnector(limit=50)):
+    def __init__(self, max_sessions, connector=None):
         self.max_sessions = max_sessions
         self.connector = connector
         self.sessions = [self._create_session() for _ in range(max_sessions)]
@@ -189,4 +189,4 @@ class AioHttpManager:
         return filename, total_size
 
 
-AioHttp = AioHttpManager(4)
+AioHttp = AioHttpManager(4, connector=TCPConnector(limit=50))
