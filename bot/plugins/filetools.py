@@ -46,7 +46,7 @@ async def send_media(
         duration = kwargs.pop("duration", duration)
         width = kwargs.pop("width", width)
         height = kwargs.pop("height", height)
-        thumb = kwargs.pop("thumb") or ss
+        thumb = kwargs.pop("thumb", None) or ss
         await bot.send_video(
             chat,
             file,

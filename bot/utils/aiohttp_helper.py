@@ -8,19 +8,21 @@ from urllib.parse import unquote
 import aiofiles
 from aiohttp import ClientResponse, ClientSession, TCPConnector
 
-from bot.utils.singleton import Singleton
+CHUNK_SIZE = 1024
+MAX_THREADS = 4
 
 
-class AioHttpManager(metaclass=Singleton):
-    def __init__(self, max_sessions, connector=TCPConnector(limit=25)):
+class AioHttpManager:
+    def __init__(self, max_sessions, connector=TCPConnector(limit=50)):
         self.max_sessions = max_sessions
-        self.sessions = [self._create_session(connector) for _ in range(max_sessions)]
+        self.connector = connector
+        self.sessions = [self._create_session() for _ in range(max_sessions)]
         self.lock = threading.Lock()
 
     def _create_session(self, connector=None):
         return {
-            "session": ClientSession(connector=connector)
-            if connector
+            "session": ClientSession(connector=self.connector)
+            if self.connector
             else ClientSession(),
             "usage_count": 0,
         }
@@ -29,7 +31,12 @@ class AioHttpManager(metaclass=Singleton):
         with self.lock:
             lowest_usage_session = min(self.sessions, key=lambda s: s["usage_count"])
             lowest_usage_session["usage_count"] += 1
-            return lowest_usage_session["session"]
+            session = lowest_usage_session["session"]
+            if session.closed:
+                self.sessions.remove(lowest_usage_session)
+                self.sessions.append(self._create_session())
+                return self.sessions[-1]["session"]
+            return session
 
     async def close(self):
         for s in self.sessions:
@@ -55,7 +62,7 @@ class AioHttpManager(metaclass=Singleton):
         url: str,
         filename: str = None,
         progress_callback=None,
-        chunk_size: int = 1024,
+        chunk_size: int = CHUNK_SIZE,
         **kwargs,
     ):
         async with self.get_session().get(url, **kwargs) as response:
@@ -81,7 +88,7 @@ class AioHttpManager(metaclass=Singleton):
         url: str,
         filename: str = None,
         headers: dict = None,
-        max_threads: int = 4,
+        max_threads: int = MAX_THREADS,
         **kwargs,
     ):
         session = self.get_session()
@@ -90,38 +97,37 @@ class AioHttpManager(metaclass=Singleton):
                 response, filename=filename
             )
 
-            chunk_size = total_size // max_threads
-            start_time = time.time()
-            tasks = []
-            async with aiofiles.open(filename, "wb") as file:
-                for i in range(max_threads):
-                    start = i * chunk_size
-                    end = start + chunk_size if i < max_threads - 1 else None
-                    task = asyncio.create_task(
-                        self.download_achunk(session, url, headers, start, end, file)
-                    )
-                    tasks.append(task)
+            if not total_size:
+                raise ValueError("Could not get size from url.")
 
-                await asyncio.gather(*tasks)
+            start = -1
+            chunk_size = total_size // max_threads
+            ranges = []
+            start_time = time.time()
+            async with aiofiles.open(filename, "wb") as file:
+                for i in range(max_threads - 1):
+                    ranges.append((start + 1, start + chunk_size))
+                    start += chunk_size
+                ranges.append((start + 1, total_size))
+                async with asyncio.TaskGroup() as tg:
+                    for start, end in ranges:
+                        task = tg.create_task(
+                            self.download_achunk(url, headers, start, end, file)
+                        )
 
             return filename, time.time() - start_time, response.ok
 
     async def download_achunk(
-        self,
-        session: ClientSession,
-        url: str,
-        headers: dict,
-        start: int,
-        end: int,
-        file,
-        **kwargs,
+        self, url: str, headers: dict, start: int, end: int, file, **kwargs
     ):
         headers = {} if not headers else headers
         headers["Range"] = f"bytes={start}-{end}" if end else f"bytes={start}-"
-        async with session.get(
+        async with self.get_session().get(
             url, headers=headers, allow_redirects=True, **kwargs
         ) as response:
-            async for chunk in response.content.iter_chunked(1024):
+            if not response.status == 206:
+                raise ValueError("Url does not support multi-threaded download.")
+            async for chunk in response.content.iter_chunked(CHUNK_SIZE):
                 if chunk:
                     await file.seek(start)
                     await file.write(chunk)
