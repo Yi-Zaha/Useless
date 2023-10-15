@@ -13,25 +13,8 @@ from pyrogram import filters
 from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.progress_cb import progress_cb
 from bot.utils.aiohttp_helper import AioHttp
-from bot.utils.media import get_video_duration, get_video_ss
+from bot.utils.media import get_metadata, get_video_ss
 from bot.utils.pdf import extract_pdf_images, get_image_size, imgtopdf
-
-
-def get_ss_and_duration(video_path: str):
-    thumb, duration, width, height = None, 0, 0, 0
-    try:
-        thumb = get_video_ss(video_path)
-    except BaseException:
-        pass
-    try:
-        duration = get_video_duration(video_path)
-    except BaseException:
-        pass
-    try:
-        width, height = get_image_size(thumb)
-    except BaseException:
-        pass
-    return thumb, duration, width, height
 
 
 async def send_media(
@@ -41,19 +24,26 @@ async def send_media(
     file_name = kwargs.get("file_name", None)
     if file_name is None:
         file_name = os.path.basename(str(file))
+    try:
+        metadata = await get_metadata(file)
+    except:
+        metadata = {}
     if media_type in ("vid", "video"):
-        ss, duration, width, height = get_ss_and_duration(file)
-        duration = kwargs.pop("duration", duration)
-        width = kwargs.pop("width", width)
-        height = kwargs.pop("height", height)
-        thumb = kwargs.pop("thumb", None) or ss
+        ss = None
+        thumb = kwargs.pop("thumb", None)
+        if not thumb:
+            try:
+                ss = get_video_ss(file)
+                thumb = ss
+            except:
+                pass
         await bot.send_video(
             chat,
             file,
             thumb=thumb,
-            width=width,
-            height=height,
-            duration=duration,
+            width=kwargs.pop("width", metadata.get("width"),
+            height=kwargs.get("height", metadata.get("height")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
             progress=progress,
             progress_args=(
                 message,
@@ -84,6 +74,8 @@ async def send_media(
         await bot.send_audio(
             chat,
             file,
+            performer=kwargs.pop("performer", metadata.get("performer")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
             progress=progress,
             progress_args=(
                 message,
@@ -98,6 +90,9 @@ async def send_media(
         await bot.send_animation(
             chat,
             file,
+            width=kwargs.pop("width", metadata.get("width"),
+            height=kwargs.get("height", metadata.get("height")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
             progress=progress,
             progress_args=(
                 message,
