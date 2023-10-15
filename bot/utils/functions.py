@@ -504,7 +504,7 @@ async def run_cmd(cmd: str) -> tuple[str, str]:
     return stdout.decode().strip(), stderr.decode().strip()
 
 
-async def retry_func(func, *args, tries=5, no_ouput=False, **kwargs):
+async def retry_func(func, *args, tries=5, no_output=False, **kwargs):
     while tries:
         tries -= 1
         try:
