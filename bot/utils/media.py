@@ -24,7 +24,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
     video.set(cv2.CAP_PROP_POS_FRAMES, random_frame)
     ret, frame = video.read()
 
-    ss_path = ss_path or f"{os.path.splitext(ss_path)[0][:51]}_{random_frame}.jpg"
+    ss_path = ss_path or f"{os.path.splitext(video)[0][:51]}_{random_frame}.jpg"
     cv2.imwrite(ss_path, frame)
 
     video.release()
