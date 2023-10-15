@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 import threading
 import time
@@ -98,40 +99,69 @@ class AioHttpManager:
             )
 
             if not total_size:
-                raise ValueError("Could not get size from url.")
+                raise ValueError("Could not get size from the URL.")
 
-            start = -1
-            chunk_size = total_size // max_threads
-            ranges = []
             start_time = time.time()
-            async with aiofiles.open(filename, "wb") as file:
-                for i in range(max_threads - 1):
-                    ranges.append((start + 1, start + chunk_size))
-                    start += chunk_size
-                ranges.append((start + 1, total_size))
-                async with asyncio.TaskGroup() as tg:
-                    for start, end in ranges:
-                        task = tg.create_task(
-                            self.download_achunk(url, headers, start, end, file)
+            tasks = []
+
+            async def download_part(start, end, part_n):
+                range_headers = {} if not headers else headers
+                range_headers["Range"] = f"bytes={start}-{end}"
+                async with self.get_session().get(
+                    url, headers=range_headers, **kwargs
+                ) as part_response:
+                    if part_response.status != 206:
+                        raise ValueError(
+                            "URL does not support multi-threaded download."
                         )
+                    async with aiofiles.open(
+                        f"{filename}.part-{part_n}", "wb"
+                    ) as file_part:
+                        async for chunk in part_response.content.iter_any():
+                            if chunk:
+                                await file_part.write(chunk)
+
+            part_size = total_size // max_threads
+            for part_n in range(max_threads):
+                start = part_n * part_size
+                end = (
+                    (part_n + 1) * part_size - 1
+                    if part_n < max_threads - 1
+                    else total_size
+                )
+                tasks.append(asyncio.create_task(download_part(start, end, part_n)))
+
+            await asyncio.gather(*tasks)
+
+            # Merge downloaded parts into the final file
+            async with aiofiles.open(filename, "wb") as final_file:
+                for part_n in range(max_threads):
+                    async with aiofiles.open(
+                        f"{filename}.part-{part_n}", "rb"
+                    ) as file_part:
+                        while True:
+                            chunk = await file_part.read(CHUNK_SIZE)
+                            if not chunk:
+                                break
+                            await final_file.write(chunk)
+                    # Remove the downloaded part file after merging
+                    os.remove(f"{filename}.part-{part_n}")
 
             return filename, time.time() - start_time, response.ok
 
     async def download_achunk(
-        self, url: str, headers: dict, start: int, end: int, file, **kwargs
+        self, url: str, start: int, end: int, filename: str, headers: dict, **kwargs
     ):
         headers = {} if not headers else headers
-        headers["Range"] = f"bytes={start}-{end}" if end else f"bytes={start}-"
-        async with self.get_session().get(
-            url, headers=headers, allow_redirects=True, **kwargs
-        ) as response:
-            if not response.status == 206:
+        headers["Range"] = f"bytes={start}-{end}"
+        async with self.get_session().get(url, headers=headers, **kwargs) as response:
+            if response.status != 206:
                 raise ValueError("Url does not support multi-threaded download.")
-            async for chunk in response.content.iter_chunked(CHUNK_SIZE):
-                if chunk:
-                    await file.seek(start)
-                    await file.write(chunk)
-                    start += len(chunk)
+            async with aiofiles.open(filename, "wb") as file:
+                async for chunk in response.content.iter_chunked(CHUNK_SIZE):
+                    if chunk:
+                        await file.write(chunk)
+                return filename
 
     @staticmethod
     def get_name_and_size_from_response(response: ClientResponse, filename: str = None):
