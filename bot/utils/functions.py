@@ -512,5 +512,6 @@ async def retry_func(func, tries=5):
         except BaseException:
             if tries > 1:
                 continue
+            raise
         if result[-1]:
             break
