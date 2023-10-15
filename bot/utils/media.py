@@ -8,15 +8,8 @@ import cv2
 from bot.utils.functions import run_cmd
 
 
-def get_video_ss(video, ss_path: str = None) -> str:
-    if isinstance(video, io.BytesIO):
-        video_data = video.getvalue()
-        video = cv2.VideoCapture()
-        video.open("dummy.mp4", cv2.CAP_FFMPEG)
-        video.write(video_data)
-        video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    else:
-        video = cv2.VideoCapture(video)
+def get_video_ss(video_path, ss_path: str = None) -> str:
+    video = cv2.VideoCapture(video_path)
 
     total_frames = round(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -24,7 +17,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
     video.set(cv2.CAP_PROP_POS_FRAMES, random_frame)
     ret, frame = video.read()
 
-    ss_path = ss_path or f"{os.path.splitext(video)[0][:51]}_{random_frame}.jpg"
+    ss_path = ss_path or f"{os.path.splitext(video_path)[0][:51]}_{random_frame}.jpg"
     cv2.imwrite(ss_path, frame)
 
     video.release()
