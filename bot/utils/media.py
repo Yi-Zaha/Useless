@@ -4,7 +4,9 @@ import os
 import random
 
 import cv2
+
 from bot.utils.functions import run_cmd
+
 
 def get_video_ss(video, ss_path: str = None) -> str:
     if isinstance(video, io.BytesIO):
@@ -27,6 +29,7 @@ def get_video_ss(video, ss_path: str = None) -> str:
 
     video.release()
     return ss_path
+
 
 async def get_metadata(file):
     media_info = await get_media_info(file)
@@ -54,11 +57,12 @@ async def get_metadata(file):
     data["duration"] = int(float(info.get("Duration", 0)))
     return data
 
+
 async def get_media_info(file, output_type="JSON"):
     out, err = await run_cmd(f'mediainfo --Output="{output_type}" "{str(file)}"')
     if err:
         raise ValueError(f"Invalid media: {err}")
-    
+
     if output_type.lower() == "json":
         return json.loads(out)["media"]["track"]
     return out

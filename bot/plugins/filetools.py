@@ -14,7 +14,7 @@ from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.progress_cb import progress_cb
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.media import get_metadata, get_video_ss
-from bot.utils.pdf import extract_pdf_images, get_image_size, imgtopdf
+from bot.utils.pdf import extract_pdf_images, imgtopdf
 
 
 async def send_media(
@@ -26,7 +26,7 @@ async def send_media(
         file_name = os.path.basename(str(file))
     try:
         metadata = await get_metadata(file)
-    except:
+    except BaseException:
         metadata = {}
     if media_type in ("vid", "video"):
         ss = None
@@ -35,7 +35,7 @@ async def send_media(
             try:
                 ss = get_video_ss(file)
                 thumb = ss
-            except:
+            except BaseException:
                 pass
         await bot.send_video(
             chat,
