@@ -504,14 +504,27 @@ async def run_cmd(cmd: str) -> tuple[str, str]:
     return stdout.decode().strip(), stderr.decode().strip()
 
 
-async def retry_func(func, tries=5):
+async def retry_func(func, *args, tries=5, no_ouput=False, **kwargs):
     while tries:
         tries -= 1
         try:
-            result = await func
+            output = await func(*args, **kwargs)
         except BaseException:
             if tries > 1:
                 continue
             raise
-        if result[-1]:
+        if no_output:
             break
+        if _is_iterable(output):
+            if all(item for item in output):
+                return output
+        elif bool(output):
+            return output
+
+
+def _is_iterable(obj):
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False

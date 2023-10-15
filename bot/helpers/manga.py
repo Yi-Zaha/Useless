@@ -45,7 +45,7 @@ class _BASE:
             ext = ext[1] if len(ext) > 1 else ".jpg"
             image = f"{directory}/{n}{ext}"
             images.append(image)
-            task = retry_func(AioHttp.download(url, filename=image, headers=headers))
+            task = retry_func(AioHttp.download, url, filename=image, headers=headers)
             tasks.append(task)
 
         try:
