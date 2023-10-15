@@ -45,12 +45,12 @@ async def get_metadata(file):
             data["performer"] = info.get("Performer", "")
 
         if info.get("VideoCount"):
-            data["height"] = int(float(media_info[1].get("Height", 720))
-            data["width"] = int(float(media_info[1].get("Width", 1280))
+            data["height"] = int(float(media_info[1].get("Height", 720)))
+            data["width"] = int(float(media_info[1].get("Width", 1280)))
             data["bitrate"] = int(media_info[1].get("BitRate", 320))
             data["frame_rate"] = round(float(media_info[1].get("FrameRat", "0.0")))
 
-    data["duration"] = int(float(info.get("Duration", 0))
+    data["duration"] = int(float(info.get("Duration", 0)))
     return data
 
 async def get_media_info(file, output_type="JSON"):
