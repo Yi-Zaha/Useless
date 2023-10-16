@@ -189,4 +189,4 @@ class AioHttpManager:
         return filename, total_size
 
 
-AioHttp = AioHttpManager(4, connector=TCPConnector(limit=50))
+AioHttp = AioHttpManager(4, connector=TCPConnector(limit=25))
