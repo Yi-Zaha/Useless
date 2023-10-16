@@ -7,7 +7,7 @@ import time
 from urllib.parse import unquote
 
 import aiofiles
-from aiohttp import ClientResponse, ClientSession, TCPConnector
+from aiohttp import ClientResponse, ClientSession
 
 CHUNK_SIZE = 1024
 MAX_THREADS = 4
