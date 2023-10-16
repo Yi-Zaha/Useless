@@ -1,8 +1,8 @@
 import asyncio
+import ast
 import json
 import os
 import re
-import threading
 import time
 from urllib.parse import unquote
 
@@ -18,7 +18,18 @@ class AioHttpManager:
         self.max_sessions = max_sessions
         self.connector = connector
         self.sessions = [self._create_session() for _ in range(max_sessions)]
-        self.lock = threading.Lock()
+        self.lock = asyncio.Lock()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type,
+        exc_val,
+        exc_tb,
+    ):
+        await self.close()
 
     def _create_session(self, connector=None):
         return {
@@ -28,8 +39,10 @@ class AioHttpManager:
             "usage_count": 0,
         }
 
-    def get_session(self):
-        with self.lock:
+    async def get_session(self):
+        async with self.lock:
+            if not self.sessions:
+                self.sessions = [self._create_session() for _ in range(max_sessions)]
             lowest_usage_session = min(self.sessions, key=lambda s: s["usage_count"])
             lowest_usage_session["usage_count"] += 1
             session = lowest_usage_session["session"]
@@ -41,7 +54,11 @@ class AioHttpManager:
 
     async def close(self):
         for s in self.sessions:
-            await s["session"].close()
+            try:
+                await s["session"].close()
+            except Exception as e:
+                print(e)
+                continue
 
     async def request(
         self,
@@ -51,7 +68,8 @@ class AioHttpManager:
         re_res: bool = False,
         **kwargs,
     ):
-        async with self.get_session().request(method, url, **kwargs) as response:
+        session = await self.get_session()
+        async with session.request(method, url, **kwargs) as response:
             if re_res:
                 return response
             if re_json:
@@ -66,7 +84,8 @@ class AioHttpManager:
         chunk_size: int = CHUNK_SIZE,
         **kwargs,
     ):
-        async with self.get_session().get(url, **kwargs) as response:
+        session = await self.get_session()
+        async with session.get(url, **kwargs) as response:
             filename, total_size = self.get_name_and_size_from_response(
                 response, filename=filename
             )
@@ -92,7 +111,7 @@ class AioHttpManager:
         max_threads: int = MAX_THREADS,
         **kwargs,
     ):
-        session = self.get_session()
+        session = await self.get_session()
         async with session.get(url, **kwargs) as response:
             filename, total_size = self.get_name_and_size_from_response(
                 response, filename=filename
@@ -107,7 +126,7 @@ class AioHttpManager:
             async def download_part(start, end, part_n):
                 range_headers = {} if not headers else headers
                 range_headers["Range"] = f"bytes={start}-{end}"
-                async with self.get_session().get(
+                async with session.get(
                     url, headers=range_headers, **kwargs
                 ) as part_response:
                     if part_response.status != 206:
@@ -161,7 +180,8 @@ class AioHttpManager:
     ):
         headers = {} if not headers else headers
         headers["Range"] = f"bytes={start}-{end}"
-        async with self.get_session().get(url, headers=headers, **kwargs) as response:
+        session = await self.get_session()
+        async with session.get(url, headers=headers, **kwargs) as response:
             if response.status != 206:
                 raise ValueError("Url does not support multi-threaded download.")
             async with aiofiles.open(filename, "wb") as file:
@@ -175,9 +195,9 @@ class AioHttpManager:
         if filename is None:
             content_disp = response.headers.get("Content-Disposition")
             if content_disp:
-                filename = re.findall(r'filename="(.*?)"', content_disp)
+                filename = re.search(r'filename=(.*?)', content_disp)
                 if filename:
-                    filename = unquote(filename[0].strip() or "")
+                    filename = unquote(ast.literal_eval(filename.group(1)) or "")
 
         if not filename:
             filename = unquote(response.url.raw_name)
