@@ -1,5 +1,5 @@
-import asyncio
 import ast
+import asyncio
 import json
 import os
 import re
@@ -195,7 +195,7 @@ class AioHttpManager:
         if filename is None:
             content_disp = response.headers.get("Content-Disposition")
             if content_disp:
-                filename = re.search(r'filename=(.*?)', content_disp)
+                filename = re.search(r"filename=(.*?)", content_disp)
                 if filename:
                     filename = unquote(ast.literal_eval(filename.group(1)) or "")
 
