@@ -196,7 +196,7 @@ class AioHttpManager:
             if content_disp:
                 filename = re.search(r"filename=(.*)", content_disp)
                 if filename:
-                    filename = unquote(filename.group(1).replace('"', '') or "")
+                    filename = unquote(filename.group(1).replace('"', "") or "")
 
         if not filename:
             filename = unquote(response.url.raw_name)
