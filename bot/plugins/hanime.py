@@ -172,7 +172,7 @@ async def search_handler(client, message):
         status = await query_message.reply("Searching...", quote=True)
     else:
         query = " ".join(message.command[1:])
-        status = await message.reply("Searching...")
+        status = await message.reply("Searching...", quote=True)
 
     query_id = get_random_id()
     cache[query_id] = query
@@ -197,11 +197,7 @@ async def search_query(
 
     if query_id not in cache:
         if getattr(callback.message.reply_to_message, "text", None):
-            query = (
-                callback.message.reply_to_message.text.split(" ", maxsplit=1)[1]
-                if callback.message.reply_to_message.text.lower().startswith("/hentai")
-                else callback.message.reply_to_message.text
-            )
+            query = callback.message.reply_to_message.text.split(" ", maxsplit=1)[1] if callback.message.reply_to_message.text.lower().startswith("/hentai") else callback.message.reply_to_message.text
             cache[query_id] = query
         else:
             await update.answer(
