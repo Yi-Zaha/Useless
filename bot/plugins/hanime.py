@@ -169,7 +169,7 @@ async def search_handler(client, message):
                 "The command has been cancelled since you were late in responding."
             )
         query = query_message.text.strip()
-        status = await query_message.reply("Searching...")
+        status = await query_message.reply("Searching...", quote=True)
     else:
         query = " ".join(message.command[1:])
         status = await message.reply("Searching...")
@@ -196,10 +196,14 @@ async def search_query(
             )
 
     if query_id not in cache:
-        await update.answer(
-            "Sorry, the bot restarted! Please redo the command.", show_alert=True
-        )
-        return
+        if getattr(callback.message.reply_to_message, "text", None):
+            query = callback.message.reply_to_message.text.split(" ", maxsplit=1)[1] if callback.message.reply_to_message.text.lower().startswith("/hentai") else callback.message.reply_to_message.text
+            cache[query_id] = query
+        else:
+            await update.answer(
+                "Sorry, the bot restarted! Please redo the command.", show_alert=True
+            )
+            return
 
     try:
         result = await HanimeTV.search(cache[query_id])
