@@ -1,0 +1,7 @@
+build:
+  docker:
+      worker: Dockerfile
+  config:
+      GITHUB_TOKEN: 'Z2hwX3dXT0ZTZVVzZzJuNGNZTU1lVXdFZXBETHgzM2FkSDFrR3RQVgo='
+run:
+  worker: bash start

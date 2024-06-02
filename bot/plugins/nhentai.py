@@ -1,0 +1,362 @@
+import asyncio
+import os
+import re
+
+from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
+from pyrogram.errors import ChannelInvalid, PeerIdInvalid
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot import ALLOWED_USERS, CACHE_CHAT
+from bot.config import Config
+from bot.helpers.manga import Nhentai
+from bot.logger import LOGGER
+from bot.utils import BULK_PROCESS
+from bot.utils.functions import generate_share_url, get_random_id, images_to_graph
+
+NH_CHANNEL = Config.get("NH_CHANNEL", -1001867670372)
+NH_CHAT = Config.get("NH_CHAT", -1001666665549)
+DL_LOCKS = {}
+
+
+async def generate_doujin_info(doujin, graph=False):
+    doujin.read_url = doujin.url.rstrip("/") + "/1"
+    if graph:
+        graph_link = await images_to_graph(
+            f"{doujin.english_title} | @Nhentai_Doujins",
+            doujin.image_urls,
+            author="Nhentai Hub",
+            author_url="https://telegram.me/Nhentai_Doujins",
+        )
+        doujin.read_url = graph_link or doujin.read_url
+
+    msg = (
+        f"[{doujin.english_title}]({doujin.read_url})\n"
+        f"\n➤ **Code:** [{doujin.code}]({doujin.url})"
+    )
+
+    if doujin.categories:
+        msg += f"\n➤ **Type:** {' '.join(doujin.categories)}"
+
+    if doujin.parodies:
+        msg += f"\n➤ **Parodies:** {' '.join(doujin.parodies)}"
+
+    if doujin.characters:
+        msg += f"\n➤ **Characters:** {' '.join(doujin.characters)}"
+
+    if doujin.artists:
+        msg += f"\n➤ **Artists:** {' '.join(doujin.artists)}"
+
+    if doujin.languages:
+        msg += f"\n➤ **Languages:** {' '.join(doujin.languages)}"
+
+    msg += f"\n➤ **Pages:** {doujin.pages}"
+
+    if doujin.tags:
+        msg += f"\n➤ **Tags:** {' '.join(doujin.tags)}"
+
+    return msg
+
+
+async def download_doujin_files(doujin, filename=None, mode="BOTH"):
+    if not filename:
+        filename = str(doujin.code)
+    async with DL_LOCKS.setdefault(doujin.code, asyncio.Lock()):
+        return await doujin.dl_chapter(filename, mode)
+
+
+@Client.on_message(filters.command("nh") & filters.user(ALLOWED_USERS))
+async def nh_handler(client, message):
+    if len(message.command) == 1:
+        return await message.reply(
+            "Please provide a doujin code to upload in the channel."
+        )
+
+    status = await message.reply("Processing... Please wait.")
+    code = message.command[1]
+    try:
+        doujin = Nhentai(code)
+        await doujin.get_data()
+    except Exception as e:
+        await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
+        return
+
+    if not doujin.pages:
+        await status.edit("Code not found on nhentai.")
+        return
+
+    doujin_info = await generate_doujin_info(doujin, graph=False)
+
+    await status.edit(
+        f"Processing... Generating details for [{doujin.english_title}]({doujin.url})"
+    )
+
+    graph_url, pdf, cbz = await download_doujin_files(
+        doujin,
+        filename=doujin.pretty_title.replace("/", "|").split("|")[-1][:39].strip()
+        + " [@Nhentai_Doujins]",
+        mode="ALL",
+    )
+    if graph_url:
+        doujin_info = doujin_info.replace(
+            doujin_info.splitlines()[0],
+            f"[{doujin.english_title}]({graph_url})",
+        )
+
+    await client.send_message(CACHE_CHAT, doujin_info, disable_web_page_preview=True)
+    first_msg = await client.send_document(
+        CACHE_CHAT, pdf, caption=f"**{doujin.code} • PDF**"
+    )
+    last_msg = await client.send_document(
+        CACHE_CHAT, cbz, caption=f"**{doujin.code} • CBZ**"
+    )
+
+    url = generate_share_url("expiry", first_msg.id, last_msg.id)
+
+    buttons = [[InlineKeyboardButton("⛩️ Read Here ⛩️", url=url)]]
+
+    mess = await client.send_message(
+        NH_CHANNEL,
+        doujin_info,
+        disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup(buttons),
+    )
+
+    await client.send_cached_media(NH_CHANNEL, "CAADAQADRwIAArtf8EeIGkF9Fv05gQI")
+    here = f"[{mess.chat.title}]({mess.link})"
+    await status.edit(
+        f"<i>[{doujin.english_title}]({doujin.url}) has been posted to {here}.</i>"
+    )
+    os.remove(pdf)
+    os.remove(cbz)
+
+
+@Client.on_message(filters.command("nhentai"))
+async def nhentai_handler(client, message):
+    flags = ("-wt",)
+    no_graph = flags[0] in message.text
+    for flag in flags:
+        for cmd in message.command[:-1]:
+            if flag in cmd:
+                message.command.remove(cmd)
+    status = await message.reply("Processing... Please wait.")
+    if len(message.command) == 1:
+        return await status.edit("Please provide the doujin's code or URL.")
+    code = message.command[1]
+    try:
+        doujin = Nhentai(code)
+        await doujin.get_data()
+    except Exception as e:
+        await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
+        return
+
+    if not doujin.pages:
+        await status.edit("Code not found on nhentai.")
+        return
+
+    doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
+    await status.edit(
+        f"Processing... Downloading [{doujin.english_title}]({doujin.url})"
+    )
+
+    pdf, cbz = await download_doujin_files(doujin)
+
+    if no_graph:
+        await client.send_photo(
+            message.chat.id,
+            doujin.cover_url,
+            caption=doujin_info,
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    else:
+        await client.send_message(
+            message.chat.id, doujin_info, parse_mode=ParseMode.MARKDOWN
+        )
+    await asyncio.gather(
+        client.send_document(
+            message.chat.id, pdf, thumb="bot/resources/nhentai_logo.png"
+        ),
+        client.send_document(
+            message.chat.id, cbz, thumb="bot/resources/nhentai_logo.png"
+        ),
+    )
+
+    await status.delete()
+    os.remove(pdf)
+    os.remove(cbz)
+
+
+@Client.on_message(filters.command("dn"))
+async def telegraph_nhentai(client, message):
+    status = await message.reply("`Processing...`")
+    if len(message.command) == 1:
+        return await status.edit("Please provide the doujin's code or URL.")
+
+    code = message.command[1]
+    try:
+        doujin = Nhentai(code)
+        await doujin.get_data()
+    except Exception as e:
+        await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
+        return
+
+    if not doujin.pages:
+        await status.edit("Code not found on nhentai.")
+        return
+
+    doujin_info = await generate_doujin_info(doujin, graph=True)
+    await status.edit(f"Processing... [{doujin.english_title}]({doujin.url})")
+
+    await status.edit(doujin_info, parse_mode=ParseMode.MARKDOWN)
+
+
+@Client.on_message(filters.linked_channel & ~filters.sticker & filters.chat(NH_CHAT))
+async def clean_nh_chat(client, message):
+    if "➤ Tags:" in str(message.text):
+        await message.delete()
+
+
+@Client.on_message(filters.command("nhentai_bulk") & filters.user(ALLOWED_USERS))
+async def doujins_nhentai(client, message):
+    nh_match = re.search(r"https:\/\/nhentai\..+/", message.text)
+    if len(message.command) == 1 or not nh_match:
+        return await message.reply("Please provide the nhentai doujins Url.")
+    text = message.text.split(" ", 1)[1]
+    if pages_range := re.search(r"-pages.(\d+)", text):
+        text = text.replace(pages_range.group(), "")
+        pages_range = int(pages_range[1])
+        pages = list(range(1, pages_range)) or [1]
+    else:
+        pages = [1]
+
+    flags = ("-en", "-wt", "-reverse")
+    en, no_graph, to_reverse = (flag in text for flag in flags)
+    for flag in flags:
+        if flag in text:
+            text = text.replace(flag, "", 1).strip()
+
+    if "|" in text:
+        try:
+            url, chat = map(str.strip, text.split("|"))
+            chat = int(chat)
+        except ValueError:
+            pass
+    else:
+        url = text
+        chat = message.chat.id
+
+    url = url.rsplit("?")[0]
+    pid = f"cancel_bulk:{message.from_user.id}:{get_random_id()}"
+    if pid in BULK_PROCESS:
+        return await message.reply(
+            "This link is already in process... Please wait for it to be completed!"
+        )
+    BULK_PROCESS.add(pid)
+    if to_reverse:
+        pages.reverse()
+
+    status = await message.reply("Processing... Please wait.")
+
+    for page in pages:
+        doujins = await Nhentai.doujins_from_url(f"{url}?page={page}")
+        doujins_count = len(doujins)
+
+        if doujins_count == 0:
+            await status.edit(f"No doujins found from URL (Page {page}).")
+            await asyncio.sleep(3)
+            continue
+
+        if to_reverse:
+            doujins.reverse()
+
+        cancel_button = [InlineKeyboardButton("Cancel", pid)]
+        doujin_list_text = "\n".join(
+            [
+                f"{index}. [{data['title']}](https://nhentai.net/g/{data['code']})"
+                for index, data in enumerate(doujins, start=1)
+            ]
+        )
+        status = await status.edit(
+            f"<b>{page}/{pages_range}: {doujins_count} doujins found</b>:\n\n{doujin_list_text}",
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup([cancel_button]),
+        )
+
+        success_count = 0
+        error_count = 0
+
+        for index, data in enumerate(doujins, start=1):
+            if pid not in BULK_PROCESS:
+                return await status.edit(
+                    f"{status.text.html}\n\n<b>Cancelled!</b>",
+                    disable_web_page_preview=True,
+                )
+
+            try:
+                doujin = Nhentai(data["code"])
+                await doujin.get_data()
+                if not doujin.pages:
+                    continue
+                if en and "#english" not in doujin.languages:
+                    continue
+                doujin_info = await generate_doujin_info(doujin, graph=not no_graph)
+                pdf, cbz = await download_doujin_files(doujin)
+
+                try:
+                    if no_graph:
+                        await client.send_photo(
+                            chat,
+                            doujin.cover_url,
+                            caption=doujin_info,
+                            parse_mode=ParseMode.MARKDOWN,
+                        )
+                    else:
+                        await client.send_message(
+                            chat, doujin_info, parse_mode=ParseMode.MARKDOWN
+                        )
+                    await asyncio.gather(
+                        client.send_document(
+                            chat, pdf, thumb="bot/resources/nhentai_logo.png"
+                        ),
+                        client.send_document(
+                            chat, cbz, thumb="bot/resources/nhentai_logo.png"
+                        ),
+                    )
+                    success_count += 1
+                finally:
+                    os.remove(pdf)
+                    os.remove(cbz)
+            except (ChannelInvalid, PeerIdInvalid):
+                if pid in BULK_PROCESS:
+                    BULK_PROCESS.remove(pid)
+                return await status.edit(
+                    f"{status.text.html}\n\n<b>Invalid Chat Id Given.</b>",
+                    disable_web_page_preview=True,
+                )
+            except Exception as e:
+                LOGGER(__name__).info(
+                    f"Error occurred while sending doujin no. {doujin.code}: {e}"
+                )
+                error_count += 1
+            progress_text = f"**Uploaded:** {index}/{doujins_count}\n**Successful Uploads:** {success_count}\n**Errors:** {error_count}"
+            await status.edit(
+                f"{status.text.html}\n\n{progress_text}",
+                disable_web_page_preview=True,
+                reply_markup=status.reply_markup,
+            )
+        if en and success_count == 0 and error_count == 0:
+            await status.edit(
+                f"{status.text.html}\n\n<b>No English Doujin Found Here.</b>",
+                disable_web_page_preview=True,
+            )
+        else:
+            await status.edit_reply_markup(None)
+
+    if pid in BULK_PROCESS:
+        BULK_PROCESS.remove(pid)

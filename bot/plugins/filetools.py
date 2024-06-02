@@ -1,0 +1,599 @@
+import asyncio
+import glob
+import os
+import re
+import tempfile
+import time
+import zipfile
+from datetime import datetime
+
+import pyminizip
+from pyrogram import Client, filters
+
+from bot import ALLOWED_USERS, SUDOS, bot
+from bot.helpers.progress_cb import PROGRESS_CANCELLATIONS, progress_cb
+from bot.utils.aiohttp_helper import AioHttp
+from bot.utils.media import get_metadata, get_video_ss
+from bot.utils.pdf import extract_pdf_images, imgtopdf
+
+
+async def send_media(
+    media_type,
+    chat,
+    file,
+    message=None,
+    progress=progress_cb,
+    progress_user=None,
+    **kwargs,
+):
+    c_time = time.time()
+    file_name = kwargs.get("file_name", None)
+    if file_name is None:
+        file_name = os.path.basename(str(file))
+    try:
+        metadata = await get_metadata(file)
+    except BaseException:
+        metadata = {}
+    sent = None
+    if media_type in ("vid", "video"):
+        ss = None
+        thumb = kwargs.pop("thumb", None)
+        if not thumb:
+            try:
+                ss = get_video_ss(file)
+                thumb = ss
+            except BaseException:
+                pass
+        sent = await bot.send_video(
+            chat,
+            file,
+            thumb=thumb,
+            width=kwargs.pop("width", metadata.get("width")),
+            height=kwargs.get("height", metadata.get("height")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
+            progress=progress,
+            progress_args=(
+                message,
+                c_time,
+                "Uploading Video...",
+                file_name,
+                None,
+                progress_user,
+            ),
+            **kwargs,
+        )
+        if ss and os.path.exists(ss):
+            os.remove(ss)
+
+    elif media_type in ("pic", "photo"):
+        sent = await bot.send_photo(
+            chat,
+            file,
+            progress=progress,
+            progress_args=(
+                message,
+                c_time,
+                "Uploading Picture...",
+                file_name,
+                None,
+                progress_user,
+            ),
+            **kwargs,
+        )
+
+    elif media_type in ("audio"):
+        sent = await bot.send_audio(
+            chat,
+            file,
+            performer=kwargs.pop("performer", metadata.get("performer")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
+            progress=progress,
+            progress_args=(
+                message,
+                c_time,
+                "Uploading Audio...",
+                file_name,
+                None,
+                progress_user,
+            ),
+            **kwargs,
+        )
+
+    elif media_type in ("gif", "animation"):
+        sent = await bot.send_animation(
+            chat,
+            file,
+            width=kwargs.pop("width", metadata.get("width")),
+            height=kwargs.get("height", metadata.get("height")),
+            duration=kwargs.pop("duration", metadata.get("duration")),
+            progress=progress,
+            progress_args=(
+                message,
+                c_time,
+                "Uploading Gif...",
+                file_name,
+                None,
+                progress_user,
+            ),
+            **kwargs,
+        )
+    else:
+        sent = await bot.send_document(
+            chat,
+            file,
+            progress=progress,
+            progress_args=(
+                message,
+                c_time,
+                "Uploading Document...",
+                file_name,
+                None,
+                progress_user,
+            ),
+            **kwargs,
+        )
+    if progress_user and sent is None:
+        raise asyncio.CancelledError
+    return sent
+
+
+@Client.on_message(filters.command(["download", "dl"]) & filters.user(SUDOS))
+async def media_download(client, message):
+    status = await message.reply("Processing...")
+    input_text = " ".join(message.command[1:]) if len(message.command) > 1 else ""
+    reply = message.reply_to_message
+    start_time = datetime.now()
+
+    if reply and reply.media:
+        media_object = getattr(reply, reply.media._value_, None)
+        file_name = (
+            getattr(media_object, "file_name", None)
+            if not input_text or input_text.endswith("/")
+            else input_text.strip()
+        )
+        c_time = time.time()
+        try:
+            downloaded_path = await reply.download(
+                file_name=input_text,
+                progress=progress_cb,
+                progress_args=(
+                    status,
+                    c_time,
+                    "Downloading...",
+                    file_name,
+                    None,
+                    message.from_user.id,
+                ),
+            )
+            end_time = datetime.now()
+            time_taken = (end_time - start_time).seconds
+            if downloaded_path:
+                await status.edit(
+                    f"Downloaded to <code>{downloaded_path}</code> in <code>{time_taken}</code> seconds."
+                )
+        except Exception as e:
+            await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{e.__class__.__name__}: {e}</code>"
+            )
+    elif input_text:
+        try:
+            if "|" in input_text:
+                dl_url, file_path = map(str.strip, input_text.split("|"))
+                if "/" not in file_path:
+                    os.makedirs("downloads", exist_ok=True)
+                    file_path = os.path.join("downloads", file_path)
+            else:
+                os.makedirs("downloads", exist_ok=True)
+                dl_url = input_text.strip()
+                response = await AioHttp.request(dl_url, re_res=True)
+                file_name, _ = AioHttp.get_name_and_size_from_response(response)
+                file_path = os.path.join("downloads", file_name)
+
+            c_time = time.time()
+            downloaded_path, _, _ = await AioHttp.download(
+                dl_url,
+                file_path,
+                progress_callback=lambda d, t: asyncio.create_task(
+                    progress_cb(
+                        d,
+                        t,
+                        status,
+                        c_time,
+                        f"Downloading Url - {dl_url}",
+                        os.path.basename(file_path),
+                        True,
+                        message.from_user.id,
+                    )
+                ),
+            )
+            end_time = datetime.now()
+            time_taken = (end_time - start_time).seconds
+            if downloaded_path:
+                await status.edit(
+                    f"Downloaded Url <code>{dl_url}</code> to <code>{downloaded_path}</code> in <code>{time_taken}</code> seconds."
+                )
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{e.__class__.__name__}: {e}</code>"
+            )
+    else:
+        await status.edit("Reply to media or provide a URL to download.")
+
+
+@Client.on_message(filters.regex(r"^/(upload|ul) ?(.*)", re.I) & filters.user(SUDOS))
+async def media_upload(client, message):
+    status = await message.reply("Processing..")
+    command = message.text.split(" ")
+    if len(command) == 1:
+        return await status.edit("You have to provide a file path in order to upload.")
+
+    media_type = (
+        command[0].split("_")[-1] if len(command[0].split("_")) > 1 else "document"
+    )
+    text = " ".join(command[1:])
+    thumb = "thumb.jpg" if "-t" in text else None
+    "-f" in text
+    protect_content = "-protect" in text
+
+    flags = ("-f", "-t", "-protect")
+    for flag in flags:
+        for cmd in command[:-1]:
+            if flag in cmd:
+                command.remove(cmd)
+
+    text = " ".join(command[1:])
+    chat = message.chat.id
+    if "|" in text:
+        try:
+            text, chat = map(str.strip, text.split("|"))
+            chat = int(chat)
+        except ValueError:
+            pass
+
+    text += "*" if text.endswith("/") else ""
+    files = glob.glob(text)
+
+    if not files and os.path.exists(text):
+        files = [text]
+
+    if not files and not os.path.exists(text):
+        return await status.edit("File doesn't exist.")
+
+    start_time = datetime.now()
+    for file in files:
+        if os.path.isdir(file):
+            continue
+        caption = f"<code>{os.path.basename(file)}</code>"
+        try:
+            await send_media(
+                media_type,
+                chat,
+                file,
+                message=status,
+                progress_user=message.from_user.id,
+                caption=caption,
+                protect_content=protect_content,
+                **({"thumb": thumb} if thumb else {}),
+            )
+        except asyncio.CancelledError:
+            return
+        except Exception as e:
+            return await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{e.__class__.__name__}: {e}</code>"
+            )
+    end_time = datetime.now()
+    time_taken = (end_time - start_time).seconds
+    if message.chat.id == chat:
+        await status.edit(
+            f"Uploaded <code>{text}</code> in <code>{time_taken}</code> seconds."
+        )
+    else:
+        await status.edit(
+            f"Uploaded <code>{text}</code> to <code>{chat}</code> in <code>{time_taken}</code> seconds."
+        )
+
+
+@Client.on_message(filters.regex(r"^/rename ?(.*)") & filters.user(ALLOWED_USERS))
+async def media_rename(client, message):
+    reply = message.reply_to_message
+    command = message.text.split(" ")
+    if not (getattr(reply, "media", None) or len(command) > 1):
+        return await message.reply(
+            "Reply to a media and provide a file name to rename."
+        )
+
+    status = await message.reply("Processing...")
+    media = getattr(reply, reply.media._value_)
+    media_type = command[0].split("_")
+    media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
+    flags = ("-f", "-t", "-nt", "-protect")
+    force_doc, thumb, no_thumb, protect_content = (
+        flags[0] in message.text,
+        flags[1] in message.text,
+        flags[2] in message.text,
+        flags[3] in message.text,
+    )
+    thumb = "thumb.jpg" if thumb else None
+    extra_args = {}
+    if not thumb and media.thumbs:
+        thumb = await client.download_media(media.thumbs[-1].file_id)
+        if media_type in ("vid", "video") and reply.video:
+            extra_args |= {
+                "duration": media.duration,
+                "height": media.thumbs[-1].height,
+                "width": media.thumbs[-1].width,
+            }
+    if no_thumb:
+        thumb = None
+    if thumb:
+        extra_args["thumb"] = thumb
+
+    for cmd in command[:-1]:
+        for flag in flags:
+            if flag in cmd:
+                command.remove(cmd)
+
+    file_name = media.file_name
+    output_name = " ".join(command[1:])
+    chat_id = message.chat.id
+    if "|" in output_name:
+        try:
+            output_name, chat_id = map(str.strip, output_name.split("|"))
+            chat_id = int(chat_id)
+        except ValueError:
+            pass
+
+    start_time = datetime.now()
+
+    downloaded_file = await reply.download(
+        file_name="downloads/",
+        progress=progress_cb,
+        progress_args=(status, time.time(), "Downloading...", file_name),
+    )
+    try:
+        await send_media(
+            media_type,
+            chat_id,
+            downloaded_file,
+            file_name=output_name,
+            caption=f"<code>{output_name}</code>",
+            message=status,
+            progress_user=message.from_user.id,
+            protect_content=protect_content,
+            **extra_args,
+        )
+    except asyncio.CancelledError:
+        return
+    except Exception as e:
+        return await status.edit(
+            f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+        )
+
+    end_time = datetime.now()
+    time_taken = (end_time - start_time).seconds
+    success_text = f"Renamed <code>{file_name}</code> to <code>{output_name}</code> in <code>{time_taken}</code> seconds"
+    if chat_id != message.chat.id:
+        success_text += f" and sent to chat ID <code>{chat_id}</code>"
+    success_text += "."
+    await status.edit(success_text)
+
+    if thumb and thumb != "thumb.jpg":
+        os.remove(thumb)
+    os.remove(downloaded_file)
+
+
+"""
+async def media_rename(client, message):
+    reply = message.reply_to_message
+    if not (getattr(reply, "media", False) or len(message.command) == 1):
+        return await message.reply(
+            "Reply to a media and provide a file name to rename."
+        )
+
+    status = await message.reply("Processing...")
+    media = getattr(reply, reply.media._value_)
+    command = message.text.split(" ")
+    media_type = command[0].split("_")
+    media_type = media_type[1] if len(media_type) > 1 else reply.media._value_
+    force_doc, thumb, no_thumb, protect_content = (
+        flags[0] in message.text,
+        flags[1] in message.text,
+        flags[2] in message.text,
+        flags[3] in message.text,
+    )
+    thumb = "thumb.jpg" if thumb else None
+    extra_args = {}
+    if not thumb and media.thumbs:
+        thumb = await client.download_media(media.thumbs[-1].file_id)
+        if media_type in ("vid", "video") and reply.video:
+            extra_args.update(
+                {
+                    "duration": media.duration,
+                    "height": media.thumbs[-1].height,
+                    "width": media.thumbs[-1].width,
+                }
+            )
+    if no_thumb:
+        thumb = None
+    for cmd in command[:-1]:
+        for flag in flags:
+            if flag in cmd:
+                command.remove(cmd)
+
+    file_name = media.file_name
+    output_name = " ".join(command[1:])
+    chat_id = message.chat.id
+    if "|" in output_name:
+        try:
+            output_name, chat_id = map(str.strip, output_name.split("|"))
+            chat_id = int(chat_id)
+        except ValueError:
+            pass
+
+    start_time = datetime.now()
+
+    stream = Stream(
+        name=output_name, file_size=media.file_size, stream=client.stream_media(reply)
+    )
+    await stream.fill()
+    await send_media(
+        media_type,
+        chat_id,
+        stream,
+        message=status,
+        progress=stream.progress,
+        thumb=thumb,
+        caption=f"<code>{output_name}</code>",
+        protect_content=protect_content,
+        **extra_args,
+    )
+
+    end_time = datetime.now()
+    time_taken = (end_time - start_time).seconds
+    success_text = f"Renamed <code>{file_name}</code> to <code>{output_name}</code> in <code>{time_taken}</code> seconds"
+    if chat_id != message.chat.id:
+        success_text += f" and sent to chat ID <code>{chat_id}</code>"
+    success_text += "."
+    await status.edit(success_text)
+
+    if thumb and thumb != "thumb.jpg":
+        os.remove(thumb)
+"""
+
+
+@Client.on_message(
+    filters.command("cbz2pdf") & filters.user(ALLOWED_USERS) & filters.reply
+)
+async def cbz_to_pdf(client, message):
+    reply = message.reply_to_message
+    if not reply.document or not reply.document.file_name.endswith((".cbz", ".zip")):
+        return
+
+    status = await message.reply("Processing...")
+    flags = ("-t", "-nt")
+    local_thumb, no_thumb = (flag in message.text for flag in flags)
+    thumb = None
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir += "/"
+
+        if not no_thumb:
+            if local_thumb:
+                thumb = "thumb.jpg"
+            elif reply.document.thumbs:
+                thumb = await client.download_media(
+                    reply.document.thumbs[-1].file_id, temp_dir
+                )
+
+        downloaded_file = await reply.download(
+            file_name=temp_dir,
+            progress=progress_cb,
+            progress_args=(
+                status,
+                time.time(),
+                "Downloading...",
+                reply.document.file_name,
+            ),
+        )
+        await status.edit("Converting to pdf...")
+        try:
+            images = []
+            with zipfile.ZipFile(downloaded_file, "r") as file:
+                file.extractall(temp_dir)
+                images = map(
+                    lambda name: os.path.join(temp_dir, name), sorted(file.namelist())
+                )
+
+            pdf_path = os.path.join(temp_dir, os.path.splitext(downloaded_file)[0])
+            pdf_file = await imgtopdf(
+                pdf_path, images, author=f"telegram.me/{client.me.username}"
+            )
+        except Exception as e:
+            return await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+            )
+
+        await message.reply_document(
+            pdf_file,
+            thumb=thumb,
+            progress=progress_cb,
+            progress_args=(
+                status,
+                time.time(),
+                "Uploading...",
+                os.path.basename(pdf_file),
+            ),
+        )
+
+
+@Client.on_message(
+    filters.command("pdf2cbz") & filters.user(ALLOWED_USERS) & filters.reply
+)
+async def pdf_to_cbz(client, message):
+    reply = message.reply_to_message
+    if not reply.document or not reply.document.file_name.endswith((".pdf")):
+        return
+
+    status = await message.reply("Processing...")
+    flags = ("-t", "-nt")
+    local_thumb, no_thumb = (flag in message.text for flag in flags)
+    thumb = None
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir += "/"
+
+        if not no_thumb:
+            if local_thumb:
+                thumb = "thumb.jpg"
+            elif reply.document.thumbs:
+                thumb = await client.download_media(
+                    reply.document.thumbs[-1].file_id, temp_dir
+                )
+
+        downloaded_file = await reply.download(
+            file_name=temp_dir,
+            progress=progress_cb,
+            progress_args=(
+                status,
+                time.time(),
+                "Downloading...",
+                reply.document.file_name,
+            ),
+        )
+        await status.edit("Converting to cbz...")
+        try:
+            images = await extract_pdf_images(downloaded_file, save_dir=temp_dir)
+            cbz_file = os.path.join(
+                temp_dir, f"{os.path.splitext(downloaded_file)[0]}.cbz"
+            )
+            pyminizip.compress_multiple(images, [], str(cbz_file), None, 6)
+        except Exception as e:
+            return await status.edit(
+                f"<b>Oops! Something went wrong.</b>\n\n<code>{type(e).__name__}: {e}</code>"
+            )
+
+        sent = await message.reply_document(
+            cbz_file,
+            thumb=thumb,
+            progress=progress_cb,
+            progress_args=(
+                status,
+                time.time(),
+                "Uploading...",
+                os.path.basename(cbz_file),
+            ),
+        )
+
+
+@Client.on_callback_query(filters.regex(r"cancel_progress:.*"))
+async def cancel_progress(client, callback):
+    msg_id = callback.data.split(":")[-1]
+    msg_id = int(msg_id)
+    chat_id = callback.message.chat.id
+    if chat_id not in PROGRESS_CANCELLATIONS:
+        PROGRESS_CANCELLATIONS[chat_id] = []
+    if msg_id not in PROGRESS_CANCELLATIONS[chat_id]:
+        PROGRESS_CANCELLATIONS[chat_id].append(msg_id)
+    await callback.answer(
+        "Okay, your process will be cancelled soon if it wasn't already inactive."
+    )

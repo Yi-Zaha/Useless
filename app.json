@@ -1,0 +1,32 @@
+{
+    "name": "Useless Bot",
+    "repository": "https://github.com/Yi-Zaha/Useless",
+    "stack": "container",
+    "env": {
+        "API_ID": {
+            "description": "Get this value from my.telegram.org!",
+            "value": "",
+            "required": false
+        },
+        "API_HASH": {
+            "description": "Get this value from my.telegram.org!",
+            "value": "",
+            "required": false
+        },
+        "BOT_TOKEN": {
+            "description": "Get this value from www.telegram.dog/BotFather!",
+            "value": "",
+            "required": false
+        },
+        "MONGO_URL": {
+            "description": "Get this value from www.mongodb.com!",
+            "value": "",
+            "required": false
+        },
+        "GITHUB_TOKEN": {
+            "description": "Get this value from www.github.com/settings/tokens!",
+            "value": "",
+            "required": false
+        }
+    }
+}
