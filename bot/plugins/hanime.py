@@ -641,7 +641,7 @@ async def bulk_hanime(client, callback):
                     )
                 )
                 await send_media(
-                    upload_mode,
+                    "DOCUMENT",
                     chat_to_send,
                     file,
                     caption=f"<i>1080p</i>",
