@@ -395,7 +395,7 @@ async def process_up_phub_post(client, callback, bulkp_opts, post_id=None):
         post_image = (
             await client.get_messages(post_db["channel_id"], post["message_id"])
         ).photo.file_id
-        psub = await anext(pdB.all_subs({"chat": post["fchannel"].get("chat_id")}), {})
+        psub = await anext(pdB.all_subs({"chat": post_chat}), {})
         chat_id = chat_id or post["fchannel"].get("new_chat_id")
 
     al_id = post.get("al_id") if post else None
