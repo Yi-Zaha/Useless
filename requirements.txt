@@ -12,6 +12,7 @@ html-telegraph-poster
 httpx
 img2pdf
 jikanpy-v4
+levenshtein
 lxml[html_clean]
 m3u8
 markdown2
@@ -21,7 +22,7 @@ opencv-python-headless
 pillow
 motor
 pyminizip
-pyrogram~=2.0.104
+git+https://github.com/KurimuzonAkuma/pyrogram
 python-dateutil
 python-dotenv
 reportlab

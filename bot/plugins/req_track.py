@@ -4,6 +4,7 @@ from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from bot.utils.functions import string_similarity
 from bot.utils.db import dB
 
 # Mapping of request groups to channels
@@ -83,7 +84,7 @@ async def handle_requests(client, message):
         matches = [
             (name, link)
             for name, link in namelinks.items()
-            if re.search(re.escape(text), name, flags=re.I)
+            if string_similarity(text, name) > 80.0
         ]
         if matches:
             matching_text = "\n".join(

@@ -25,6 +25,7 @@ from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telegraph.aio import Telegraph
+from Levenshtein import hamming
 
 from bot import LOGS, bot
 
@@ -91,6 +92,12 @@ def remove_files(files):
         for file in files:
             with suppress(BaseException):
                 os.remove(file)
+
+
+def string_similarity(string1, string2):
+    distance = hamming(string1.lower(), string2.lower())
+    net_length = len(string1+string2)
+    return 100 - (distance * 100 / net_length)
 
 
 # Network Functions
