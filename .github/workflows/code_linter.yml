@@ -34,4 +34,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: 'Auto-Formatted Code'
-          commit_options: '--no-verify --sign-off'
+          commit_options: '--no-verify --signoff'
