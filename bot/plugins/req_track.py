@@ -4,8 +4,8 @@ from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot.utils.functions import string_similarity
 from bot.utils.db import dB
+from bot.utils.functions import string_similarity
 
 # Mapping of request groups to channels
 rchats = {

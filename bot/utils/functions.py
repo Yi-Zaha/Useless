@@ -20,12 +20,12 @@ import requests
 from bs4 import BeautifulSoup
 from html_telegraph_poster import html_to_telegraph
 from html_telegraph_poster.html_to_telegraph import TelegraphPoster
+from Levenshtein import hamming
 from pyrogram import raw, types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, RPCError, UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telegraph.aio import Telegraph
-from Levenshtein import hamming
 
 from bot import LOGS, bot
 
@@ -96,7 +96,7 @@ def remove_files(files):
 
 def string_similarity(string1, string2):
     distance = hamming(string1.lower(), string2.lower())
-    net_length = len(string1+string2)
+    net_length = len(string1 + string2)
     return 100 - (distance * 100 / net_length)
 
 
