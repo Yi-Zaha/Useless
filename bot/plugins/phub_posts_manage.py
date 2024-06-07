@@ -535,7 +535,7 @@ async def process_up_phub_post(client, callback, bulkp_opts, post_id=None):
         post["fchannel"]["invite_link"] = await get_chat_invite_link(chat_id)
 
     if al_id:
-        temp_img = (await AioHttp.download(image, filename=f"{al_id}.png"))[0]
+        temp_img = (await AioHttp.download(image, filename=f"cache/{al_id}.png"))[0]
         is_nsfw = False
         try:
             nsfw_scan = await safone_api.nsfw_scan(file=temp_img)

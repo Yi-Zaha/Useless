@@ -9,6 +9,7 @@ from bot.config import Config
 from bot.helpers import ani
 from bot.logger import LOGGER
 from bot.utils.db import dB
+from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import get_chat_messages, get_latest_chat_msg
 
 INDEX_CHANNEL = Config.get("PORNHWA_HUB_INDEX", -1001749847496)
@@ -38,6 +39,7 @@ async def on_phub_handler(client, message):
 @Client.on_chat_join_request(filters.chat(PHUB_CHANNEL))
 async def phub_join_requests(client, request):
     await request.approve()
+    await client.send_message(request.from_user.id, f"Hello, {request.from_user.first_name}. Welcome to the Pornhwa Hub  Adult Manhwa 18+. Take a look around for a pornhwa that suits your preferences.\n\nIf you have any questions or just want to talk, head over to @PornhwaChat and start a conversation.")
 
 
 async def update_phub_index(client):
@@ -136,55 +138,44 @@ async def update_post_db(client, post_db, post_info):
         ),
         None,
     )
+    
     if _index is not None:
         # Update existing post
-        if (
-            post_db["posts"][_index]["status"].lower() == "releasing"
-            and post_info["status"].lower() != "finished"
-        ):
-            if (
-                post_info["status"].lower() == "releasing"
-                and post_info["fchannel"]["invite_link"]
-                != post_db["posts"][_index]["fchannel"]["invite_link"]
-            ):
-                if post_chat := await get_chat_by_invite_link(
-                    post_info["fchannel"]["invite_link"]
-                ):
+        current_post = post_db["posts"][_index]
+        if current_post["status"].lower() == "releasing" and post_info["status"].lower() != "finished":
+            if post_info["status"].lower() == "releasing" and post_info["fchannel"]["invite_link"] != current_post["fchannel"]["invite_link"]:
+                if post_chat := await get_chat_by_invite_link(post_info["fchannel"]["invite_link"]):
                     post_info["fchannel"]["chat_id"] = post_chat.id
                 else:
-                    post_db["posts"][_index]["fchannel"].pop("chat_id", None)
+                    current_post["fchannel"].pop("chat_id", None)
 
-            if float(post_db["posts"][_index]["chapters"]) > float(
-                post_info["chapters"]
-            ):
-                post_info["chapters"] = post_db["posts"][_index]["chapters"]
-                if al_id := post_db["posts"][_index].get("al_id"):
+            if float(current_post["chapters"]) > float(post_info["chapters"]):
+                post_info["chapters"] = current_post["chapters"]
+                if al_id := current_post.get("al_id"):
                     # Update rating and status if manga is finished
-                    manga_json = (
-                        await ani.anime_json_synomsis(ani.manga_query, {"id": al_id})
-                    )["data"]["Media"]
+                    manga_json = (await ani.anime_json_synomsis(ani.manga_query, {"id": al_id}))["data"]["Media"]
                     post_info["rating"] = manga_json["averageScore"]
-                    if manga_json["status"] == "FINISHED" and str(
-                        manga_json["chapters"]
-                    ) in [
-                        str(int(float(post_db["posts"][_index]["chapters"]))),
-                        (
-                            str(int(float(post_db["posts"][_index]["chapters"])) + 1)
-                            if "." in post_db["posts"][_index]["chapters"]
-                            else None
-                        ),
+                    if manga_json["status"] == "FINISHED" and str(manga_json["chapters"]) in [
+                        str(int(float(current_post["chapters"]))),
+                        (str(int(float(current_post["chapters"])) + 1) if "." in current_post["chapters"] else None),
                     ]:
-                        await client.copy_message(
-                            post_db["posts"][_index]["fchannel"]["chat_id"],
-                            -1001783376856,
-                            37423,
-                        )
-                        await client.copy_message(
-                            post_db["posts"][_index]["fchannel"]["chat_id"],
-                            -1001783376856,
-                            37424,
-                        )
+                        if "first_msg_id" in current_post["fchannel"]:
+                            post_caption, post_image, post_markup = await ani.get_anime_manga(None, "anime_manga", al_id)
+                            temp_img = (await AioHttp.download(post_image, filename=f"cache/{al_id}.png"))[0]
+                            is_nsfw = False
+                            try:
+                                nsfw_scan = await safone_api.nsfw_scan(file=temp_img)
+                                is_nsfw = nsfw_scan.data.is_nsfw
+                            except Exception as e:
+                                LOGGER(__name__).info(f"SafoneAPI.nsfw_scan error: {e}")
+                            if is_nsfw:
+                                await client.edit_message_caption(current_post["fchannel"]["chat_id"], current_post["fchannel"]["first_msg_id"], post_caption, reply_markup=post_markup)
+                            else:
+                                await client.edit_message_media(current_post["fchannel"]["chat_id"], current_post["fchannel"]["first_msg_id"], types.InputMediaPhoto(temp_img, caption=post_caption), reply_markup=post_markup)
+                        await client.copy_message(current_post["fchannel"]["chat_id"], -1001783376856, 37423)
+                        await client.copy_message(current_post["fchannel"]["chat_id"], -1001783376856, 37424)
                         post_info["status"] = "Finished"
+                
                 await client.edit_message_caption(
                     post_db["channel_id"],
                     post_info["message_id"],
@@ -197,10 +188,9 @@ async def update_post_db(client, post_db, post_info):
                         link=post_info["fchannel"]["invite_link"],
                     ),
                 )
-        post_db["posts"][_index].setdefault("fchannel", {}).update(
-            post_info.pop("fchannel")
-        )
-        post_db["posts"][_index].update(post_info)
+        
+        current_post.setdefault("fchannel", {}).update(post_info.pop("fchannel"))
+        current_post.update(post_info)
     else:
         # Add new post to the database
         post_db["posts"].append(post_info)
