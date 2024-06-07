@@ -35,7 +35,7 @@ async def on_phub_handler(client, message):
         LOGGER(__name__).info("Error raised in updating PH Index", exc_info=True)
 
 
-@Client.on_join_chat_request(filters.chat(PHUB_CHANNEL))
+@Client.on_chat_join_request(filters.chat(PHUB_CHANNEL))
 async def phub_join_requests(client, request):
     await request.approve()
 
