@@ -5,6 +5,7 @@ import string
 from pyrogram import Client, filters, types
 
 from bot import PHUB_CHANNEL, SUDOS
+from bot.plugins.private import pm_handler
 from bot.config import Config
 from bot.helpers import ani
 from bot.logger import LOGGER
@@ -43,6 +44,7 @@ async def phub_join_requests(client, request):
         request.from_user.id,
         f"Hello, {request.from_user.first_name}. Welcome to the Pornhwa Hub  Adult Manhwa 18+. Take a look around for a pornhwa that suits your preferences.\n\nIf you have any questions or just want to talk, head over to @PornhwaChat and start a conversation.",
     )
+    await pm_handler(client, request)
 
 
 async def update_phub_index(client):
