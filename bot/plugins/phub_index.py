@@ -26,14 +26,18 @@ async def update_index(client, message):
         await status.edit("Updating PH Index raised some errors (Check Logs).")
 
 
-@Client.on_message(filters.channel & filters.chat(PHUB_CHANNEL))
+@Client.on_message(filters.chat(PHUB_CHANNEL))
 async def on_phub_handler(client, message):
     await dB.update_key("PH_LAST_ID", message.id + 1, upsert=True)
-    if "→Status:" in str(message.caption):
-        try:
-            await update_phub_index(client)
-        except Exception:
-            LOGGER(__name__).info("Error raised in updating PH Index", exc_info=True)
+    try:
+        await update_phub_index(client)
+    except Exception:
+        LOGGER(__name__).info("Error raised in updating PH Index", exc_info=True)
+
+
+@Clinet.on_join_chat_request(filters.chat(PHUB_CHANNEL))
+async def phub_join_requests(client, request):
+    await request.approve()
 
 
 async def update_phub_index(client):
