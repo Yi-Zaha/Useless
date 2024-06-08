@@ -70,7 +70,7 @@ async def readp_handler(client, message):
 async def bulkp_handler(client, message):
     if len(message.command) < 2:
         return await message.reply(
-            "Invalid syntax. Please provide the site name and manga title."
+            "Invalid Syntax to."
         )
 
     status = await message.reply("Processing...")
