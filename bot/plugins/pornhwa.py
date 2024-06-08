@@ -5,7 +5,7 @@ import re
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot import SUDOS, bot
+from bot import ALLOWED_USERS, SUDOS, bot
 from bot.helpers.manga import PS
 from bot.helpers.psutils import ch_from_url, iargs, ps_link, zeroint
 from bot.logger import LOGGER
@@ -66,7 +66,7 @@ async def readp_handler(client, message):
         )
 
 
-@Client.on_message(filters.command("pbulk") & filters.user(SUDOS))
+@Client.on_message(filters.command("pbulk") & filters.user(ALLOWED_USERS))
 async def bulkp_handler(client, message):
     if len(message.command) < 2:
         return await message.reply(
