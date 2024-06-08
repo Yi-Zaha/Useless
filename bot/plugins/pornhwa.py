@@ -69,9 +69,7 @@ async def readp_handler(client, message):
 @Client.on_message(filters.command("pbulk") & filters.user(ALLOWED_USERS))
 async def bulkp_handler(client, message):
     if len(message.command) < 2:
-        return await message.reply(
-            "Invalid Syntax to."
-        )
+        return await message.reply("Invalid Syntax to.")
 
     status = await message.reply("Processing...")
 
