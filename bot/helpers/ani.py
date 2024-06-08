@@ -836,7 +836,7 @@ def make_pmanga_text(
         f"""
         <b>─=≡ {title} ≡=─</b>
 
-        <b>═══════════════</b>
+        <b>═══════════════════</b>
         <b>→Rating:</b> <code>{"N/A" if not rating or str(rating).lower() == "unknown" else rating}</code>
         <b>→Status:</b> <code>{status.title()}</code>
         <b>→Chapters:</b> <code>{str(chapters) + "+" if status.lower() == "releasing" else chapters or "N/A"}</code>
@@ -847,7 +847,7 @@ def make_pmanga_text(
     if tags:
         text += f'\n<b>→Tags:</b> <code>{", ".join(natsorted(tags))}</code>\n'
 
-    text += "<b>═══════════════</b>"
+    text += "<b>═══════════════════</b>"
 
     if link:
         text += f"\n\n<i>🔗 <a href='{link}'>Download Here</a></i>"
