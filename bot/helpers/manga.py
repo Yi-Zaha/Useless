@@ -164,7 +164,7 @@ class _BASE:
         author_url=None,
         _class="wp-manga-chapter-img",
         src="src",
-        image_downloader=_BASE.download_images,
+        image_downloader=None,
     ):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
@@ -178,6 +178,7 @@ class _BASE:
         files = []
         images = []
         mode = mode.lower()
+        image_downloader = image_downloader or _BASE.download_images
 
         if "graph" in mode or mode == "all":
             first_res = await AioHttp.request(image_urls[0], re_res=True)
@@ -619,7 +620,6 @@ class PS(_BASE):
         file_pass=None,
         _class="wp-manga-chapter-img",
         src="src",
-        image_downloader=PS.download_images,
     ):
         return await _BASE.dl_chapter(
             chapter_url=chapter_url,
@@ -630,7 +630,7 @@ class PS(_BASE):
             author_url="https://telegram.me/pornhwa_collection",
             _class=_class,
             src=src,
-            image_downloader=image_downloader,
+            image_downloader=PS.download_images,
         )
 
 
