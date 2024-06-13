@@ -26,7 +26,7 @@ from bot.utils.functions import (
 )
 from bot.utils.pdf import encrypt_pdf, get_path, images_to_pdf, imgtopdf, resize_img
 
-proxy_url = "https://aniplayer.vercel.app/api/video/proxy"
+proxy_url = "https://hdome.onrender.com/proxy"
 
 
 class _BASE:
@@ -607,6 +607,12 @@ class PS(_BASE):
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
         return data
+    
+    @staticmethod
+    async def download_images(*args, **kwargs):
+      images, directory = await _BASE.download_images(*args, **kwargs)
+      images.append("./bot/resources/phub_files_thumb.png")
+      return images, directory 
 
     @staticmethod
     async def dl_chapter(
