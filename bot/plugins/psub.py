@@ -303,7 +303,7 @@ async def newch_log(client, message):
     )
 
 
-async def get_new_updates():
+async def get_new_updates(check_all=False):
     ps_updates = {}
     all_updates = {}
 
@@ -318,7 +318,7 @@ async def get_new_updates():
             if ps not in all_updates:
                 all_updates[ps] = {}
 
-            if url in updates and updates[url] != last_chapter:
+            if check_all or (url in updates and updates[url] != last_chapter):
                 new_chapters = []
                 async for chapter in PS.iter_chapters(url):
                     if chapter[1] == last_chapter or len(new_chapters) > 30:
