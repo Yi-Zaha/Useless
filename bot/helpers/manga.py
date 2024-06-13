@@ -164,7 +164,7 @@ class _BASE:
         author_url=None,
         _class="wp-manga-chapter-img",
         src="src",
-        image_downloader=_BASE.download_images
+        image_downloader=_BASE.download_images,
     ):
         headers = {"User-Agent": random.choice(user_agents)}
         response = await get_link(chapter_url, headers=headers, cloud=True)
@@ -209,9 +209,7 @@ class _BASE:
 
         if "pdf" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await image_downloader(
-                    image_urls, headers=headers
-                )
+                images, temp_dir = await image_downloader(image_urls, headers=headers)
             pdf_file = get_path(f"{title}.pdf")
             pdf_author = author or ""
             if author_url:
@@ -227,9 +225,7 @@ class _BASE:
 
         if "cbz" in mode or mode in ("both", "all"):
             if not images:
-                images, temp_dir = await image_downloader(
-                    image_urls, headers=headers
-                )
+                images, temp_dir = await image_downloader(image_urls, headers=headers)
             cbz_file = get_path(f"{title}.cbz")
             pyminizip.compress_multiple(images, [], str(cbz_file), file_pass, 9)
             files.append(cbz_file)
@@ -608,12 +604,12 @@ class PS(_BASE):
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
         return data
-    
+
     @staticmethod
     async def download_images(*args, **kwargs):
-      images, directory = await _BASE.download_images(*args, **kwargs)
-      images.append("./bot/resources/phub_files_thumb.png")
-      return images, directory 
+        images, directory = await _BASE.download_images(*args, **kwargs)
+        images.append("./bot/resources/phub_files_thumb.png")
+        return images, directory
 
     @staticmethod
     async def dl_chapter(
@@ -623,7 +619,7 @@ class PS(_BASE):
         file_pass=None,
         _class="wp-manga-chapter-img",
         src="src",
-        image_downloader=PS.download_images
+        image_downloader=PS.download_images,
     ):
         return await _BASE.dl_chapter(
             chapter_url=chapter_url,
@@ -634,7 +630,7 @@ class PS(_BASE):
             author_url="https://telegram.me/pornhwa_collection",
             _class=_class,
             src=src,
-            image_downloader=image_downloader
+            image_downloader=image_downloader,
         )
 
 
