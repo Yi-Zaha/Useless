@@ -607,12 +607,12 @@ class PS(_BASE):
         else:
             raise ValueError(f"Invalid Site: {ps!r}")
         return data
-    
+
     @staticmethod
     async def download_images(*args, **kwargs):
-      images, directory = await _BASE.download_images(*args, **kwargs)
-      images.append("./bot/resources/phub_files_thumb.png")
-      return images, directory 
+        images, directory = await _BASE.download_images(*args, **kwargs)
+        images.append("./bot/resources/phub_files_thumb.png")
+        return images, directory
 
     @staticmethod
     async def dl_chapter(
