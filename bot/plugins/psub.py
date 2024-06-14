@@ -331,10 +331,10 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
                             break
                         if ps == "Comick":
                             last_ch = dict(parse_qsl(urlparse(last_chapter).query)).get(
-                            "ch"
+                                "ch"
                             )
                             if not is_numeric(str(chapter[0])) or not is_numeric(
-                            str(last_ch)
+                                str(last_ch)
                             ):
                                 new_chapters.append(chapter)
                             elif float(chapter[0]) > float(last_ch):
@@ -342,7 +342,9 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
                         else:
                             new_chapters.append(chapter)
                 except Exception as e:
-                    print(f"Exception raised (by PS.iter_chapters) - {type(e).__name__}: {e}")
+                    print(
+                        f"Exception raised (by PS.iter_chapters) - {type(e).__name__}: {e}"
+                    )
 
                 if new_chapters:
                     new_chapters.reverse()
