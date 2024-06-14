@@ -308,7 +308,7 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
     all_updates = {}
 
     for ps in PS.__all__:
-        if only_for and ps.lower() not in only_for:
+        if only_for and ps not in only_for:
             continue
         ps_updates[ps] = await PS.updates(ps)
 
