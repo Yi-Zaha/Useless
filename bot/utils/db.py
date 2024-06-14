@@ -1,10 +1,7 @@
-from contextlib import suppress
-
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from pyrogram import types
 
 from bot.config import Config
-from bot.utils.functions import get_link
 from bot.utils.singleton import Singleton
 
 
