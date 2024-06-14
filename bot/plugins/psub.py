@@ -306,7 +306,7 @@ async def newch_log(client, message):
 async def get_new_updates(bypass_checks=False, only_for: list = []):
     ps_updates = {}
     all_updates = {}
-    
+
     for ps in PS.__all__:
         if only_for and ps.lower() not in only_for:
             continue
