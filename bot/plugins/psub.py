@@ -303,11 +303,13 @@ async def newch_log(client, message):
     )
 
 
-async def get_new_updates(check_all=False):
+async def get_new_updates(bypass_checks=False, only_for: list = []):
     ps_updates = {}
     all_updates = {}
-
+    
     for ps in PS.__all__:
+        if only_for and ps.lower() not in only_for:
+            continue
         ps_updates[ps] = await PS.updates(ps)
 
     async for lc in pdB.all_lcs():
@@ -318,7 +320,7 @@ async def get_new_updates(check_all=False):
             if ps not in all_updates:
                 all_updates[ps] = {}
 
-            if check_all or (url in updates and updates[url] != last_chapter):
+            if bypass_checks or (url in updates and updates[url] != last_chapter):
                 new_chapters = []
                 async for chapter in PS.iter_chapters(url):
                     if chapter[1] == last_chapter or len(new_chapters) > 30:
