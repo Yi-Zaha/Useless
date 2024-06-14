@@ -325,21 +325,24 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
 
             if bypass_checks or (url in updates and updates[url] != last_chapter):
                 new_chapters = []
-                async for chapter in PS.iter_chapters(url):
-                    if chapter[1] == last_chapter or len(new_chapters) > 30:
+                try:
+                    async for chapter in PS.iter_chapters(url):
+                        if chapter[1] == last_chapter or len(new_chapters) > 30:
                         break
-                    if ps == "Comick":
-                        last_ch = dict(parse_qsl(urlparse(last_chapter).query)).get(
+                        if ps == "Comick":
+                            last_ch = dict(parse_qsl(urlparse(last_chapter).query)).get(
                             "ch"
-                        )
-                        if not is_numeric(str(chapter[0])) or not is_numeric(
+                            )
+                            if not is_numeric(str(chapter[0])) or not is_numeric(
                             str(last_ch)
-                        ):
+                            ):
+                                new_chapters.append(chapter)
+                            elif float(chapter[0]) > float(last_ch):
+                                new_chapters.append(chapter)
+                        else:
                             new_chapters.append(chapter)
-                        elif float(chapter[0]) > float(last_ch):
-                            new_chapters.append(chapter)
-                    else:
-                        new_chapters.append(chapter)
+                except Exception as e:
+                    print(f"Exception raised (by PS.iter_chapters) - {type(e).__name__}: {e}")
 
                 if new_chapters:
                     new_chapters.reverse()
