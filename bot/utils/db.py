@@ -116,11 +116,6 @@ class PSDB(DB):
         return self.find({"__name__": "subscription", **query}, **kwargs)
 
     async def add_lc(self, url, lc_url):
-        with suppress(Exception):
-            response = await get_link(url, cloud=True)
-            if response.ok:
-                lc_url = lc_url.replace(url, response.url)
-                url = response.url
         query = {
             "__name__": "last_chapter",
             "url": url,
