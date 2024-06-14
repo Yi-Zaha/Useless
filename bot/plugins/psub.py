@@ -319,9 +319,9 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
         for ps, updates in ps_updates.items():
             if ps not in all_updates:
                 all_updates[ps] = {}
-            
+
             if PS.guess_ps(url) != ps:
-                continue 
+                continue
 
             if bypass_checks or (url in updates and updates[url] != last_chapter):
                 new_chapters = []
