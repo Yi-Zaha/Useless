@@ -328,7 +328,7 @@ async def get_new_updates(bypass_checks=False, only_for: list = []):
                 try:
                     async for chapter in PS.iter_chapters(url):
                         if chapter[1] == last_chapter or len(new_chapters) > 30:
-                        break
+                            break
                         if ps == "Comick":
                             last_ch = dict(parse_qsl(urlparse(last_chapter).query)).get(
                             "ch"
