@@ -118,7 +118,7 @@ class _BASE:
                 ]
                 chapter = None
 
-                for item in data["chapters"]:
+                for item in matching_chapters:
                     if not item["group_name"]:
                         break
                     for group in item["group_name"]:
@@ -126,7 +126,7 @@ class _BASE:
                             chapter = item
                             break
                 if chapter is None:
-                    chapter = data["chapters"][0]
+                    chapter = matching_chapters[0]
 
                 content = (
                     await get_link(
