@@ -427,7 +427,7 @@ async def hanime_query(client, callback):
         <b>Type→</b> {"Censored" if result["is_censored"] else "Uncensored"}
         <b>Released→</b> {result["released_date"].replace(" ", "-")}
         <b>Brand→</b> {result["brand"]}
-        <b>Tags→</b> {" ".join(sorted(["#" + tag["name"] for tag in result["tags"]]))}
+        <b>Tags→</b> {" ".join(sorted(["#" + tag["name"].replace(" ", "_") for tag in result["tags"]]))}
         """
     )
 
