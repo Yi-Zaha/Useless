@@ -8,7 +8,7 @@ import random
 import re
 import shutil
 import tempfile
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qsl
 
 import pyminizip
 from bs4 import BeautifulSoup
@@ -111,6 +111,7 @@ class _BASE:
         elif "api.comick." in url:
             if "tachiyomi" not in url:
                 data = json.loads(content)
+                matching_chapters = [cdata for cdata in data["chapters"] if cdata["chap"] == dict(parse_qsl(urlparse(url).query))["chap"]]
                 chapter = None
 
                 for item in data["chapters"]:
@@ -121,7 +122,7 @@ class _BASE:
                             chapter = item
                             break
                 if chapter is None:
-                    chapter = data["chapters"][-1]
+                    chapter = data["chapters"][0]
 
                 content = (
                     await get_link(
