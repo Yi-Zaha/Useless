@@ -570,7 +570,9 @@ async def bulk_hanime(client, callback):
     status_msg = await response.reply("Please wait, processing...", quote=True)
 
     if do_franchise:
-        hanimes = list(map(lambda d: d["id"], hanimetv_data["franchise_videos"])) or [details]
+        hanimes = list(map(lambda d: d["id"], hanimetv_data["franchise_videos"])) or [
+            details
+        ]
     else:
         hanimes = [details]
 
