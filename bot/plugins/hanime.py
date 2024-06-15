@@ -427,7 +427,7 @@ async def hanime_query(client, callback):
         <b>Type→</b> {"Censored" if result["is_censored"] else "Uncensored"}
         <b>Released→</b> {result["released_date"].replace(" ", "-")}
         <b>Brand→</b> {result["brand"]}
-        <b>Tags→</b> {" ".join(sorted(["#" + tag["name"].replace(" ", "_") for tag in result["tags"]]))}
+        <b>Tags→</b> {" ".join(sorted(["#" + tag.replace(" ", "_") for tag in result["tags"]]))}
         """
     )
 
@@ -570,7 +570,7 @@ async def bulk_hanime(client, callback):
     status_msg = await response.reply("Please wait, processing...", quote=True)
 
     if do_franchise:
-        hanimes = list(map(lambda d: d["id"], hanimetv_data["episodes"])) or [details]
+        hanimes = list(map(lambda d: d["id"], hanimetv_data["franchise_videos"])) or [details]
     else:
         hanimes = [details]
 
