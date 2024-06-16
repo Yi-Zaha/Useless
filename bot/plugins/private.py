@@ -169,6 +169,10 @@ async def forwardpms_handler(_, message):
 async def reply_to_pms(client, message):
     reply = message.reply_to_message
     peer = None
+    
+    if not reply.from_user.is_self:
+        message.continue_propagation()
+        return
 
     if reply.forward_from:
         peer = reply.forward_from.username or reply.forward_from.id
