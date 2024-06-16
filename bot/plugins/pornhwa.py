@@ -77,19 +77,19 @@ async def bulkp_handler(client, message):
     ps_site = PS.iargs(text.split(" ")[0])  # To Check
     if ps_site:
         text = text.replace(text.split(" ")[0], "", 1)
-    merge_limit = re.search(r"-merge.(\d+)", text)
+    merge_limit = re.search(r" -merge.(\d+)", text)
     if merge_limit:
         text = text.replace(merge_limit.group(), "")
         merge_limit = int(merge_limit[1])
-    pdf_pass = re.search(r"-pass.(\S+)", text)
+    pdf_pass = re.search(r" -pass.(\S+)", text)
     if pdf_pass:
         text = text.replace(pdf_pass.group(), "")
         pdf_pass = pdf_pass[1]
-    start_from = re.search(r"-start.(\S+)", text)
+    start_from = re.search(r" -start.(\S+)", text)
     if start_from:
         text = text.replace(start_from.group(), "")
         start_from = start_from[1]
-    end_to = re.search(r"-end.(\S+)", text)
+    end_to = re.search(r" -end.(\S+)", text)
     if end_to:
         text = text.replace(end_to.group(), "")
         end_to = end_to[1]
