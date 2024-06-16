@@ -423,7 +423,7 @@ class PS(_BASE):
 
         if ps == "Manhwa18":
             bs = await get_soup(link, cloud=True)
-            for item in bs.find_all("a", "chapter-name text-nowrap"):
+            for item in bs.find("div", "panel-manga-chapter wleft").find_all("a"):
                 yield None, urljoin("https://manhwa18.cc/", item["href"])
 
         elif ps == "Toonily":
