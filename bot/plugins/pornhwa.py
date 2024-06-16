@@ -68,8 +68,8 @@ async def readp_handler(client, message):
 
 @Client.on_message(filters.command("pbulk") & filters.user(ALLOWED_USERS))
 async def bulkp_handler(client, message):
-    if len(message.command) < 2:
-        return await message.reply("Invalid Syntax to.")
+    if len(message.command) == 1:
+        return await message.reply("Invalid Syntax!")
 
     status = await message.reply("Processing...")
 
@@ -79,19 +79,19 @@ async def bulkp_handler(client, message):
         text = text.replace(text.split(" ")[0], "", 1)
     merge_limit = re.search(r" -merge.(\d+)", text)
     if merge_limit:
-        text = text.replace(merge_limit.group(), "")
+        text = text.replace(merge_limit.group().strip(), "")
         merge_limit = int(merge_limit[1])
     pdf_pass = re.search(r" -pass.(\S+)", text)
     if pdf_pass:
-        text = text.replace(pdf_pass.group(), "")
+        text = text.replace(pdf_pass.group().strip(), "")
         pdf_pass = pdf_pass[1]
     start_from = re.search(r" -start.(\S+)", text)
     if start_from:
-        text = text.replace(start_from.group(), "")
+        text = text.replace(start_from.group().strip(), "")
         start_from = start_from[1]
     end_to = re.search(r" -end.(\S+)", text)
     if end_to:
-        text = text.replace(end_to.group(), "")
+        text = text.replace(end_to.group().strip(), "")
         end_to = end_to[1]
 
     reply = message.reply_to_message
