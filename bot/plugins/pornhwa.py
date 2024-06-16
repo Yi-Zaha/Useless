@@ -350,13 +350,13 @@ async def process_bulk(
 
 def _parse_tag(tag, string, number=False, multi_word=False):
     if number:
-        pattern = re.compile(rf'{tag}\s+(\d+)')
+        pattern = re.compile(rf"{tag}\s+(\d+)")
     elif multi_word:
-        pattern = re.compile(rf'{tag}\s+((?:[^\s-]+(?:\s+|-[^\s])?)+)')
+        pattern = re.compile(rf"{tag}\s+((?:[^\s-]+(?:\s+|-[^\s])?)+)")
     else:
-        pattern = re.compile(rf'{tag}\s+([\S]+)')
-    
+        pattern = re.compile(rf"{tag}\s+([\S]+)")
+
     match = pattern.search(string)
-    
+
     if match:
         return match
