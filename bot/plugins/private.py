@@ -171,7 +171,6 @@ async def reply_to_pms(client, message):
     peer = None
 
     if not reply.from_user.is_self:
-        message.continue_propagation()
         return
 
     if reply.forward_from:
