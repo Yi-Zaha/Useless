@@ -240,7 +240,7 @@ async def update_post_db(client, post_db, post_info):
         post_db["posts"].append(post_info)
 
 
-async def get_chat_by_invite_link(client, invite_link):
+async def get_chat_by_invite_link(client, invite_link, leave_after=False):
     if not client.ub:
         return
     invite_link = invite_link if ".me/+" in invite_link else invite_link.split("/")[-1]
@@ -248,6 +248,8 @@ async def get_chat_by_invite_link(client, invite_link):
         chat = await client.ub.get_chat(invite_link)
         if isinstance(chat, types.ChatPreview):
             chat = await client.ub.join_chat(invite_link)
+            if leave_after:
+                await chat.leave()
     except Exception as e:
         LOGGER(__name__).error(
             f"[UB] Error getting chat by invite link [{invite_link}]: {e}"
