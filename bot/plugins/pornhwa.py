@@ -77,21 +77,21 @@ async def bulkp_handler(client, message):
     ps_site = PS.iargs(text.split(" ")[0])  # To Check
     if ps_site:
         text = text.replace(text.split(" ")[0], "", 1)
-    merge_limit = re.search(r" -merge.(\d+)", text)
+    merge_limit = _parse_tag("-merge", text, number=True)
     if merge_limit:
-        text = text.replace(merge_limit.group().strip(), "")
+        text = text.replace(merge_limit.group(), "")
         merge_limit = int(merge_limit[1])
-    pdf_pass = re.search(r" -pass.(\S+)", text)
+    pdf_pass = _parse_tag("-pass", text)
     if pdf_pass:
-        text = text.replace(pdf_pass.group().strip(), "")
+        text = text.replace(pdf_pass.group(), "")
         pdf_pass = pdf_pass[1]
-    start_from = re.search(r" -start.(\S+)", text)
+    start_from = _parse_tag("-start", text)
     if start_from:
-        text = text.replace(start_from.group().strip(), "")
+        text = text.replace(start_from.group(), "")
         start_from = start_from[1]
-    end_to = re.search(r" -end.(\S+)", text)
+    end_to = _parse_tag("-end", text)
     if end_to:
-        text = text.replace(end_to.group().strip(), "")
+        text = text.replace(end_to.group(), "")
         end_to = end_to[1]
 
     reply = message.reply_to_message
@@ -346,3 +346,17 @@ async def process_bulk(
         asyncio.create_task(remove_files(thumb))
 
     return upload_chs[-1], status
+
+
+def _parse_tag(tag, string, number=False, multi_word=False):
+    if number:
+        pattern = re.compile(rf'{tag}\s+(\d+)')
+    elif multi_word:
+        pattern = re.compile(rf'{tag}\s+((?:[^\s-]+(?:\s+|-[^\s])?)+)')
+    else:
+        pattern = re.compile(rf'{tag}\s+([\S]+)')
+    
+    match = pattern.search(string)
+    
+    if match:
+        return match
