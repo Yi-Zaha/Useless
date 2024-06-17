@@ -249,7 +249,7 @@ async def get_chat_by_invite_link(client, invite_link, leave_after=False):
         if isinstance(chat, types.ChatPreview):
             chat = await client.ub.join_chat(invite_link)
             if leave_after:
-                await chat.leave()
+                await client.ub.leave_chat(chat.id)
     except Exception as e:
         LOGGER(__name__).error(
             f"[UB] Error getting chat by invite link [{invite_link}]: {e}"
