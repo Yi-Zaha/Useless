@@ -232,7 +232,7 @@ class HanimeTV:
         }
         try:
             return await AioHttp.request(
-                f"https://hdome.onrender.com/get_video_data/{id}?api_key=YATO.HENTI.GOD",
+                f"https://hdome.koyeb.app/get_video_data/{id}?api_key=YATO.HENTI.GOD",
                 headers=headers,
                 re_json=True,
             )
