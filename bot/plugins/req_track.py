@@ -162,7 +162,7 @@ async def handle_request_action(client, callback):
     splited = callback.data.split("_")
     re_rchats = {v: k for k, v in rchats.items()}
     re_group = str(
-        re_rchats.get(callback.message.chat.id) or rchats.get(callback.message.chat.id)
+        re_rchats.get(callback.message.chat.id)
     )
     req_db = await dB.get_key("REQUESTDB") or {}
     req_db.setdefault(re_group, [])
