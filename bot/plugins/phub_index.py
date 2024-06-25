@@ -255,14 +255,12 @@ async def get_chat_by_invite_link(client, invite_link, leave_after=False):
         LOGGER(__name__).error(
             f"[UB] Error getting chat by invite link [{invite_link}]: {e}"
         )
-    
+
     if leave_after and chat:
         try:
             await chat.leave()
         except Exception as e:
-            LOGGER(__name__).error(
-            f"[UB] Error leaving chat [{invite_link}]: {e}"
-        )
+            LOGGER(__name__).error(f"[UB] Error leaving chat [{invite_link}]: {e}")
     return chat
 
 
