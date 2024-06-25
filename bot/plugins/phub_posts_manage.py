@@ -83,16 +83,10 @@ async def update_post_channel(client, message):
         if not manga_url:
             if not old_chat_id:
                 post_chat = await get_chat_by_invite_link(
-                    client, post["fchannel"]["invite_link"]
+                    client, post["fchannel"]["invite_link"], leave_after=True
                 )
                 if post_chat:
                     post["fchannel"]["chat_id"] = old_chat_id = post_chat.id
-                    try:
-                        await post_chat.leave()
-                    except Exception as e:
-                        LOGGER(__name__).error(
-                            f"[UB] Error leaving chat [{chat_id}]: {e}"
-                        )
                     await dB.update_key("PHUB_POST_DB", post_db)
 
         matching_sub = await anext(pdB.all_subs({"chat": old_chat_id}), {})

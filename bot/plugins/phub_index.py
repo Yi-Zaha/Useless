@@ -157,7 +157,7 @@ async def update_post_db(client, post_db, post_info):
                 != current_post["fchannel"]["invite_link"]
             ):
                 if post_chat := await get_chat_by_invite_link(
-                    post_info["fchannel"]["invite_link"]
+                    post_info["fchannel"]["invite_link"], leave_after=True
                 ):
                     post_info["fchannel"]["chat_id"] = post_chat.id
                 else:
@@ -246,16 +246,23 @@ async def get_chat_by_invite_link(client, invite_link, leave_after=False):
     invite_link = invite_link if ".me/+" in invite_link else invite_link.split("/")[-1]
     chat = None
     try:
-        chat = await client.ub.get_chat(invite_link)
-        if isinstance(chat, types.ChatPreview):
+        chat_or_preview = await client.ub.get_chat(invite_link)
+        if isinstance(chat_or_preview, types.ChatPreview):
             chat = await client.ub.join_chat(invite_link)
-            if leave_after:
-                await client.ub.leave_chat(chat.id)
+        else:
+            chat = chat_or_preview
     except Exception as e:
         LOGGER(__name__).error(
             f"[UB] Error getting chat by invite link [{invite_link}]: {e}"
         )
-
+    
+    if leave_after and chat:
+        try:
+            await chat.leave()
+        except Exception as e:
+            LOGGER(__name__).error(
+            f"[UB] Error leaving chat [{invite_link}]: {e}"
+        )
     return chat
 
 
