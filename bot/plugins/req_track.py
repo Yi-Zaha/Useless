@@ -108,7 +108,7 @@ async def handle_requests(client, message):
                             ]
                         )
                     )
-                    if len(req_db[req_db_key]) >= 15
+                    if len(req_db[req_db_key]) < 15
                     else None
                 ),
                 reply_to_message_id=reply_id,
