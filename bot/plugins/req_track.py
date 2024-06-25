@@ -93,7 +93,7 @@ async def handle_requests(client, message):
             await client.send_message(
                 message.chat.id,
                 f"Hey, there! I discovered some results that match your request.\n\n{matching_text}\n\n<b>Have you found your request in any of these matches?</b>",
-                reply_markup=InlineKeyboardMarkup(
+                reply_markup=(InlineKeyboardMarkup(
                     [
                         [
                             InlineKeyboardButton(
@@ -104,7 +104,7 @@ async def handle_requests(client, message):
                             ),
                         ]
                     ]
-                ),
+                )) if len(req_db[req_db_key]) >= 15 else None,
                 reply_to_message_id=reply_id,
             )
             return
