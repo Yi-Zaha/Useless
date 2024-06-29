@@ -582,8 +582,8 @@ async def bulk_hanime(client, callback):
             if do_franchise:
                 try:
                     fetched_episodes = await AioHttp.request(
-                    f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD",
-                    re_json=True,
+                        f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD",
+                        re_json=True,
                     )
                     assert isinstance(fetched_episodes, list) and fetched_episodes
                 except Exception as e:
@@ -611,10 +611,14 @@ async def bulk_hanime(client, callback):
             hq_streams = details.get("hq_streams", [])
             if not details.get("hq_streams", []):
                 hstream_ep_link = (
-                    fetched_episodes[ep_no - 1]
-                    if len(fetched_episodes) >= (ep_no - 1)
-                    else None
-                ) if not hstream_ep_link else hstream_ep_link
+                    (
+                        fetched_episodes[ep_no - 1]
+                        if len(fetched_episodes) >= (ep_no - 1)
+                        else None
+                    )
+                    if not hstream_ep_link
+                    else hstream_ep_link
+                )
                 if fetched_episodes and not hstream_ep_link:
                     request, response = await ask_message(
                         response,
