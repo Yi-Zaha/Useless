@@ -574,7 +574,7 @@ async def bulk_hanime(client, callback):
     if len(details.get("hq_streams", [])) != 2:
         request, response = await ask_message(
             response,
-            f"Provide the hentai link from hstream.moe {'(the /hentai/<hentai-id> link, not the /hentai/<hentai-id-episode> link)' if do_franchise else '(the /hentai/<hentai-id-episode> link, not the /hentai/<hentai-id> link)'} if you want higher quality, otherwise send /skip.",
+            f"Provide the hentai link from hstream.moe {'(the /hentai/<hentai-id> link, NOT the /hentai/<hentai-id-episode> link)' if do_franchise else '(the /hentai/<hentai-id-episode> link, NOT the /hentai/<hentai-id> link)'} if you want higher quality, otherwise send /skip.",
             quote=True,
             filters=filters_ & non_command_filter,
             parse_mode=ParseMode.DISABLED,
