@@ -573,7 +573,7 @@ async def bulk_hanime(client, callback):
     fetched_episodes, hstream_ep_link = [], None
     if (
         not details.get("tg_uploaded")
-        and details.get("hq_streams_provider").lower() != "hstream"
+        and details.get("hq_streams_provider", "").lower() != "hstream"
     ) or len(details.get("hq_streams", [])) != 2:
         request, response = await ask_message(
             response,
@@ -616,7 +616,7 @@ async def bulk_hanime(client, callback):
             hq_streams = (
                 details.get("hq_streams", [])
                 if details.get("tg_uploaded")
-                or details.get("hq_streams_provider").lower() == "hstream"
+                or details.get("hq_streams_provider", "").lower() == "hstream"
                 else None
             )
             if not details.get("hq_streams", []):
