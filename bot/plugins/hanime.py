@@ -24,7 +24,7 @@ from bot.utils.functions import (
     get_random_id,
     post_to_telegraph,
     retry_func,
-    run_cmd
+    run_cmd,
 )
 from bot.utils.singleton import Singleton
 
@@ -568,7 +568,7 @@ async def bulk_hanime(client, callback):
         filters=filters_ & non_command_filter,
     )
     do_franchise = response.text.lower() == "yes"
-    
+
     fetched_episodes = []
     if len(details.get("hq_streams", [])) != 2:
         request, response = await ask_message(
@@ -580,7 +580,10 @@ async def bulk_hanime(client, callback):
         hstream_link = response.text.split()[0]
         if hstream_link.lower() != "/skip":
             try:
-                fetched_episodes = await AioHttp.request(f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD", re_json=True)
+                fetched_episodes = await AioHttp.request(
+                    f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD",
+                    re_json=True,
+                )
                 assert fetched_episodes
             except Exception:
                 await request.edit("Not Found.")
@@ -604,7 +607,11 @@ async def bulk_hanime(client, callback):
             hanimetv_data = details["hanimetv"]
             hq_streams = details.get("hq_streams", [])
             if not details.get("hq_streams", []):
-                hstream_ep_link = fetched_episodes[ep_no - 1] if len(fetched_episodes) >= (ep_no - 1) else None
+                hstream_ep_link = (
+                    fetched_episodes[ep_no - 1]
+                    if len(fetched_episodes) >= (ep_no - 1)
+                    else None
+                )
                 if fetched_episodes and not hstream_ep_link:
                     request, response = await ask_message(
                         response,
@@ -612,10 +619,18 @@ async def bulk_hanime(client, callback):
                         quote=True,
                         filters=filters_ & non_command_filter,
                     )
-                    hstream_ep_link = response.text if response.text.split()[0].lower() != "/skip" else None
+                    hstream_ep_link = (
+                        response.text
+                        if response.text.split()[0].lower() != "/skip"
+                        else None
+                    )
                 if hstream_ep_link:
-                    hstream_data = await AioHttp.request(f"https://hdome.koyeb.app/api/hstream/get_details?url={hstream_ep_link}&api_key=YATO.HENTI.GOD")["streams"]
-                    hq_streams = list(filter(lambda x: x["resolution"] != "720p", hq_streams))
+                    hstream_data = await AioHttp.request(
+                        f"https://hdome.koyeb.app/api/hstream/get_details?url={hstream_ep_link}&api_key=YATO.HENTI.GOD"
+                    )["streams"]
+                    hq_streams = list(
+                        filter(lambda x: x["resolution"] != "720p", hq_streams)
+                    )
 
             if thumb is None and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
@@ -639,9 +654,9 @@ async def bulk_hanime(client, callback):
                 file = (
                     os.path.join(
                         "cache/",
-                        filename.format(name=hanimetv_data["name"],
-                        episode=ep_no,
-                        quality=quality),
+                        filename.format(
+                            name=hanimetv_data["name"], episode=ep_no, quality=quality
+                        ),
                     )
                     + ".mp4"
                 )
@@ -667,9 +682,11 @@ async def bulk_hanime(client, callback):
                 file = (
                     os.path.join(
                         "cache/",
-                        filename.format(name=hanimetv_data["name"],
-                        episode=ep_no,
-                        quality=hq_stream["resolution"]),
+                        filename.format(
+                            name=hanimetv_data["name"],
+                            episode=ep_no,
+                            quality=hq_stream["resolution"],
+                        ),
                     )
                     + ".mp4"
                 )
@@ -681,7 +698,11 @@ async def bulk_hanime(client, callback):
                 else:
                     ytdl_opts["outtmpl"] = file
                     with YoutubeDL(ytdl_opts) as ytdl:
-                        await retry_func(async_wrap(ytdl.download), [hq_stream["link"]], no_output=True)
+                        await retry_func(
+                            async_wrap(ytdl.download),
+                            [hq_stream["link"]],
+                            no_output=True,
+                        )
                     _file = file
                     file = file.replace("cache/", "")
                     ffmpeg_cmd = [
@@ -689,8 +710,7 @@ async def bulk_hanime(client, callback):
                         "-hide_banner",
                         "-loglevel",
                         "error",
-                        "-i"
-                        f'"{_file}"',
+                        "-i" f'"{_file}"',
                         "-i",
                         f'"{hstream_data["subtitle"]}"',
                         "-c:v",
