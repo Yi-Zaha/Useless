@@ -690,7 +690,9 @@ async def bulk_hanime(client, callback):
                     )
                     + ".mp4"
                 )
-                await status_msg.edit(f'Downloading {hanimetv_data["name"]} - {hq_stream['resolution']}...')
+                await status_msg.edit(
+                    f'Downloading {hanimetv_data["name"]} - {hq_stream['resolution']}...'
+                )
                 if hq_stream.get("tg_message_id"):
                     file = await (
                         await client.ub.get_messages(-1002138040280, stream_mid)
