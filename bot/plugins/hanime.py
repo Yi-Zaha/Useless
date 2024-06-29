@@ -569,26 +569,29 @@ async def bulk_hanime(client, callback):
     )
     do_franchise = response.text.lower() == "yes"
 
-    fetched_episodes = []
+    fetched_episodes, hstream_ep_link = [], None
     if len(details.get("hq_streams", [])) != 2:
         request, response = await ask_message(
             response,
-            "Provide the hentai link from hstream.moe if you want higher quality, otherwise send /skip.",
+            f"Provide the hentai link from hstream.moe {'(the /hentai/<hentai-id> link, not the /hentai/<hentai-id-episode> link)' if do_franchise else '(the /hentai/<hentai-id-episode> link, not the /hentai/<hentai-id> link)'} if you want higher quality, otherwise send /skip.",
             quote=True,
             filters=filters_ & non_command_filter,
         )
         hstream_link = response.text
         if hstream_link.lower() != "/skip":
-            try:
-                fetched_episodes = await AioHttp.request(
+            if do_franchise:
+                try:
+                    fetched_episodes = await AioHttp.request(
                     f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD",
                     re_json=True,
-                )
-                assert isinstance(fetched_episodes, list) and fetched_episodes
-            except Exception as e:
-                await request.edit(f"Not Found: {e}")
+                    )
+                    assert isinstance(fetched_episodes, list) and fetched_episodes
+                except Exception as e:
+                    await request.edit(f"Not Found: {e}")
+                else:
+                    await request.edit(f"Found {len(fetched_episodes)} episodes.")
             else:
-                await request.edit(f"Found {len(fetched_episodes)} episodes.")
+                hstream_ep_link = hstream_link
 
     status_msg = await response.reply("Please wait, processing...", quote=True)
 
@@ -605,15 +608,13 @@ async def bulk_hanime(client, callback):
                 await HanimeTV.details(hanime) if isinstance(hanime, int) else hanime
             )
             hanimetv_data = details["hanimetv"]
-            if len(hanimes) == 1:
-                ep_no = hanimetv_data["name"].split()[-1]
             hq_streams = details.get("hq_streams", [])
             if not details.get("hq_streams", []):
                 hstream_ep_link = (
                     fetched_episodes[ep_no - 1]
                     if len(fetched_episodes) >= (ep_no - 1)
                     else None
-                )
+                ) if not hstream_ep_link else hstream_ep_link
                 if fetched_episodes and not hstream_ep_link:
                     request, response = await ask_message(
                         response,
@@ -633,7 +634,8 @@ async def bulk_hanime(client, callback):
                     hq_streams = list(
                         filter(lambda x: x["resolution"] != "720p", hq_streams)
                     )
-
+            if len(hanimes) == 1:
+                ep_no = hanimetv_data["name"].split()[-1]
             if thumb is None and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
             ytdl_opts = {
