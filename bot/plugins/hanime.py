@@ -767,10 +767,9 @@ async def bulk_hanime(client, callback):
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            await status_msg.edit(f"An error occurred: {str(e)}")
-            return
+            await status_msg.reply(f"An error occurred: {str(e)}")
 
-    await status_msg.edit("Hentai files sent successfully.")
+    await status_msg.edit("Process Completed!")
 
 
 @Client.on_callback_query(filters.regex(r"^close.*"))
