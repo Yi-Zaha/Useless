@@ -577,14 +577,14 @@ async def bulk_hanime(client, callback):
             quote=True,
             filters=filters_ & non_command_filter,
         )
-        hstream_link = response.text.split()[0]
+        hstream_link = response.text
         if hstream_link.lower() != "/skip":
             try:
                 fetched_episodes = await AioHttp.request(
                     f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD",
                     re_json=True,
                 )
-                assert fetched_episodes
+                assert isinstance(fetched_episodes, list) and fetched_episodes
             except Exception:
                 await request.edit("Not Found.")
             else:
