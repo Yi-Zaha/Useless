@@ -571,7 +571,7 @@ async def bulk_hanime(client, callback):
     do_franchise = response.text.lower() == "yes"
 
     fetched_episodes, hstream_ep_link = [], None
-    if len(details.get("hq_streams", [])) != 2:
+    if (not details.get("tg_uploaded") and details.get("hq_streams_provider").lower() != "hstream") or len(details.get("hq_streams", [])) != 2:
         request, response = await ask_message(
             response,
             f"Provide the hentai link from hstream.moe {'(the /hentai/<hentai-id> link, NOT the /hentai/<hentai-id-episode> link)' if do_franchise else '(the /hentai/<hentai-id-episode> link, NOT the /hentai/<hentai-id> link)'} if you want higher quality, otherwise send /skip.",
@@ -610,7 +610,7 @@ async def bulk_hanime(client, callback):
                 await HanimeTV.details(hanime) if isinstance(hanime, int) else hanime
             )
             hanimetv_data = details["hanimetv"]
-            hq_streams = details.get("hq_streams", [])
+            hq_streams = details.get("hq_streams", []) if details.get("tg_uploaded")  or details.get("hq_streams_provider").lower() == "hstream" else None
             if not details.get("hq_streams", []):
                 hstream_ep_link = (
                     (
@@ -691,6 +691,8 @@ async def bulk_hanime(client, callback):
                     os.remove(file)
                 await asyncio.sleep(3)
             for hq_stream in sorted(hq_streams, key=lambda x: x["resolution"]):
+                if thumb is None:
+                    thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
                 file = (
                     os.path.join(
                         "cache/",
