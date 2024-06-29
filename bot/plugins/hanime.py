@@ -635,7 +635,8 @@ async def bulk_hanime(client, callback):
                     )
                 if hstream_ep_link:
                     hstream_data = await AioHttp.request(
-                        f"https://hdome.koyeb.app/api/hstream/get_details?url={hstream_ep_link}&api_key=YATO.HENTI.GOD"
+                        f"https://hdome.koyeb.app/api/hstream/get_details?url={hstream_ep_link}&api_key=YATO.HENTI.GOD",
+                        re_json=True,
                     )
                     hq_streams = hstream_data["streams"] or hstream_data["sources"]
                     hq_streams = list(
