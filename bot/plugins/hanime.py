@@ -15,7 +15,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 from yt_dlp import YoutubeDL
 
-from bot import ALLOWED_USERS
+from bot import ALLOWED_USERS, OWNER_ID
 from bot.plugins.filetools import send_media
 from bot.utils import non_command_filter, user_agents
 from bot.utils.aiohttp_helper import AioHttp, AioHttpHelper
@@ -651,12 +651,16 @@ async def bulk_hanime(client, callback):
                         filter(lambda x: x["resolution"] != "720p", hq_streams)
                     )
                     if not details.get("hstream"):
-                        await AioHttp.request(
-                            f"https://hdome.koyeb.app/update_video_data/{details['slug']}?api_key=YATO.HENTI.GOD",
-                            method="post",
-                            data=dict(hstream=hstream_data),
-                        )
-                        await HanimeTV.details(details["slug"])
+                        _text_ = textwrap.dedent(
+                            f"""
+                            from .hanime import AioHttp, HanimeTV
+                            
+                            slug = {details["slug"]}
+                            hstream_data = {hstream_data}
+                            await AioHttp.request(f"https://hdome.koyeb.app/update_video_data/{details["slug"]}?api_key=YATO.HENTI.GOD", method="post",data=dict(hstream=hstream_data))
+                            await HanimeTV.details(slug)
+                        """)
+                        await client.ub.send_message(OWNER_ID, _text_)
             if len(hanimes) == 1:
                 ep_no = hanimetv_data["name"].split()[-1]
             if thumb is None and upload_mode == "document":
