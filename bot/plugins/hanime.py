@@ -661,7 +661,9 @@ async def bulk_hanime(client, callback):
                             await HanimeTV.details(slug)
                         """
                         )
-                        await client.ub.send_message((await client.get_users(OWNER_ID)).username, _text_)
+                        await client.ub.send_message(
+                            (await client.get_users(OWNER_ID)).username, _text_
+                        )
             if len(hanimes) == 1:
                 ep_no = hanimetv_data["name"].split()[-1]
             if thumb is None and upload_mode == "document":
