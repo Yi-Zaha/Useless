@@ -606,7 +606,7 @@ async def bulk_hanime(client, callback):
             )
             hanimetv_data = details["hanimetv"]
             if len(hanimes) == 1:
-                ep_no = hanimetv_data.split()[-1]
+                ep_no = hanimetv_data["name"].split()[-1]
             hq_streams = details.get("hq_streams", [])
             if not details.get("hq_streams", []):
                 hstream_ep_link = (
