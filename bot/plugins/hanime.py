@@ -24,6 +24,7 @@ from bot.utils.functions import (
     get_random_id,
     post_to_telegraph,
     retry_func,
+    run_cmd
 )
 from bot.utils.singleton import Singleton
 
@@ -526,13 +527,14 @@ async def bulk_hanime(client, callback):
         "If you want to have a custom filename, then write me the filename format. Send /skip to set the default.\n\n"
         "Variables you can use for bot to fill in the value:\n"
         "→<code>{name}</code>\n"
+        "→<code>{episode}</code>\n"
         "→<code>{quality}</code>\n\n"
-        "Example: <code>{name} {quality}</code>",
+        "Example: <code>EP - {episode} {name} {quality}</code>",
         quote=True,
         filters=filters_,
     )
     if response.text.split()[0].lower() == "/skip":
-        filename = "{name} {quality}"
+        filename = "EP - {episode} {name} {quality}"
     else:
         filename = response.text.strip()
 
@@ -566,6 +568,24 @@ async def bulk_hanime(client, callback):
         filters=filters_ & non_command_filter,
     )
     do_franchise = response.text.lower() == "yes"
+    
+    fetched_episodes = []
+    if len(details.get("hq_streams", [])) != 2:
+        request, response = await ask_message(
+            response,
+            "Provide the hentai link from hstream.moe if you want higher quality, otherwise send /skip.",
+            quote=True,
+            filters=filters_ & non_command_filter,
+        )
+        hstream_link = response.text.split()[0]
+        if hstream_link.lower() != "/skip":
+            try:
+                fetched_episodes = await AioHttp.request(f"https://hdome.koyeb.app/api/hstream/get_episodes?url={hstream_link}&api_key=YATO.HENTI.GOD", re_json=True)
+                assert fetched_episodes
+            except Exception:
+                await request.edit("Not Found.")
+            else:
+                await request.edit(f"Found {len(fetched_episodes)} episodes.")
 
     status_msg = await response.reply("Please wait, processing...", quote=True)
 
@@ -582,6 +602,21 @@ async def bulk_hanime(client, callback):
                 await HanimeTV.details(hanime) if isinstance(hanime, int) else hanime
             )
             hanimetv_data = details["hanimetv"]
+            hq_streams = details.get("hq_streams", [])
+            if not details.get("hq_streams", []):
+                hstream_ep_link = fetched_episodes[ep_no - 1] if len(fetched_episodes) >= (ep_no - 1) else None
+                if fetched_episodes and not hstream_ep_link:
+                    request, response = await ask_message(
+                        response,
+                        f"Provide the hentai-episode link of ep - {ep_no} from hstream.moe if you want higher quality, otherwise send /skip.",
+                        quote=True,
+                        filters=filters_ & non_command_filter,
+                    )
+                    hstream_ep_link = response.text if response.text.split()[0].lower() != "/skip" else None
+                if hstream_ep_link:
+                    hstream_data = await AioHttp.request(f"https://hdome.koyeb.app/api/hstream/get_details?url={hstream_ep_link}&api_key=YATO.HENTI.GOD")["streams"]
+                    hq_streams = list(filter(lambda x: x["resolution"] != "720p", hq_streams))
+
             if thumb is None and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
             ytdl_opts = {
@@ -604,7 +639,9 @@ async def bulk_hanime(client, callback):
                 file = (
                     os.path.join(
                         "cache/",
-                        filename.format(name=hanimetv_data["name"], quality=quality),
+                        filename.format(name=hanimetv_data["name"],
+                        episode=ep_no,
+                        quality=quality),
                     )
                     + ".mp4"
                 )
@@ -626,27 +663,54 @@ async def bulk_hanime(client, callback):
                     )
                     os.remove(file)
                 await asyncio.sleep(3)
-            if details.get("tg_uploaded") and client.ub:
-                stream_mid = next(
-                    stream
-                    for stream in details["hq_streams"]
-                    if stream["resolution"] == "1080p"
-                )["tg_message_id"]
-                await status_msg.edit(f'Downloading {hanimetv_data["name"]} - 1080p...')
-                file = await (
-                    await client.ub.get_messages(-1002138040280, stream_mid)
-                ).download(
+            for hq_stream in sorted(hq_streams, key=lambda x: x["resolution"]):
+                file = (
                     os.path.join(
                         "cache/",
-                        filename.format(name=hanimetv_data["name"], quality="1080p")
-                        + ".mp4",
+                        filename.format(name=hanimetv_data["name"],
+                        episode=ep_no,
+                        quality=hq_stream["resolution"]),
                     )
+                    + ".mp4"
                 )
+                await status_msg.edit(f'Downloading {hanimetv_data["name"]} - 1080p...')
+                if hq_stream.get("tg_message_id"):
+                    file = await (
+                        await client.ub.get_messages(-1002138040280, stream_mid)
+                    ).download(file)
+                else:
+                    ytdl_opts["outtmpl"] = file
+                    with YoutubeDL(ytdl_opts) as ytdl:
+                        await retry_func(async_wrap(ytdl.download), [hq_stream["link"]], no_output=True)
+                    _file = file
+                    file = file.replace("cache/", "")
+                    ffmpeg_cmd = [
+                        "ffmpeg",
+                        "-hide_banner",
+                        "-loglevel",
+                        "error",
+                        "-i"
+                        f'"{_file}"',
+                        "-i",
+                        f'"{hstream_data["subtitle"]}"',
+                        "-c:v",
+                        "copy",
+                        "-c:a",
+                        "copy",
+                        "-c:s",
+                        "mov_text",
+                        "-strict",
+                        "-2",
+                        f'"{file}"',
+                        "-y",
+                    ]
+                    await run_cmd(" ".join(ffmpeg_cmd))
+                    os.remove(_file)
                 await send_media(
                     "DOCUMENT",
                     chat_to_send,
                     file,
-                    caption=f"<i>1080p</i>",
+                    caption=f"<i>{hq_stream['resolution']}</i>",
                     message=status_msg,
                     progress_user=callback.from_user.id,
                     thumb=thumb,
