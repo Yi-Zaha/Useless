@@ -654,12 +654,13 @@ async def bulk_hanime(client, callback):
                         _text_ = textwrap.dedent(
                             f"""
                             from .hanime import AioHttp, HanimeTV
-                            
+
                             slug = {details["slug"]}
                             hstream_data = {hstream_data}
                             await AioHttp.request(f"https://hdome.koyeb.app/update_video_data/{details["slug"]}?api_key=YATO.HENTI.GOD", method="post",data=dict(hstream=hstream_data))
                             await HanimeTV.details(slug)
-                        """)
+                        """
+                        )
                         await client.ub.send_message(OWNER_ID, _text_)
             if len(hanimes) == 1:
                 ep_no = hanimetv_data["name"].split()[-1]
