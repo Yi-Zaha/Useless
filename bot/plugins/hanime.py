@@ -657,7 +657,7 @@ async def bulk_hanime(client, callback):
 
                             slug = "{details["slug"]}"
                             hstream_data = {hstream_data}
-                            await AioHttp.request(f"https://hdome.koyeb.app/update_video_data/{details["slug"]}?api_key=YATO.HENTI.GOD", method="post",data=dict(hstream=hstream_data))
+                            await AioHttp.request(f"https://hdome.koyeb.app/update_video_data/{details["slug"]}?api_key=YATO.HENTI.GOD", method="post", json=dict(hstream=hstream_data))
                             await hanimetv.get_details(slug)
                         """
                         )
