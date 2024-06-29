@@ -585,8 +585,8 @@ async def bulk_hanime(client, callback):
                     re_json=True,
                 )
                 assert isinstance(fetched_episodes, list) and fetched_episodes
-            except Exception:
-                await request.edit("Not Found.")
+            except Exception as e:
+                await request.edit(f"Not Found: {e}")
             else:
                 await request.edit(f"Found {len(fetched_episodes)} episodes.")
 
