@@ -747,8 +747,9 @@ async def bulk_hanime(client, callback):
             pass
         except Exception as e:
             await status_msg.edit(f"An error occurred: {str(e)}")
+            return
 
-    # await status_msg.edit("Hentai files sent successfully.")
+    await status_msg.edit("Hentai files sent successfully.")
 
 
 @Client.on_callback_query(filters.regex(r"^close.*"))
