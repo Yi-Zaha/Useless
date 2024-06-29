@@ -651,7 +651,11 @@ async def bulk_hanime(client, callback):
                         filter(lambda x: x["resolution"] != "720p", hq_streams)
                     )
                     if not details.get("hstream"):
-                        await AioHttp.request(f"https://hdome.koyeb.app/update_video_data/{details['slug']}?api_key=YATO.HENTI.GOD", method="post", data=dict(hstream=hstream_data))
+                        await AioHttp.request(
+                            f"https://hdome.koyeb.app/update_video_data/{details['slug']}?api_key=YATO.HENTI.GOD",
+                            method="post",
+                            data=dict(hstream=hstream_data),
+                        )
                         await HanimeTV.details(details["slug"])
             if len(hanimes) == 1:
                 ep_no = hanimetv_data["name"].split()[-1]
