@@ -23,9 +23,14 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - id: repo_name
+      uses: ASzc/change-string-case-action@v6
+      with:
+        repo_name: ${{ github.event.repository.name }}
 
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
         push: true
-        tags: "${{ secrets.DOCKERHUB_USERNAME }}/$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]'):${{ github.ref_name }}"
+        tags: "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.string.outputs.lowercase }}:${{ github.ref_name }}"
