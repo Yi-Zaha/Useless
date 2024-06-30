@@ -767,13 +767,13 @@ async def bulk_hanime(client, callback):
                     os.remove(_file)
                 if os.path.exists(file):
                     await send_media(
-                    "DOCUMENT",
-                    chat_to_send,
-                    file,
-                    caption=f"<i>{hq_stream['resolution']}</i>",
-                    message=status_msg,
-                    progress_user=callback.from_user.id,
-                    thumb=thumb,
+                        "DOCUMENT",
+                        chat_to_send,
+                        file,
+                        caption=f"<i>{hq_stream['resolution']}</i>",
+                        message=status_msg,
+                        progress_user=callback.from_user.id,
+                        thumb=thumb,
                     )
                     os.remove(file)
             if thumb and thumb != "thumb.jpg":
