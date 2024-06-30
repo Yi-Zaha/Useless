@@ -629,7 +629,7 @@ async def bulk_hanime(client, callback):
                     if not hstream_ep_link
                     else hstream_ep_link
                 )
-                if fetched_episodes and not hstream_ep_link:
+                if not hstream_ep_link:
                     request, response = await ask_message(
                         response,
                         f"Provide the hentai-episode link of ep - {ep_no} from hstream.moe if you want higher quality, otherwise send /skip.",
