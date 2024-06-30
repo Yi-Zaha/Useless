@@ -733,7 +733,7 @@ async def bulk_hanime(client, callback):
                     file = await (
                         await client.ub.get_messages(-1002138040280, stream_mid)
                     ).download(file)
-                else:
+                elif hstream_ep_link:
                     ytdl_opts["outtmpl"] = file
                     with YoutubeDL(ytdl_opts) as ytdl:
                         await retry_func(
@@ -765,7 +765,8 @@ async def bulk_hanime(client, callback):
                     ]
                     await run_cmd(" ".join(ffmpeg_cmd))
                     os.remove(_file)
-                await send_media(
+                if os.path.exists(file):
+                    await send_media(
                     "DOCUMENT",
                     chat_to_send,
                     file,
@@ -773,8 +774,8 @@ async def bulk_hanime(client, callback):
                     message=status_msg,
                     progress_user=callback.from_user.id,
                     thumb=thumb,
-                )
-                os.remove(file)
+                    )
+                    os.remove(file)
             if thumb and thumb != "thumb.jpg":
                 os.remove(thumb)
             await asyncio.sleep(3)
