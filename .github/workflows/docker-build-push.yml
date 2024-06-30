@@ -35,4 +35,4 @@ jobs:
         push: true
         tags: "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.lowercase }}:${{ github.ref_name }}"
         build-args: |
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
