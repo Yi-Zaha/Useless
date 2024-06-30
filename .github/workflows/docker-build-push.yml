@@ -33,4 +33,4 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        tags: "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.string.outputs.lowercase }}:${{ github.ref_name }}"
+        tags: "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.lowercase }}:${{ github.ref_name }}"
