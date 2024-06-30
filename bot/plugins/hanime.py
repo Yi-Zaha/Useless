@@ -666,7 +666,7 @@ async def bulk_hanime(client, callback):
                         )
             if len(hanimes) == 1:
                 ep_no = hanimetv_data["name"].split()[-1]
-            if thumb is None and upload_mode == "document":
+            if not os.path.exists(str(thumb)) and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
             ytdl_opts = {
                 "concurrent_fragment_downloads": 10,
