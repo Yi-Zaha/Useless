@@ -27,7 +27,7 @@ jobs:
     - id: repo_name
       uses: ASzc/change-string-case-action@v6
       with:
-        repo_name: ${{ github.event.repository.name }}
+        string: ${{ github.event.repository.name }}
 
     - name: Build and push
       uses: docker/build-push-action@v5
