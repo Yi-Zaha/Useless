@@ -689,7 +689,9 @@ async def bulk_hanime(client, callback):
                     os.path.join(
                         "cache/",
                         filename.format(
-                            name=" ".join(hanimetv_data["name"].split()[:-1]), episode=ep_no, quality=quality
+                            name=" ".join(hanimetv_data["name"].split()[:-1]),
+                            episode=ep_no,
+                            quality=quality,
                         ),
                     )
                     + ".mp4"
