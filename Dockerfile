@@ -11,7 +11,7 @@ RUN GITHUB_TOKEN=$GITHUB_TOKEN sh clone-repo.sh && rm -f clone-repo.sh /root/bot
 
 # Update the package list and install required packages
 RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends mediainfo ffmpeg && \
+    apt-get install -y --no-install-recommends mediainfo ffmpeg aria2 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory to the cloned repository
