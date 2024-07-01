@@ -447,7 +447,7 @@ async def bulk_hanime(client, callback):
     )
     do_franchise = response.text.lower() == "yes"
 
-    fetched_episodes, hstream_ep_link = [], None
+    fetched_episodes, hstream_ep_link, hq_skipped = [], None, False
     if (
         not details.get("tg_uploaded")
         and details.get("hq_streams_provider", "").lower() != "hstream"
@@ -474,6 +474,8 @@ async def bulk_hanime(client, callback):
                     await request.edit(f"Found {len(fetched_episodes)} episodes.")
             else:
                 hstream_ep_link = hstream_link
+        else:
+            hq_skipped = True
 
     status_msg = await response.reply("Please wait, processing...", quote=True)
 
@@ -496,7 +498,7 @@ async def bulk_hanime(client, callback):
                 or details.get("hq_streams_provider", "").lower() == "hstream"
                 else []
             )
-            if not details.get("hq_streams", []):
+            if not hq_skipped and not details.get("hq_streams", []):
                 hstream_ep_link = (
                     (
                         fetched_episodes[ep_no - 1]
