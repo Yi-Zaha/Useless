@@ -30,9 +30,7 @@ from telegraph.aio import Telegraph
 from bot import LOGS, bot
 
 # Data Caches
-chat_photos = {}
-invitation_links = {}
-chat_messages = cachetools.TTLCache(maxsize=1024 * 1024, ttl=30 * 60)
+chat_cache = cachetools.TTLCache(maxsize=128, ttl=30*60)
 
 
 # Utility Functions
@@ -212,14 +210,14 @@ async def get_chat_link(message=None, chat=None):
 
 
 async def get_chat_pic(chat_id: int, refresh: bool = None):
-    if not refresh and chat_id in chat_photos:
-        return chat_photos[chat_id]
-
+    cache = chat_cache.setdefault(chat_id, {})
+    if not refresh and "pic" in cache:
+        return cache["pic"]
     try:
         chat = await bot.get_chat(chat_id)
         if chat.photo:
             photo = await bot.download_media(chat.photo.big_file_id)
-            chat_photos[chat_id] = photo
+            cache["pic"] = photo
             return photo
     except Exception as e:
         print(f"Error in get_chat_pic: {e}")
@@ -227,9 +225,9 @@ async def get_chat_pic(chat_id: int, refresh: bool = None):
 
 async def get_chat_invite_link(chat, refresh: bool = None):
     chat_id = chat.id if isinstance(chat, types.Chat) else chat
-
-    if not refresh and chat_id in invitation_links:
-        return invitation_links[chat_id]
+    cache = chat_cache.setdefault(chat_id, {})
+    if not refresh and "link" in cache:
+        return cache["link"]
 
     try:
         chat = chat if isinstance(chat, types.Chat) else await bot.get_chat(chat_id)
@@ -239,7 +237,7 @@ async def get_chat_invite_link(chat, refresh: bool = None):
             link = chat.invite_link
         elif chat.type == enums.ChatType.PRIVATE:
             link = f"tg://user?id={chat.id}"
-        invitation_links[chat_id] = link
+        cache["link"] = link
         return link
     except Exception as e:
         print(f"Error in get_chat_invite_link: {e}")
@@ -252,7 +250,7 @@ async def get_chat_messages(
 ):
     ids_range = list(range(first_msg_id, last_msg_id))
     messages = []
-    cache_messages = chat_messages.setdefault(chat, {})
+    cache_messages = chat_cache.setdefault(chat_id, {}).setdefault("messages", {})
     for message_ids in split_list(ids_range, 200):
         uncached_ids = [
             message_id for message_id in message_ids if message_id not in cache_messages

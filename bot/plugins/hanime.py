@@ -27,9 +27,6 @@ from bot.utils.functions import (
     run_cmd,
 )
 
-cache = {}
-timed_cache = cachetools.TTLCache(ttl=60 * 60, maxsize=1024 * 1024)
-
 
 class HanimeTV:
     SEARCH_URL = "https://search.htv-services.com"
@@ -186,20 +183,18 @@ async def search_handler(client, message):
         query = " ".join(message.command[1:])
         status = await message.reply("Searching...", quote=True)
 
-    query_id = get_random_id()
-    cache[query_id] = query
     await search_query(
-        client, status, query_id=query_id, page=0, button_user=message.from_user.id
+        client, status, query=query, page=0, button_user=message.from_user.id
     )
 
 
 @Client.on_callback_query(filters.regex(r"^hanime_s:.*"))
 async def search_query(
-    client, update, query_id=None, page=0, button_user=None, cb=False
+    client, update, query=None, page=0, button_user=None, cb=False
 ):
-    if not query_id:
+    if not query:
         cb = True
-        query_id, page = update.data.split(":")[1:3]
+        page = update.data.split(":")[1]
         page, button_user = int(page), update.from_user.id
         if str(button_user) not in update.data:
             return await update.answer(
@@ -207,22 +202,21 @@ async def search_query(
                 show_alert=True,
             )
 
-    if query_id not in cache:
-        if getattr(update.message.reply_to_message, "text", None):
-            query = (
+    if getattr(update.message.reply_to_message, "text", None):
+        query = (
                 update.message.reply_to_message.text.split(" ", maxsplit=1)[1]
                 if update.message.reply_to_message.text.lower().startswith("/hentai")
                 else update.message.reply_to_message.text
-            )
-            cache[query_id] = query
-        else:
-            await update.answer(
-                "Sorry, the bot restarted! Please redo the command.", show_alert=True
-            )
-            return
+        )
+
+    else:
+        await update.answer(
+            "Sorry, the bot restarted! Please redo the command.", show_alert=True
+        )
+        return
 
     try:
-        result = await HanimeTV.search(cache[query_id])
+        result = await HanimeTV.search(query)
         response = result["response"]
     except Exception:
         text = "Sorry, there was an error parsing response from the API. Please try again later!"
@@ -254,10 +248,10 @@ async def search_query(
     ]
 
     prev_button = InlineKeyboardButton(
-        "⟨ Previous Page", f"hanime_s:{query_id}:{page - 1}:{button_user}"
+        "⟨ Previous Page", f"hanime_s:{page - 1}:{button_user}"
     )
     next_button = InlineKeyboardButton(
-        "Next Page ⟩", f"hanime_s:{query_id}:{page + 1}:{button_user}"
+        "Next Page ⟩", f"hanime_s:{page + 1}:{button_user}"
     )
 
     result["total_pages"] -= 1
@@ -269,12 +263,12 @@ async def search_query(
     if cb:
         await update.answer()
         await update.edit_message_text(
-            f"Search results for <code>{cache[query_id]}</code>.",
+            f"Search results for <code>{query}</code>.",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
     else:
         await update.edit_text(
-            f"Search results for <code>{cache[query_id]}</code>.",
+            f"Search results for <code>{query}</code>.",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
 
