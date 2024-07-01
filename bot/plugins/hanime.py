@@ -268,7 +268,7 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
 
 @Client.on_callback_query(filters.regex(r"^hanime_i:.*"))
 async def hanime_query(client, callback):
-    hanime_id = callback.data.split(":")[1:3]
+    hanime_id = callback.data.split(":")[1]
     if str(callback.from_user.id) not in callback.data:
         return await callback.answer(
             "This button can only be used by the one who issued the command.",
