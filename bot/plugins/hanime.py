@@ -238,7 +238,7 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
     buttons = [
         [
             InlineKeyboardButton(
-                data["name"], f'hanime_i:{data["id"]}:{query_id}:{button_user}'
+                data["name"], f'hanime_i:{data["id"]}:{button_user}'
             )
         ]
         for data in response
@@ -272,7 +272,7 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
 
 @Client.on_callback_query(filters.regex(r"^hanime_i:.*"))
 async def hanime_query(client, callback):
-    hanime_id, query_id = callback.data.split(":")[1:3]
+    hanime_id = callback.data.split(":")[1:3]
     if str(callback.from_user.id) not in callback.data:
         return await callback.answer(
             "This button can only be used by the one who issued the command.",
@@ -342,7 +342,7 @@ async def hanime_query(client, callback):
             back_data = ":".join(splited)
             break
     else:
-        back_data = f"hanime_s:{query_id}:0:{callback.from_user.id}"
+        back_data = f"hanime_s:0:{callback.from_user.id}"
 
     buttons.append([InlineKeyboardButton("⟨ Back ⟩", back_data)])
     await callback.answer()
