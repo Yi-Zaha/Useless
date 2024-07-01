@@ -62,17 +62,35 @@ class AioHttpHelper:
                     LOGGER(__name__).error(f"Could not close session ({n}): {e}")
             self.sessions = []
 
-    async def request(self, url: str, method: str = "GET", re_json: bool = False, re_res: bool = False, **kwargs):
+    async def request(
+        self,
+        url: str,
+        method: str = "GET",
+        re_json: bool = False,
+        re_res: bool = False,
+        **kwargs,
+    ):
         session = await self.get_session()
         async with session.request(method, url, **kwargs) as response:
             if re_res:
                 return response
-            return json.loads(await response.text()) if re_json else await response.read()
+            return (
+                json.loads(await response.text()) if re_json else await response.read()
+            )
 
-    async def download(self, url: str, filename: str = None, progress_callback=None, chunk_size: int = CHUNK_SIZE, **kwargs):
+    async def download(
+        self,
+        url: str,
+        filename: str = None,
+        progress_callback=None,
+        chunk_size: int = CHUNK_SIZE,
+        **kwargs,
+    ):
         session = await self.get_session()
         async with session.get(url, **kwargs) as response:
-            filename, total_size = self.get_name_and_size_from_response(response, filename=filename)
+            filename, total_size = self.get_name_and_size_from_response(
+                response, filename=filename
+            )
             downloaded_size = 0
             start_time = time.time()
 
@@ -91,10 +109,19 @@ class AioHttpHelper:
 
             return filename, time.time() - start_time, response.ok
 
-    async def fast_download(self, url: str, filename: str = None, headers: dict = None, max_threads: int = MAX_THREADS, **kwargs):
+    async def fast_download(
+        self,
+        url: str,
+        filename: str = None,
+        headers: dict = None,
+        max_threads: int = MAX_THREADS,
+        **kwargs,
+    ):
         session = await self.get_session()
         async with session.get(url, **kwargs) as response:
-            filename, total_size = self.get_name_and_size_from_response(response, filename=filename)
+            filename, total_size = self.get_name_and_size_from_response(
+                response, filename=filename
+            )
 
             if not total_size:
                 raise ValueError("Could not get size from the URL.")
@@ -105,14 +132,18 @@ class AioHttpHelper:
             async def download_part(start, end, part_n):
                 range_headers = headers.copy() if headers else {}
                 range_headers["Range"] = f"bytes={start}-{end}"
-                async with session.get(url, headers=range_headers, **kwargs) as part_response:
+                async with session.get(
+                    url, headers=range_headers, **kwargs
+                ) as part_response:
                     if part_response.status != 206:
                         raise ValueError(
                             "URL does not support multi-threaded download."
                             if part_n < 1
                             else f"URL does not support {max_threads} multi-threaded download."
                         )
-                    async with aiofiles.open(f"{filename}.part-{part_n}", "wb") as file_part:
+                    async with aiofiles.open(
+                        f"{filename}.part-{part_n}", "wb"
+                    ) as file_part:
                         async for chunk in part_response.content.iter_any():
                             if chunk:
                                 await file_part.write(chunk)
@@ -120,7 +151,11 @@ class AioHttpHelper:
             part_size = total_size // max_threads
             for part_n in range(max_threads):
                 start = part_n * part_size
-                end = (part_n + 1) * part_size - 1 if part_n < max_threads - 1 else total_size - 1
+                end = (
+                    (part_n + 1) * part_size - 1
+                    if part_n < max_threads - 1
+                    else total_size - 1
+                )
                 tasks.append(asyncio.create_task(download_part(start, end, part_n)))
 
             try:
@@ -133,7 +168,9 @@ class AioHttpHelper:
 
             async with aiofiles.open(filename, "wb") as final_file:
                 for part_n in range(max_threads):
-                    async with aiofiles.open(f"{filename}.part-{part_n}", "rb") as file_part:
+                    async with aiofiles.open(
+                        f"{filename}.part-{part_n}", "rb"
+                    ) as file_part:
                         while True:
                             chunk = await file_part.read(CHUNK_SIZE)
                             if not chunk:

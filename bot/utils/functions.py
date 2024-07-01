@@ -30,7 +30,7 @@ from telegraph.aio import Telegraph
 from bot import LOGS, bot
 
 # Data Caches
-chat_cache = cachetools.TTLCache(maxsize=128, ttl=30*60)
+chat_cache = cachetools.TTLCache(maxsize=128, ttl=30 * 60)
 
 
 # Utility Functions

@@ -6,7 +6,6 @@ import secrets
 import textwrap
 from typing import Union
 
-import cachetools
 from bs4 import BeautifulSoup
 from dateutil import parser
 from pyrogram import Client, filters
@@ -21,7 +20,6 @@ from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import (
     ask_message,
     async_wrap,
-    get_random_id,
     post_to_telegraph,
     retry_func,
     run_cmd,
@@ -189,9 +187,7 @@ async def search_handler(client, message):
 
 
 @Client.on_callback_query(filters.regex(r"^hanime_s:.*"))
-async def search_query(
-    client, update, query=None, page=0, button_user=None, cb=False
-):
+async def search_query(client, update, query=None, page=0, button_user=None, cb=False):
     if not query:
         cb = True
         page = update.data.split(":")[1]
@@ -204,9 +200,9 @@ async def search_query(
 
     if getattr(update.message.reply_to_message, "text", None):
         query = (
-                update.message.reply_to_message.text.split(" ", maxsplit=1)[1]
-                if update.message.reply_to_message.text.lower().startswith("/hentai")
-                else update.message.reply_to_message.text
+            update.message.reply_to_message.text.split(" ", maxsplit=1)[1]
+            if update.message.reply_to_message.text.lower().startswith("/hentai")
+            else update.message.reply_to_message.text
         )
 
     else:
