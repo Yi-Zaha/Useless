@@ -2,7 +2,6 @@ import asyncio
 import json
 import os
 import random
-import re
 import secrets
 import textwrap
 from typing import Union
@@ -18,7 +17,7 @@ from yt_dlp import YoutubeDL
 from bot import ALLOWED_USERS, OWNER_ID
 from bot.plugins.filetools import send_media
 from bot.utils import non_command_filter, user_agents
-from bot.utils.aiohttp_helper import AioHttp, AioHttpHelper
+from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.functions import (
     ask_message,
     async_wrap,
@@ -27,7 +26,6 @@ from bot.utils.functions import (
     retry_func,
     run_cmd,
 )
-from bot.utils.singleton import Singleton
 
 cache = {}
 timed_cache = cachetools.TTLCache(ttl=60 * 60, maxsize=1024 * 1024)
