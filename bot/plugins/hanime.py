@@ -500,7 +500,7 @@ async def bulk_hanime(client, callback):
                 hstream_ep_link = (
                     (
                         fetched_episodes[ep_no - 1]
-                        if len(fetched_episodes) >= (ep_no - 1)
+                        if fetched_episodes and len(fetched_episodes) >= (ep_no - 1)
                         else None
                     )
                     if not hstream_ep_link
