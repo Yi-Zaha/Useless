@@ -62,6 +62,7 @@ async def run_main():
     finally:
         mongo_client.close()
         from bot.utils import aiohttp_helper
+
         await asyncio.gather(
             *[_instance.close() for _instance in aiohttp_helper._INSTANCES]
         )
