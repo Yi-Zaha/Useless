@@ -197,7 +197,7 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
                 "This button can only be used by the one who issued the command.",
                 show_alert=True,
             )
-    
+
     message = update.message if cb else update
     if getattr(message.reply_to_message, "text", None):
         query = (
