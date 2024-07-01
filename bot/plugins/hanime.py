@@ -33,127 +33,6 @@ cache = {}
 timed_cache = cachetools.TTLCache(ttl=60 * 60, maxsize=1024 * 1024)
 
 
-class OppaiStream(AioHttpHelper, metaclass=Singleton):
-    BASE_URL = "https://oppai.stream"
-
-    def __init__(self, *args, **kwargs):
-        if "headers" not in kwargs:
-            kwargs["headers"] = {"User-Agent": random.choice(user_agents)}
-        super().__init__(1, *args, **kwargs)
-        self.headers = kwargs["headers"]
-
-    async def latest(self, page=1, limit=24):
-        return await self.search(order="uploaded", page=page, limit=limit)
-
-    async def popular(self, page=1, limit=24):
-        return await self.search(order="views", page=page, limit=limit)
-
-    async def search(
-        self,
-        query="",
-        order="recent",
-        page=1,
-        limit=24,
-        genres="",
-        blacklist="",
-        studio="",
-        group_results=None,
-    ):
-        url = f"{self.BASE_URL}/actions/search.php"
-        params = {
-            "text": query,
-            "order": order,
-            "page": page,
-            "limit": limit,
-            "genres": genres,
-            "blacklist": blacklist,
-            "studio": studio,
-        }
-
-        content = await self.request(url, params=params)
-        soup = BeautifulSoup(content, "html.parser")
-        divs = soup.find_all("div", "episode-shown")
-
-        results = [self._episode_data_from_div(div) for div in divs]
-
-        if group_results:
-            new_results = {}
-            for result in results:
-                show_name = result["name"]
-
-                if show_name not in new_results:
-                    new_results[show_name] = []
-
-                del result["name"]
-                new_results[show_name].append(result)
-
-            for show in new_results:
-                new_results[show].sort(key=lambda e: e["episode"])
-
-            return new_results
-
-        return results
-
-    async def get_episode(self, url):
-        content = await self.request(url)
-        soup = BeautifulSoup(content, "html.parser")
-        episode_info = soup.find("div", "episode-info")
-        name, episode = episode_info.find("h1").text.split(" Ep ")
-        description = episode_info.find("div", "description").text.strip()
-        tags = [
-            a.text.strip()
-            for a in episode_info.find("div", "tags").find_all("a", "tag")
-        ]
-        studios = [a.text.strip() for a in episode_info.find_all("a", "red")]
-        preview_imgs = [
-            img["src"]
-            for img in episode_info.find("div", "preview-grid").find_all("img")
-        ]
-
-        video = soup.find("video", id="episode")
-        poster_url = video["poster"]
-        subtitles = {track["label"]: track["src"] for track in video.find_all("track")}
-
-        resolution_links = json.loads(
-            re.search(rb"var availableres.*=(.*);", content).group(1)
-        )
-
-        similar_eps = [
-            self._episode_data_from_div(div)
-            for div in soup.find_all("div", "episode-shown")
-        ]
-
-        return {
-            "episode": episode,
-            "show_name": name,
-            "description": description,
-            "tags": tags,
-            "studios": studios,
-            "screenshots": preview_imgs,
-            "poster": poster_url,
-            "subtitles": subtitles,
-            "streams": resolution_links,
-            "all_episodes": similar_eps,
-        }
-
-    def _episode_data_from_div(self, div):
-        a = div.find("div").find("a")
-        hentai_url = a["href"]
-        div.find("img", "cover-img-in")["src"]
-        return {
-            "name": div["name"],
-            "episode": div["ep"],
-            "url": hentai_url,
-            "id": div["id"],
-            "show_id": div["idgt"],
-            "description": div["desc"],
-            "tags": div["tags"].split(","),
-            "studios": [
-                a.text.strip() for a in a.find("div", "wrap-ep-info").find_all("a")
-            ],
-        }
-
-
 class HanimeTV:
     SEARCH_URL = "https://search.htv-services.com"
     HANIME_API_URL = "https://hanime.tv/api/v8"
@@ -579,7 +458,7 @@ async def bulk_hanime(client, callback):
             response,
             f"Provide the hentai link from hstream.moe {'(the /hentai/<hentai-id> link, NOT the /hentai/<hentai-id-episode> link)' if do_franchise else '(the /hentai/<hentai-id-episode> link, NOT the /hentai/<hentai-id> link)'} if you want higher quality, otherwise send /skip.",
             quote=True,
-            filters=filters_ & non_command_filter,
+            filters=filters_,
             parse_mode=ParseMode.DISABLED,
         )
         hstream_link = response.text
