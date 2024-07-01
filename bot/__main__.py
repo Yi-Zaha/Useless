@@ -5,8 +5,8 @@ from pathlib import Path
 from pyrogram import idle
 
 from bot import LOG_CHAT, LOGS, bot
-from bot.utils import ascheduler
-from bot.utils.aiohttp_helper import _INSTANCES, AioHttp
+from bot.utils import ascheduler, aiohttp_helper
+from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB, mongo_client
 
 
@@ -61,7 +61,7 @@ async def run_main():
         LOGS.exception(str(e))
     finally:
         mongo_client.close()
-        await asyncio.gather(*[_instance.close() for _instance in _INSTANCES])
+        await asyncio.gather(*[_instance.close() for _instance in aiohttp_helper._INSTANCES])
         await stop_clients()
 
 
