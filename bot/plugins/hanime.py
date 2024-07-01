@@ -494,7 +494,7 @@ async def bulk_hanime(client, callback):
                 details.get("hq_streams", [])
                 if details.get("tg_uploaded")
                 or details.get("hq_streams_provider", "").lower() == "hstream"
-                else None
+                else []
             )
             if not details.get("hq_streams", []):
                 hstream_ep_link = (
