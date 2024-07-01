@@ -513,7 +513,7 @@ async def bulk_hanime(client, callback):
                         response,
                         f"Provide the hentai-episode link of ep - {ep_no} from hstream.moe if you want higher quality, otherwise send /skip.",
                         quote=True,
-                        filters=filters_ & non_command_filter,
+                        filters=filters_,
                     )
                     hstream_ep_link = (
                         response.text
