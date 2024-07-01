@@ -236,11 +236,7 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
         return
 
     buttons = [
-        [
-            InlineKeyboardButton(
-                data["name"], f'hanime_i:{data["id"]}:{button_user}'
-            )
-        ]
+        [InlineKeyboardButton(data["name"], f'hanime_i:{data["id"]}:{button_user}')]
         for data in response
     ]
 
