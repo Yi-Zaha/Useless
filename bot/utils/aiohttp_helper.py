@@ -13,6 +13,7 @@ from bot.logger import LOGGER
 
 CHUNK_SIZE = 1024
 MAX_THREADS = 4
+_INSTANCES = []
 
 
 class AioHttpHelper:
@@ -22,6 +23,7 @@ class AioHttpHelper:
         self.kwargs = kwargs
         self.sessions = [self._create_session() for _ in range(max_sessions)]
         self.lock = asyncio.Lock()
+        _INSTANCES.append(self)
 
     async def __aenter__(self):
         return self
