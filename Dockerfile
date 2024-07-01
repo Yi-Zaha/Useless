@@ -3,7 +3,8 @@ FROM python:3.11-slim
 ENV TZ=Asia/Kolkata
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y \
+        gcc \
         mediainfo \
         ffmpeg \
         aria2 \
