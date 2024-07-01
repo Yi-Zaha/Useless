@@ -199,17 +199,18 @@ async def search_query(client, update, query=None, page=0, button_user=None, cb=
             )
 
     message = update.message if cb else update
-    if getattr(message.reply_to_message, "text", None):
-        query = (
-            message.reply_to_message.text.split(" ", maxsplit=1)[1]
-            if message.reply_to_message.text.lower().startswith("/hentai")
-            else message.reply_to_message.text
-        )
-    else:
-        await update.answer(
-            "Sorry, the bot restarted! Please redo the command.", show_alert=True
-        )
-        return
+    if not query:
+        if getattr(message.reply_to_message, "text", None):
+            query = (
+                message.reply_to_message.text.split(" ", maxsplit=1)[1]
+                if message.reply_to_message.text.lower().startswith("/hentai")
+                else message.reply_to_message.text
+            )
+        elif cb:
+            await update.answer(
+                "Sorry, the bot restarted! Please redo the command.", show_alert=True
+            )
+            return
 
     try:
         result = await HanimeTV.search(query)
