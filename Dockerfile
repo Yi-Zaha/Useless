@@ -7,7 +7,7 @@ RUN apt-get update && \
         mediainfo \
         ffmpeg \
         aria2 \
-        zlib1g \
+        zlib1g-dev \
         git && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get clean && \
