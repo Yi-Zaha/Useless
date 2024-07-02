@@ -169,7 +169,7 @@ async def handle_request_action(client, callback):
         return
     splited = callback.data.split("_")
     re_group = next(
-        str(key) for key, value in re_chats.items() if value == message.chat.id
+        str(key) for key, value in rchats.items() if value == message.chat.id
     )
     req_db = await dB.get_key("REQUESTDB") or {}
     req_db.setdefault(re_group, [])
