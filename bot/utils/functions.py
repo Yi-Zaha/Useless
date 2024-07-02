@@ -250,7 +250,7 @@ async def get_chat_messages(
 ):
     ids_range = list(range(first_msg_id, last_msg_id))
     messages = []
-    cache_messages = chat_cache.setdefault(chat_id, {}).setdefault("messages", {})
+    cache_messages = chat_cache.setdefault(chat, {}).setdefault("messages", {})
     for message_ids in split_list(ids_range, 200):
         uncached_ids = [
             message_id for message_id in message_ids if message_id not in cache_messages
