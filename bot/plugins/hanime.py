@@ -618,6 +618,8 @@ async def bulk_hanime(client, callback):
                         "error",
                         "-i",
                         f'"{_file}"',
+                        "-metadata",
+                        f'title="[@HanimeDome] {os.path.splitext(file)[0]}"',
                         "-i",
                         f'"{hstream_data["subtitle"]}"',
                         "-c:v",
