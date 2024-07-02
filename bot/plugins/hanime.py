@@ -530,9 +530,11 @@ async def bulk_hanime(client, callback):
                         await client.ub.send_message(
                             (await client.get_users(OWNER_ID)).username, _text_
                         )
+            hanime_name = hanimetv_data["name"]
             if len(hanimes) == 1:
                 _ep_no = hanimetv_data["name"].split()[-1]
                 if _ep_no.isdigit():
+                    hanime_name = " ".join(hanime_name.split()[:-1])
                     ep_no = _ep_no
             if not os.path.exists(str(thumb)) and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
@@ -557,7 +559,7 @@ async def bulk_hanime(client, callback):
                     os.path.join(
                         "cache/",
                         filename.format(
-                            name=" ".join(hanimetv_data["name"].split()[:-1]),
+                            name=" ".join(hanime_name),
                             episode=ep_no,
                             quality=quality,
                         ),
@@ -589,7 +591,7 @@ async def bulk_hanime(client, callback):
                     os.path.join(
                         "cache/",
                         filename.format(
-                            name=" ".join(hanimetv_data["name"].split()[:-1]),
+                            name=" ".join(hanime_name),
                             episode=ep_no,
                             quality=hq_stream["resolution"],
                         ),
@@ -621,7 +623,7 @@ async def bulk_hanime(client, callback):
                         "-i",
                         f'"{_file}"',
                         "-metadata",
-                        f'title="[@HanimeDome] {os.path.splitext(file)[0]}"',
+                        f'title="[@HanimeDome] {hanimetv_data["name"]} {hq_stream["resolution"]}"',
                         "-i",
                         f'"{hstream_data["subtitle"]}"',
                         "-c:v",
