@@ -165,10 +165,8 @@ async def handle_requests(client, message):
 )
 async def handle_request_action(client, callback):
     message = callback.message
-    if message.chat.id not in rchannels:
-        return
     splited = callback.data.split("_")
-    re_group = next(
+    re_group = str(message.chat.id) if message.chat.id in rgoups else next(
         str(key) for key, value in rchats.items() if value == message.chat.id
     )
     req_db = await dB.get_key("REQUESTDB") or {}
