@@ -531,7 +531,9 @@ async def bulk_hanime(client, callback):
                             (await client.get_users(OWNER_ID)).username, _text_
                         )
             if len(hanimes) == 1:
-                ep_no = hanimetv_data["name"].split()[-1]
+                _ep_no = hanimetv_data["name"].split()[-1]
+                if _ep_no.isdigit():
+                    ep_no = _ep_no
             if not os.path.exists(str(thumb)) and upload_mode == "document":
                 thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
             ytdl_opts = {
