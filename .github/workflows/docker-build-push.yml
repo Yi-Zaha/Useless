@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'Dockerfile'
+      - 'requirements.txt'
 
 jobs:
   docker:
