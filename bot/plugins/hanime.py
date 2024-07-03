@@ -551,8 +551,10 @@ async def bulk_hanime(client, callback):
                 chat_to_send,
                 f"<b>Episode:</b> <code>{ep_no}</code>",
             )
+            hanimetv_qualities = []
             for stream in reversed(hanimetv_data["streams"]):
                 quality, url = f'{stream["height"]}p', stream["url"]
+                hanimetv_qualities.append(quality)
                 if url == "":
                     continue
                 file = (
@@ -585,6 +587,8 @@ async def bulk_hanime(client, callback):
                     os.remove(file)
                 await asyncio.sleep(3)
             for hq_stream in sorted(hq_streams, key=lambda x: x["resolution"]):
+                if hq_stream["resolution"] in hanimetv_qualities:
+                    continue
                 if thumb is None:
                     thumb, *_ = await AioHttp.download(hanimetv_data["poster_url"])
                 file = (
