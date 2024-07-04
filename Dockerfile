@@ -24,6 +24,7 @@ WORKDIR /root/bot
 
 RUN pip install --no-cache-dir -U pip wheel uv && \
     uv venv && \
+    chmod +x .venv/bin/activate && \
     ./.venv/bin/activate && \
     uv pip install --no-cache-dir -r requirements.txt
 
