@@ -20,7 +20,9 @@ RUN GITHUB_TOKEN=$GITHUB_TOKEN sh clone-repo.sh && rm -f clone-repo.sh
 
 WORKDIR /root/bot
 
-RUN pip install --no-cache-dir -U pip wheel && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -U pip wheel uv && \
+    uv venv && \
+    source .venv/bin/activate && \
+    uv pip install --no-cache-dir -r requirements.txt
 
 CMD ["bash", "start"]

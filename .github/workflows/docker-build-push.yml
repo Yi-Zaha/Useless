@@ -34,18 +34,6 @@ jobs:
       with:
         string: ${{ github.event.repository.name }}
 
-    - name: Build and export to Docker
-      uses: docker/build-push-action@v6
-      with:
-        load: true
-        tags: "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.lowercase }}:${{ github.ref_name }}"
-        build-args: |
-          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
-    
-    - name: Test Image
-      run: |
-        docker run --rm "${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo_name.outputs.lowercase }}:${{ github.ref_name }}"
-
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
