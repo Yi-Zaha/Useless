@@ -709,7 +709,6 @@ async def get_anime_manga(
     )
 
 
-
 def replace_text(text):
     return text.replace('"', "").replace("\\r", "").replace("\\n", "").replace("\\", "")
 
