@@ -21,7 +21,6 @@ opencv-python-headless
 pillow
 motor
 pyminizip
-Pympler
 git+https://github.com/KurimuzonAkuma/pyrogram
 python-dateutil
 python-dotenv

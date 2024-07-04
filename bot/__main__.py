@@ -1,8 +1,8 @@
 import asyncio
+import tracemalloc
 from contextlib import suppress
 from pathlib import Path
 
-from pympler.tracker import SummaryTracker
 from pyrogram import idle
 
 from bot import LOG_CHAT, LOGS, bot
@@ -10,7 +10,7 @@ from bot.utils import ascheduler
 from bot.utils.aiohttp_helper import AioHttp
 from bot.utils.db import dB, mongo_client
 
-tracker = SummaryTracker()
+tracemalloc.start()
 
 
 async def start_clients():
