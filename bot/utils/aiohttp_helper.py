@@ -16,20 +16,15 @@ MAX_THREADS = 4
 _INSTANCES = []
 
 
-class AioHttpHelper:
+class AioHttpManager:
     def __init__(self, max_sessions, *args, **kwargs):
         self.max_sessions = max_sessions
         self.args = args
         self.kwargs = kwargs
         self.sessions = [self._create_session() for _ in range(max_sessions)]
         self.lock = asyncio.Lock()
+        self._closed = False
         _INSTANCES.append(self)
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
 
     def _create_session(self):
         return {
@@ -37,7 +32,16 @@ class AioHttpHelper:
             "usage_count": 0,
         }
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
     async def get_session(self):
+        if self._closed:
+            raise RuntimeError("Cannot get session, helper is closed")
+
         async with self.lock:
             if not self.sessions:
                 self.sessions = [
@@ -47,18 +51,27 @@ class AioHttpHelper:
             lowest_usage_session["usage_count"] += 1
             session = lowest_usage_session["session"]
             if session.closed:
+                with suppress(Exception):
+                    await session.close()
                 self.sessions.remove(lowest_usage_session)
-                self.sessions.append(self._create_session())
-                return self.sessions[-1]["session"]
+                new_session = self._create_session()
+                self.sessions.append(new_session)
+                session = new_session["session"]
             return session
 
     async def close(self):
-        for n, s in enumerate(self.sessions):
-            self.sessions.remove(s)
-            try:
-                await s["session"].close()
-            except Exception as e:
-                LOGGER(__name__).error(f"Could not close session ({n}): {e}")
+        if self._closed:
+            return
+        self._closed = True
+
+        async with self.lock:
+            while self.sessions:
+                session_dict = self.sessions.pop()
+                session = session_dict["session"]
+                try:
+                    await session.close()
+                except Exception as e:
+                    LOGGER(__name__).error(f"Could not close session: {e}")
 
     async def request(
         self,
@@ -212,4 +225,4 @@ class AioHttpHelper:
         return filename, total_size
 
 
-AioHttp = AioHttpHelper(2)
+AioHttp = AioHttpManager(2)

@@ -35,8 +35,8 @@ def convert_img(path: Path) -> Image.Image:
 
 
 def resize_img(path: Path):
-    img = Image.open(path)
-    img.save(path, "PNG")
+    with Image.open(path) as img:
+        img.save(path, "PNG")
 
 
 def pil_image(path: Path) -> tuple[BytesIO, int, int]:
