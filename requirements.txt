@@ -20,6 +20,7 @@ natsort
 opencv-python-headless
 pillow
 memory_profiler
+matplotlib
 motor
 pyminizip
 git+https://github.com/KurimuzonAkuma/pyrogram

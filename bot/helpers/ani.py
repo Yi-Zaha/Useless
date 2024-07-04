@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 from io import BytesIO, StringIO
 
-import bs4
 import jikanpy
 import requests
 from aiohttp import ClientSession
@@ -710,24 +709,6 @@ async def get_anime_manga(
     )
 
 
-def get_poster(query):
-    url_enc_name = query.replace(" ", "+")
-    # Searching for query list in imdb
-    page = requests.get(
-        f"https://www.imdb.com/find?ref_=nv_sr_fn&q={url_enc_name}&s=all"
-    )
-    soup = bs4.BeautifulSoup(page.content, "lxml")
-    odds = soup.findAll("tr", "odd")
-    # Fetching the first post from search
-    page_link = "http://www.imdb.com/" + odds[0].findNext("td").findNext("td").a["href"]
-    page1 = requests.get(page_link)
-    soup = bs4.BeautifulSoup(page1.content, "lxml")
-    # Poster Link
-    image = soup.find("link", attrs={"rel": "image_src"}).get("href", None)
-    if image is not None:
-        # img_path = wget.download(image, os.path.join(Config.DOWNLOAD_LOCATION, 'imdb_poster.jpg'))
-        return image
-
 
 def replace_text(text):
     return text.replace('"', "").replace("\\r", "").replace("\\n", "").replace("\\", "")
@@ -743,73 +724,6 @@ def memory_file(name=None, contents=None, *, temp_bytes=True):
         file.write(contents)
         file.seek(0)
     return file
-
-
-async def search_in_animefiller(query):
-    "To search anime name and get its id"
-    html = requests.get(animnefillerurl).text
-    soup = bs4.BeautifulSoup(html, "html.parser")
-    div = soup.findAll("div", attrs={"class": "Group"})
-    index = {}
-    for i in div:
-        li = i.findAll("li")
-        for jk in li:
-            yum = jk.a["href"].split("/")[-1]
-            cum = jk.text
-            index[cum] = yum
-    keys = list(index.keys())
-    return {
-        keys[i]: index[keys[i]]
-        for i in range(len(keys))
-        if query.lower() in keys[i].lower()
-    }
-
-
-async def get_filler_episodes(filler_id):  # sourcery no-metrics
-    "to get eppisode numbers"
-    html = requests.get(animnefillerurl + filler_id).text
-    soup = bs4.BeautifulSoup(html, "html.parser")
-    div = soup.find("div", attrs={"id": "Condensed"})
-    complete_anime = div.find_all("span", attrs={"class": "Episodes"})
-    if len(complete_anime) == 1:
-        total_episodes = complete_anime[0].findAll("a")
-        mixed_episodes = None
-        filler_episodes = None
-        anime_canon_episodes = None
-        total_ep = ", ".join(total_no.text for total_no in total_episodes)
-    elif len(complete_anime) == 2:
-        total_episodes = complete_anime[0].findAll("a")
-        filler_ep = complete_anime[1].findAll("a")
-        mixed_episodes = None
-        anime_canon_episodes = None
-        total_ep = ", ".join(total_no.text for total_no in total_episodes)
-        filler_episodes = ", ".join(filler_no.text for filler_no in filler_ep)
-    elif len(complete_anime) == 3:
-        total_episodes = complete_anime[0].findAll("a")
-        mixed_ep = complete_anime[1].findAll("a")
-        filler_ep = complete_anime[2].findAll("a")
-        anime_canon_episodes = None
-        total_ep = ", ".join(total_no.text for total_no in total_episodes)
-        filler_episodes = ", ".join(filler_no.text for filler_no in filler_ep)
-        mixed_episodes = ", ".join(miixed_no.text for miixed_no in mixed_ep)
-    elif len(complete_anime) == 4:
-        total_episodes = complete_anime[0].findAll("a")
-        mixed_ep = complete_anime[1].findAll("a")
-        filler_ep = complete_anime[2].findAll("a")
-        animecanon_ep = complete_anime[3].findAll("a")
-        total_ep = ", ".join(total_no.text for total_no in total_episodes)
-        filler_episodes = ", ".join(filler_no.text for filler_no in filler_ep)
-        mixed_episodes = ", ".join(miixed_no.text for miixed_no in mixed_ep)
-        anime_canon_episodes = ", ".join(
-            animecanon_no.text for animecanon_no in animecanon_ep
-        )
-    return {
-        "filler_id": filler_id,
-        "total_ep": total_ep,
-        "mixed_ep": mixed_episodes,
-        "filler_episodes": filler_episodes,
-        "anime_canon_episodes": anime_canon_episodes,
-    }
 
 
 async def get_anime_name(name, return_id: bool = False):
