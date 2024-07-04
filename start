@@ -2,7 +2,7 @@ echo "Updating local repo..."
 git_output=$(git checkout HEAD . && git pull -f)
 if [[ $git_output == *"requirements.txt"* ]]; then
     echo "Updating requirements..."
-    pip install --quiet -U -r requirements.txt
+    uv pip install --quiet -U -r requirements.txt
 fi
 echo "Starting..."
 mprof run python3 -m bot
