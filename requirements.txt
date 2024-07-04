@@ -9,6 +9,7 @@ cloudscraper
 fpdf2
 git+https://github.com/Ripeey/Conversation-Pyrogram
 html-telegraph-poster
+httpx
 img2pdf
 jikanpy-v4
 levenshtein
