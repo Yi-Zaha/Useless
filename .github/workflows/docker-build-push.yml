@@ -6,6 +6,7 @@ on:
     paths:
       - 'Dockerfile'
       - 'requirements.txt'
+      - 'start'
 
 jobs:
   docker:
