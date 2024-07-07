@@ -386,7 +386,7 @@ async def restart_bot():
     pull_res = await run_cmd("git checkout . && git pull -f")
     if "requirements.txt" in pull_res[0]:
         await run_cmd("pip install -U -r requirements.txt")
-    os.execl(sys.executable, "mprof", "run", sys.executable, "-m", "bot")
+    os.execl(sys.executable, sys.executable, "-m", "bot")
 
 
 bot.reboot = restart_bot
