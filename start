@@ -6,4 +6,4 @@ if [[ $git_output == *"requirements.txt"* ]]; then
     uv pip install --quiet -U -r requirements.txt
 fi
 echo "Starting..."
-mprof run python3 -m bot
+python3 -m bot
